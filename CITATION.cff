@@ -1,0 +1,15 @@
+cff-version: 1.2.0
+title: "Agent Cartridge (.acx) — an open standard for portable, provably-leveled coding agents"
+message: "If you use this standard or implementation, please cite it."
+type: software
+authors:
+  - name: "The Agent Cartridge authors"
+version: "0.1.0"
+license: Apache-2.0
+repository-code: "https://github.com/OWNER/agent-cartridge"
+keywords:
+  - agent cartridge
+  - acx
+  - portable agents
+  - verifiable credential
+  - open standard

@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://acx.dev/schema/cal-skillset.v1.json",
+  "title": "ACX CAL Skill Set (acx.cal-skillset/1)",
+  "description": "The BPM participation declaration stored IN a cartridge (rom/cal/skillset.json, ROM-signed): which roles it plays, which other agents it references (by hash), and which loops it participates in.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "plays"],
+  "properties": {
+    "schemaVersion": { "const": "acx.cal-skillset/1" },
+    "plays": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["role"],
+        "properties": {
+          "role": { "type": "string" },
+          "providesCapabilities": { "type": "array", "items": { "type": "string" } },
+          "canComplete": { "type": "array", "items": { "type": "string" }, "description": "skill names this agent can run to completion (incl. skill scripts)" }
+        }
+      }
+    },
+    "references": {
+      "type": "array",
+      "description": "other agents this one hands off to / references, by content hash",
+      "items": { "type": "object", "properties": { "alias": { "type": "string" }, "romDigest": { "type": "string" }, "role": { "type": "string" } } }
+    },
+    "processes": { "type": "array", "items": { "type": "string" }, "description": "CAL ids this agent participates in" }
+  }
+}

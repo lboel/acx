@@ -1,0 +1,177 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://acx.dev/schema/memory-record.v1.json",
+  "title": "AcxMemoryRecord",
+  "description": "AGENTIBUS AgentMemoryArtifact (types/game.ts:370) extended with the mandatory portable/codebaseFingerprint partition.",
+  "type": "object",
+  "required": [
+    "id",
+    "title",
+    "summary",
+    "sourceType",
+    "portable",
+    "codebaseFingerprint",
+    "repoId",
+    "repoLabel",
+    "projectLabel",
+    "timestamp",
+    "impact",
+    "xpAwarded",
+    "tags",
+    "artifactFingerprint",
+    "zone"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "title": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "sourceType": {
+      "type": "string",
+      "default": "memory"
+    },
+    "portable": {
+      "type": "boolean",
+      "description": "true=TRANSFERABLE (ROM); false=FIELD-LEARNED (SAVE, quarantined)."
+    },
+    "codebaseFingerprint": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^cbf1_[0-9a-f]{40}$",
+      "description": "HMAC-SHA-256(installationSalt, canonicalRepoIdentity) truncated 160 bits. MUST be null iff portable=true."
+    },
+    "repoId": {
+      "type": "null",
+      "description": "MUST be null in any exported bundle (stripped at export boundary)."
+    },
+    "repoLabel": {
+      "type": "string",
+      "description": "On export: 'portable-core' (transferable) or 'field-learned' (foreign)."
+    },
+    "projectLabel": {
+      "type": "string"
+    },
+    "markdownPath": {
+      "type": "string"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "impact": {
+      "enum": [
+        "positive",
+        "negative",
+        "neutral"
+      ]
+    },
+    "xpAwarded": {
+      "type": "number",
+      "minimum": 0
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "artifactFingerprint": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{10}$",
+      "description": "sha1(title+summary+sourceType+repoId+projectLabel+timestamp+impact+xpAwarded+tags)[0:10]. Excludes portable & codebaseFingerprint."
+    },
+    "zone": {
+      "enum": [
+        "rom",
+        "save"
+      ],
+      "description": "Derived: portable=true -> rom, portable=false -> save."
+    },
+    "foreign": {
+      "type": "boolean",
+      "default": false,
+      "description": "true for imported field-learned records held under a foreign codebaseFingerprint; never re-projected."
+    },
+    "embeddingEngine": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Engine id of any optional vector; consumer MUST re-index and ignore foreign vectors."
+    },
+    "origin": {
+      "enum": [
+        "native",
+        "imported"
+      ],
+      "default": "native"
+    },
+    "importedFrom": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "packageSlug": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "similarity": {
+      "type": [
+        "number",
+        "null"
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "portable": {
+            "const": true
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "codebaseFingerprint": {
+            "const": null
+          },
+          "zone": {
+            "const": "rom"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "portable": {
+            "const": false
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "codebaseFingerprint": {
+            "type": "string"
+          },
+          "zone": {
+            "const": "save"
+          }
+        }
+      }
+    }
+  ],
+  "additionalProperties": false
+}

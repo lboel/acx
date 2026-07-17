@@ -1,0 +1,477 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agentcartridge.dev/schemas/loop-context-policy/1",
+  "title": "ACX Loop + Context Policy",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "loop",
+    "context"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "const": "acx.loop-context-policy/1"
+    },
+    "loop": {
+      "type": "object",
+      "required": [
+        "maxTurns",
+        "cycle",
+        "stopConditions"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "maxTurns": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "cycle": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "enum": [
+              "gather_context",
+              "act",
+              "verify"
+            ]
+          }
+        },
+        "verification": {
+          "type": "object",
+          "required": [
+            "passIntent"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "commands": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "maxAttempts": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "scope": {
+              "enum": [
+                "touched",
+                "all"
+              ]
+            },
+            "passIntent": {
+              "type": "string"
+            },
+            "blockOnFailure": {
+              "type": "boolean"
+            }
+          }
+        },
+        "stopConditions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "when",
+              "action"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "when": {
+                "enum": [
+                  "completed",
+                  "pr_ready",
+                  "blocked",
+                  "max_turns",
+                  "guardrail_stop",
+                  "budget_exhausted",
+                  "needs_input"
+                ]
+              },
+              "action": {
+                "enum": [
+                  "stop",
+                  "handoff",
+                  "await_human",
+                  "report_continue"
+                ]
+              }
+            }
+          }
+        },
+        "handoff": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "emits": {
+              "const": "OperatorCommandReport"
+            },
+            "returnWindows": {
+              "type": "array",
+              "items": {
+                "enum": [
+                  "phase_exit",
+                  "blocker",
+                  "pr_ready",
+                  "ambiguity",
+                  "destructive_change"
+                ]
+              }
+            }
+          }
+        },
+        "subAgents": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "description",
+              "promptRef",
+              "tools"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+              },
+              "description": {
+                "type": "string",
+                "maxLength": 1024
+              },
+              "promptRef": {
+                "type": "string"
+              },
+              "tools": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "maxTurns": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "retrieval": {
+                "$ref": "#/$defs/RetrievalStrategy"
+              },
+              "contextReturnBudgetTokens": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "concurrency": {
+                "enum": [
+                  "single_threaded",
+                  "parallel"
+                ],
+                "default": "single_threaded"
+              }
+            }
+          }
+        }
+      }
+    },
+    "context": {
+      "type": "object",
+      "required": [
+        "retrieval",
+        "embeddingEngineId"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "retrieval": {
+          "$ref": "#/$defs/RetrievalStrategy"
+        },
+        "identifierKinds": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "file_path",
+              "stored_query",
+              "web_link",
+              "memory_ref",
+              "symbol"
+            ]
+          }
+        },
+        "preload": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "compaction": {
+          "type": "object",
+          "required": [
+            "targetTokenBudget"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "preserve": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/ContextCategory"
+              }
+            },
+            "discard": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/ContextCategory"
+              }
+            },
+            "targetTokenBudget": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        },
+        "toolResultTruncation": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "maxTokens": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "keepLastN": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "headBytes": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "tailBytes": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "memoryFiles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "embeddingEngineId": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "rules": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/MissionRule"
+      }
+    },
+    "guardrailContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "signalKinds": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "milestone",
+              "checkpoint",
+              "question",
+              "blocked",
+              "stop"
+            ]
+          }
+        },
+        "outcomeReport": {
+          "const": "OperatorCommandReport"
+        }
+      }
+    },
+    "budget": {
+      "$ref": "#/$defs/ResourceLimits"
+    },
+    "hints": {
+      "type": "object",
+      "description": "Opaque, model-specific. Hosts MUST be able to ignore every field and still run a conformant loop; nothing here may alter outcome contracts.",
+      "additionalProperties": true,
+      "properties": {
+        "effort": {},
+        "kvCachePrefixStable": {
+          "type": "boolean"
+        },
+        "summarizationAlgorithm": {
+          "type": "string"
+        },
+        "compactionMechanism": {
+          "type": "string"
+        },
+        "contextEditing": {
+          "type": "object"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "RetrievalStrategy": {
+      "enum": [
+        "just_in_time",
+        "preload",
+        "hybrid"
+      ]
+    },
+    "ContextCategory": {
+      "enum": [
+        "architectural_decisions",
+        "unresolved_bugs",
+        "implementation_details",
+        "user_intent",
+        "task_state",
+        "tool_output",
+        "redundant_output",
+        "file_contents"
+      ]
+    },
+    "MissionRule": {
+      "type": "object",
+      "required": [
+        "id",
+        "category",
+        "title",
+        "trigger",
+        "action",
+        "severity"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "category": {
+          "enum": [
+            "question",
+            "checkpoint",
+            "devtools",
+            "quality",
+            "coordination"
+          ]
+        },
+        "title": {
+          "type": "string"
+        },
+        "trigger": {
+          "type": "string"
+        },
+        "action": {
+          "type": "string"
+        },
+        "severity": {
+          "enum": [
+            "info",
+            "warn",
+            "critical"
+          ]
+        }
+      }
+    },
+    "ResourceLimits": {
+      "type": "object",
+      "required": [
+        "tokenSpend",
+        "concurrency",
+        "timeouts",
+        "killSwitch"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "tokenSpend": {
+          "type": "object",
+          "required": [
+            "dailyPerProject",
+            "dailyPerAgent",
+            "dailyGlobal"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "dailyPerProject": {
+              "type": "number"
+            },
+            "dailyPerAgent": {
+              "type": "number"
+            },
+            "dailyGlobal": {
+              "type": "number"
+            }
+          }
+        },
+        "concurrency": {
+          "type": "object",
+          "required": [
+            "maxCommandsPerStation",
+            "maxStationsPerProject",
+            "maxGlobalInFlightCommands"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "maxCommandsPerStation": {
+              "type": "integer"
+            },
+            "maxStationsPerProject": {
+              "type": "integer"
+            },
+            "maxGlobalInFlightCommands": {
+              "type": "integer"
+            }
+          }
+        },
+        "timeouts": {
+          "type": "object",
+          "required": [
+            "defaultCommandSec",
+            "maxCommandSec"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "defaultCommandSec": {
+              "type": "integer"
+            },
+            "maxCommandSec": {
+              "type": "integer"
+            }
+          }
+        },
+        "killSwitch": {
+          "type": "object",
+          "required": [
+            "enabled"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "reason": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "pausedProjectIds": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "pausedStationIds": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

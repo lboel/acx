@@ -1,0 +1,311 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://acx.dev/schema/trust-registry/v1",
+  "title": "ACX Trust Registry (public keys only)",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "keys"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0"
+    },
+    "registryId": {
+      "type": "string",
+      "description": "reverse-DNS id of the registry owner, e.g. com.example.teamx"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "keys": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/TrustedKey"
+      }
+    }
+  },
+  "$defs": {
+    "TrustedKey": {
+      "type": "object",
+      "required": [
+        "keyid",
+        "publisherId",
+        "algorithm",
+        "publicKeyPem",
+        "status",
+        "notBefore",
+        "notAfter",
+        "namespaceProof"
+      ],
+      "additionalProperties": false,
+      "description": "Public key material ONLY. Private keys MUST NEVER appear here and MUST NEVER be git-tracked.",
+      "properties": {
+        "keyid": {
+          "type": "string",
+          "pattern": "^ed25519:[0-9a-f]{64}$",
+          "description": "ed25519: + lowercasehex(sha256(DER SubjectPublicKeyInfo))"
+        },
+        "publisherId": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(\\.[a-z0-9-]+)+$",
+          "description": "reverse-DNS publisher id, e.g. com.example.teamx or io.github.alice"
+        },
+        "algorithm": {
+          "const": "ed25519"
+        },
+        "publicKeyPem": {
+          "type": "string",
+          "description": "SPKI PEM. Public key only."
+        },
+        "status": {
+          "enum": [
+            "active",
+            "revoked",
+            "expired"
+          ]
+        },
+        "notBefore": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "notAfter": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "rotatedFrom": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "keyid of the predecessor in a rotation chain"
+        },
+        "rotatedTo": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "keyid of the successor once rotated"
+        },
+        "revokedAt": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "revocationReason": {
+          "enum": [
+            "key-compromise",
+            "superseded",
+            "retired",
+            null
+          ]
+        },
+        "namespaceProof": {
+          "$ref": "#/$defs/NamespaceProof"
+        }
+      }
+    },
+    "NamespaceProof": {
+      "type": "object",
+      "required": [
+        "method",
+        "verifiedAt"
+      ],
+      "oneOf": [
+        {
+          "properties": {
+            "method": {
+              "const": "dns-txt"
+            },
+            "txtRecord": {
+              "type": "string",
+              "pattern": "^_acx-challenge\\."
+            },
+            "verifiedAt": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          "required": [
+            "method",
+            "txtRecord",
+            "verifiedAt"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "properties": {
+            "method": {
+              "const": "github-oidc"
+            },
+            "oidcSubject": {
+              "type": "string",
+              "description": "e.g. repo:org/repo:ref:refs/heads/main"
+            },
+            "oidcIssuer": {
+              "const": "https://token.actions.githubusercontent.com"
+            },
+            "verifiedAt": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          "required": [
+            "method",
+            "oidcSubject",
+            "oidcIssuer",
+            "verifiedAt"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "DsseEnvelope": {
+      "type": "object",
+      "required": [
+        "payloadType",
+        "payload",
+        "signatures"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "payloadType": {
+          "const": "application/vnd.in-toto+json"
+        },
+        "payload": {
+          "type": "string",
+          "contentEncoding": "base64",
+          "description": "base64(canonical-json(InTotoStatement))"
+        },
+        "signatures": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "sig"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "keyid": {
+                "type": "string",
+                "pattern": "^ed25519:[0-9a-f]{64}$"
+              },
+              "sig": {
+                "type": "string",
+                "contentEncoding": "base64",
+                "description": "base64(Ed25519(privkey, PAE(payloadType, payload)))"
+              }
+            }
+          }
+        }
+      }
+    },
+    "InTotoStatement": {
+      "type": "object",
+      "required": [
+        "_type",
+        "subject",
+        "predicateType",
+        "predicate"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "_type": {
+          "const": "https://in-toto.io/Statement/v1"
+        },
+        "subject": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "digest"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "digest": {
+                "type": "object",
+                "required": [
+                  "sha256"
+                ],
+                "properties": {
+                  "sha256": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$",
+                    "description": "ROM-zone packageHash"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "predicateType": {
+          "const": "https://acx.dev/attestation/cartridge/v1"
+        },
+        "predicate": {
+          "$ref": "#/$defs/CartridgePredicate"
+        }
+      }
+    },
+    "CartridgePredicate": {
+      "type": "object",
+      "required": [
+        "acxSchemaVersion",
+        "publisherId",
+        "romDigest",
+        "manifestHash",
+        "checksumHash",
+        "signedAt"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "acxSchemaVersion": {
+          "const": "1.0"
+        },
+        "publisherId": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(\\.[a-z0-9-]+)+$"
+        },
+        "romDigest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "manifestHash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "checksumHash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "fileCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "embeddingEngine": {
+          "type": "string",
+          "description": "e.g. local-hash-128; consumers re-index rather than trust foreign vectors"
+        },
+        "signedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "provenanceInstanceId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "informational only; MUST NOT drive trust"
+        }
+      }
+    }
+  }
+}

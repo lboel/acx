@@ -1,0 +1,118 @@
+[project]
+site_name = "Agent Cartridge (.acx)"
+site_description = "An open standard for portable, signable, provably-leveled specialized coding agents."
+site_author = "The Agent Cartridge authors"
+copyright = """
+Apache-2.0 &middot; the open exchange format for specialized agents
+"""
+
+nav = [
+  { "Home" = "index.md" },
+  { "Concepts" = [
+    "concepts/overview.md",
+    "concepts/cartridge-model.md",
+    "concepts/studio.md",
+    "concepts/agent-os.md",
+  ] },
+  { "The format" = [
+    "format/container.md",
+    "format/signing-trust.md",
+    "format/skills.md",
+    "format/capabilities.md",
+    "format/memory.md",
+    "format/packages.md",
+    "format/harness-requirements.md",
+    "format/loop-context.md",
+    "format/loops-cal.md",
+    "format/knowledge-okf.md",
+  ] },
+  { "Leveling up" = [
+    "leveling/provable-level.md",
+  ] },
+  { "Lifecycle" = [
+    "lifecycle/company-loop.md",
+    "lifecycle/init-agent-set.md",
+    "lifecycle/loading.md",
+    "lifecycle/distribution.md",
+    "lifecycle/exchange.md",
+    "lifecycle/sharing-git.md",
+  ] },
+  { "Reference" = [
+    "reference/for-agents.md",
+    "reference/cli.md",
+    "reference/conformance.md",
+    "reference/schemas.md",
+  ] },
+  { "Proofs" = "proofs.md" },
+]
+
+extra_css = ["stylesheets/extra.css"]
+
+[project.theme]
+language = "en"
+features = [
+  "announce.dismiss",
+  "content.code.annotate",
+  "content.code.copy",
+  "content.code.select",
+  "content.footnote.tooltips",
+  "content.tabs.link",
+  "navigation.instant",
+  "navigation.sections",
+  "navigation.tracking",
+  "navigation.top",
+  "navigation.indexes",
+  "search.highlight",
+  "search.suggest",
+  "toc.follow",
+]
+
+[[project.theme.palette]]
+scheme = "default"
+primary = "teal"
+accent = "cyan"
+toggle.icon = "lucide/sun"
+toggle.name = "Switch to dark mode"
+
+[[project.theme.palette]]
+scheme = "slate"
+primary = "teal"
+accent = "cyan"
+toggle.icon = "lucide/moon"
+toggle.name = "Switch to light mode"
+
+[project.markdown_extensions.abbr]
+[project.markdown_extensions.admonition]
+[project.markdown_extensions.attr_list]
+[project.markdown_extensions.def_list]
+[project.markdown_extensions.footnotes]
+[project.markdown_extensions.md_in_html]
+[project.markdown_extensions.toc]
+permalink = true
+[project.markdown_extensions.pymdownx.arithmatex]
+generic = true
+[project.markdown_extensions.pymdownx.betterem]
+[project.markdown_extensions.pymdownx.caret]
+[project.markdown_extensions.pymdownx.details]
+[project.markdown_extensions.pymdownx.emoji]
+emoji_generator = "zensical.extensions.emoji.to_svg"
+emoji_index = "zensical.extensions.emoji.twemoji"
+[project.markdown_extensions.pymdownx.highlight]
+anchor_linenums = true
+line_spans = "__span"
+pygments_lang_class = true
+[project.markdown_extensions.pymdownx.inlinehilite]
+[project.markdown_extensions.pymdownx.keys]
+[project.markdown_extensions.pymdownx.magiclink]
+[project.markdown_extensions.pymdownx.mark]
+[project.markdown_extensions.pymdownx.smartsymbols]
+[project.markdown_extensions.pymdownx.superfences]
+custom_fences = [
+  { name = "mermaid", class = "mermaid", format = "pymdownx.superfences.fence_code_format" },
+]
+[project.markdown_extensions.pymdownx.tabbed]
+alternate_style = true
+combine_header_slug = true
+[project.markdown_extensions.pymdownx.tasklist]
+custom_checkbox = true
+[project.markdown_extensions.pymdownx.tilde]

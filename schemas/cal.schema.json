@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://acx.dev/schema/cal.v1.json",
+  "title": "ACX Conditional Agentic Loop (acx.cal/1)",
+  "description": "A BPMN-like process connecting MULTIPLE cartridges (referenced by content hash or by role slot) under conditions: who may do what, when, how, and what counts as completion. Carries RAC (required available context) as descriptions only — never content.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "id", "participants", "start", "nodes", "edges"],
+  "properties": {
+    "schemaVersion": { "const": "acx.cal/1" },
+    "id": { "type": "string" },
+    "name": { "type": "string" },
+    "description": { "type": "string" },
+    "participants": { "type": "array", "items": { "$ref": "#/$defs/cartridgeRef" } },
+    "rac": { "type": "array", "items": { "$ref": "#/$defs/racItem" } },
+    "variables": { "type": "array", "items": { "type": "object", "required": ["name", "type"], "properties": { "name": { "type": "string" }, "type": { "type": "string" }, "init": {} } } },
+    "start": { "type": "string" },
+    "nodes": { "type": "array", "items": { "$ref": "#/$defs/node" } },
+    "edges": { "type": "array", "items": { "$ref": "#/$defs/edge" } }
+  },
+  "$defs": {
+    "cartridgeRef": {
+      "type": "object",
+      "required": ["alias", "bind"],
+      "properties": {
+        "alias": { "type": "string" },
+        "bind": { "enum": ["hash", "slot"] },
+        "romDigest": { "type": "string", "description": "when bind=hash: the exact signed ROM manifest hash (sha256:...)" },
+        "cartridgeId": { "type": "string" },
+        "required": { "type": "boolean", "default": true },
+        "slot": {
+          "type": "object",
+          "description": "when bind=slot: any cartridge matching these constraints may fill the alias (staffing)",
+          "properties": {
+            "role": { "type": "string" },
+            "minLevel": { "type": "object", "properties": { "careerTier": { "type": "string" }, "acxLevel": { "type": "integer" } } },
+            "capabilities": { "type": "array", "items": { "type": "object", "properties": { "taskType": { "type": "string" }, "stack": { "type": "array" } } } }
+          }
+        }
+      }
+    },
+    "racItem": {
+      "type": "object",
+      "required": ["id", "kind", "description"],
+      "additionalProperties": false,
+      "description": "Required Available Context: a DESCRIPTION of knowledge that must be present. MUST NOT carry the content itself.",
+      "properties": {
+        "id": { "type": "string" },
+        "kind": { "enum": ["wiki", "code-map", "infra", "terraform", "api-spec", "dataset", "runbook", "custom"] },
+        "description": { "type": "string" },
+        "required": { "type": "boolean", "default": true },
+        "check": { "type": "object", "properties": { "type": { "enum": ["file-glob", "url", "mcp-resource", "manual"] }, "hint": { "type": "string" } } },
+        "okf": { "type": "object", "description": "optional Open Knowledge Format descriptor of the required knowledge artifact (metadata only)" }
+      },
+      "not": { "required": ["content"] }
+    },
+    "node": {
+      "oneOf": [
+        {
+          "type": "object", "required": ["id", "type", "agent", "completion"], "additionalProperties": false,
+          "properties": {
+            "id": { "type": "string" }, "type": { "const": "task" }, "agent": { "type": "string" }, "action": { "type": "string" },
+            "requires": { "type": "object", "properties": { "skills": { "type": "array", "items": { "type": "string" } }, "capabilities": { "type": "array", "items": { "type": "string" } }, "rac": { "type": "array", "items": { "type": "string" } } } },
+            "completion": { "$ref": "#/$defs/completion" },
+            "budget": { "type": "object" }, "guardrails": { "type": "array" }
+          }
+        },
+        { "type": "object", "required": ["id", "type"], "properties": { "id": { "type": "string" }, "type": { "const": "gateway" }, "gateway": { "enum": ["exclusive", "parallel", "inclusive"] } } },
+        { "type": "object", "required": ["id", "type", "event"], "properties": { "id": { "type": "string" }, "type": { "const": "event" }, "event": { "enum": ["start", "end", "stop", "handoff", "timer"] } } }
+      ]
+    },
+    "completion": {
+      "type": "object", "required": ["type"],
+      "description": "what counts as done for a task — completion of skill scripts, a verification pass, a guardrail, or an artifact",
+      "properties": {
+        "type": { "enum": ["skill-scripts", "verification", "guardrail", "artifact"] },
+        "scripts": { "type": "array", "items": { "type": "string" } },
+        "commands": { "type": "array", "items": { "type": "string" } },
+        "passIntent": { "type": "string" },
+        "kind": { "type": "string" },
+        "produces": { "type": "string" }
+      }
+    },
+    "edge": {
+      "type": "object", "required": ["from", "to"], "additionalProperties": false,
+      "properties": { "from": { "type": "string" }, "to": { "type": "string" }, "when": { "$ref": "#/$defs/condition" } }
+    },
+    "condition": {
+      "type": "object",
+      "description": "structured, safe condition (no expression eval)",
+      "properties": {
+        "always": { "type": "boolean" },
+        "var": { "type": "string" }, "op": { "enum": ["eq", "ne", "lt", "gt", "le", "ge", "in"] }, "value": {},
+        "all": { "type": "array", "items": { "$ref": "#/$defs/condition" } },
+        "any": { "type": "array", "items": { "$ref": "#/$defs/condition" } },
+        "not": { "$ref": "#/$defs/condition" },
+        "racAvailable": { "type": "string" }
+      }
+    }
+  }
+}

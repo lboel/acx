@@ -1,0 +1,20 @@
+# dependencies / build output
+node_modules/
+docs-site/.venv/
+docs-site/site/
+.playwright-mcp/
+
+# generated cartridges & keys (regenerate with the scripts / platform/seed.mjs)
+examples/*.acx
+examples/*.key.pem
+platform/catalog/*.acx
+platform/catalog/trust-registry.json
+platform/.seed-src/
+
+# misc
+*.log
+.DS_Store
+
+# optional LanceDB materializer
+tools/lance/.venv/
+examples/*.memories.lance/

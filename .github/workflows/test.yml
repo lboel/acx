@@ -1,0 +1,22 @@
+# Runs the zero-dependency conformance suite and the end-to-end proofs on every push/PR.
+name: test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Conformance test suite
+        run: npm test
+      - name: Smoke (export → verify → strip → tamper)
+        run: node --experimental-sqlite scripts/smoke.mjs
+      - name: Provable level (earn + verify)
+        run: node --experimental-sqlite scripts/prove-level.mjs

@@ -1,0 +1,50 @@
+{
+  "name": "agent-cartridge",
+  "version": "0.1.0",
+  "description": "ACX (Agent Cartridge eXchange) — the open standard + zero-dependency reference implementation for portable, signable, provably-leveled specialized coding agents.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "homepage": "https://github.com/OWNER/agent-cartridge#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OWNER/agent-cartridge.git"
+  },
+  "bugs": {
+    "url": "https://github.com/OWNER/agent-cartridge/issues"
+  },
+  "author": "The Agent Cartridge authors",
+  "bin": {
+    "acx": "src/cli.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "files": [
+    "src/",
+    "schemas/",
+    "examples/sample-agent-package/",
+    "SPEC.md",
+    "AGENTS.md",
+    "README.md",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "scripts": {
+    "test": "node --experimental-sqlite --test 'test/*.test.mjs'",
+    "acx": "node --experimental-sqlite src/cli.mjs"
+  },
+  "keywords": [
+    "agent",
+    "cartridge",
+    "acx",
+    "ai-agent",
+    "portable-agent",
+    "agent-skills",
+    "mcp",
+    "sqlite",
+    "lancedb",
+    "dsse",
+    "verifiable-credential",
+    "open-standard"
+  ]
+}

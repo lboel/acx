@@ -1,0 +1,296 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://acx.dev/schemas/harness-requirements.v1.json",
+  "title": "AcxHarnessRequirements",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "mcp",
+    "model",
+    "requiredTools"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "acx.harness.v1"
+    },
+    "mcp": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "minProtocolRevision"
+      ],
+      "properties": {
+        "minProtocolRevision": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+          "description": "Floor MCP revision (oldest with initialize+tools+inputSchema, e.g. 2024-11-05). Not a preferred/current version."
+        },
+        "preferredProtocolRevision": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+          "description": "Current revision the cartridge targets, e.g. 2025-11-25."
+        },
+        "requireStructuredContent": {
+          "type": "boolean",
+          "default": false,
+          "description": "If true, host MUST support outputSchema/structuredContent (MCP >= 2025-06-18)."
+        }
+      }
+    },
+    "model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "toolUse",
+        "minContextWindowTokens"
+      ],
+      "properties": {
+        "toolUse": {
+          "type": "boolean",
+          "description": "Tool-calling capability is required when true."
+        },
+        "minContextWindowTokens": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Integer token floor. MUST NOT be a model id."
+        },
+        "structuredOutput": {
+          "type": "boolean",
+          "default": false,
+          "description": "Optional: model can emit schema-constrained JSON."
+        }
+      }
+    },
+    "requiredTools": {
+      "type": "array",
+      "minItems": 4,
+      "items": {
+        "$ref": "#/$defs/toolRoleContract"
+      },
+      "description": "MUST include the four roles acx:execute, acx:dispatch, acx:memory.write, acx:search."
+    },
+    "optionalTools": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/toolRoleContract"
+      },
+      "description": "Nice-to-have inventory tools; absence MUST NOT block activation."
+    },
+    "filesystem": {
+      "$ref": "#/$defs/fsScopes"
+    },
+    "network": {
+      "$ref": "#/$defs/netScopes"
+    }
+  },
+  "$defs": {
+    "capabilityScope": {
+      "type": "string",
+      "enum": [
+        "exec",
+        "dispatch",
+        "memory.write",
+        "memory.read",
+        "search",
+        "knowledge.write",
+        "fs.read",
+        "fs.write",
+        "net.fetch"
+      ]
+    },
+    "toolRoleContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "role",
+        "tier",
+        "capabilityScopes",
+        "name",
+        "description",
+        "inputSchema"
+      ],
+      "properties": {
+        "role": {
+          "type": "string",
+          "pattern": "^acx:[a-z][a-z0-9._-]*$",
+          "description": "Canonical role id; ROM content invokes tools by this, never by host-specific name."
+        },
+        "tier": {
+          "type": "string",
+          "enum": [
+            "required",
+            "optional"
+          ]
+        },
+        "capabilityScopes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/capabilityScope"
+          }
+        },
+        "name": {
+          "type": "string",
+          "description": "Reused verbatim from AGENTIBUS McpToolDefinition: informative canonical reference name."
+        },
+        "description": {
+          "type": "string",
+          "description": "Reused verbatim from AGENTIBUS McpToolDefinition."
+        },
+        "inputSchema": {
+          "type": "object",
+          "description": "Reused verbatim from AGENTIBUS McpToolDefinition: raw JSON Schema, defaults to 2020-12 per MCP. Host tool inputSchema MUST be structurally accepting of this contract."
+        }
+      }
+    },
+    "fsScopes": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "read": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Path globs the host MUST grant read access to."
+        },
+        "write": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Path globs the host MUST grant write access to."
+        }
+      }
+    },
+    "netScopes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "egress"
+      ],
+      "properties": {
+        "egress": {
+          "type": "string",
+          "enum": [
+            "none",
+            "allowlist",
+            "any"
+          ],
+          "default": "none"
+        },
+        "allowlist": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Required when egress=allowlist: host authorities (host[:port])."
+        }
+      }
+    },
+    "harnessCompliance": {
+      "$comment": "Host-emitted advertisement/refusal descriptor; media type application/vnd.acx.harness-compliance.v1+json.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "requirementsHash",
+        "protocolRevision",
+        "model",
+        "bindings",
+        "verdict"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": "acx.harness.compliance.v1"
+        },
+        "requirementsHash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "Digest of the exact harness-requirements manifest evaluated."
+        },
+        "protocolRevision": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        "model": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "toolUse",
+            "contextWindowTokens"
+          ],
+          "properties": {
+            "toolUse": {
+              "type": "boolean"
+            },
+            "contextWindowTokens": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "structuredOutput": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        },
+        "bindings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "role",
+              "boundTool",
+              "scopesGranted",
+              "satisfied"
+            ],
+            "properties": {
+              "role": {
+                "type": "string",
+                "pattern": "^acx:[a-z][a-z0-9._-]*$"
+              },
+              "boundTool": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Concrete host MCP tool name mapped onto the role; null when unbound."
+              },
+              "scopesGranted": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/capabilityScope"
+                }
+              },
+              "satisfied": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "filesystemGranted": {
+          "$ref": "#/$defs/fsScopes"
+        },
+        "networkGranted": {
+          "$ref": "#/$defs/netScopes"
+        },
+        "verdict": {
+          "type": "string",
+          "enum": [
+            "accept",
+            "refuse"
+          ]
+        },
+        "unmet": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Requirement ids that failed; non-empty implies verdict=refuse."
+        }
+      }
+    }
+  }
+}

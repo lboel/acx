@@ -1,0 +1,69 @@
+# Registry verification gate + index regeneration.
+#
+# tools/build-registry-index.mjs opens and cryptographically verifies EVERY
+# cartridge under registry/cartridges/** (Ed25519 signature, tamper check,
+# package-spec validation) and only then writes registry/index.json
+# (schemaVersion acx.registry-index/1). It exits non-zero on any tampered,
+# invalid, or unclean cartridge — so this job IS the gate: a bad push or PR
+# fails CI and can never be indexed.
+#
+# On pull_request: verify only (the regenerated index is never committed).
+# On push to main: verify, then commit the regenerated registry/index.json
+# back if it changed. We commit rather than upload an artifact because the
+# index is part of the git registry itself — consumers clone/fetch the repo
+# and read registry/index.json directly, so it must live in the tree.
+name: Registry
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "registry/**"
+      - "tools/**"
+      - ".github/workflows/registry.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "registry/**"
+      - "tools/**"
+      - ".github/workflows/registry.yml"
+
+# contents: write is needed only for the push-back of registry/index.json on
+# main; on pull_request the default GITHUB_TOKEN for forks is read-only anyway.
+permissions:
+  contents: write
+
+# One registry build at a time so two merges can't race the index push-back.
+concurrency:
+  group: registry-index
+  cancel-in-progress: false
+
+jobs:
+  verify-and-index:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # THE GATE: verifies every cartridge (signature + tamper + package-spec)
+      # and regenerates registry/index.json. Non-zero exit fails the job.
+      - name: Verify cartridges and build registry index
+        run: node --experimental-sqlite tools/build-registry-index.mjs
+
+      # Push-to-main only: commit the regenerated index back if it changed.
+      # Guarded by `git diff --quiet` so a no-op build produces no commit.
+      - name: Commit regenerated index (push to main only)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          git diff --quiet -- registry/index.json || (
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add registry/index.json
+            git commit -m "chore(registry): regenerate index.json [skip ci]"
+            git push
+          )

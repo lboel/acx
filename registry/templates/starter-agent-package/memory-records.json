@@ -1,0 +1,20 @@
+[
+  {
+    "id": "mem-todo-0001",
+    "title": "TODO: a portable lesson this agent learned",
+    "summary": "TODO: one or two sentences describing a codebase-agnostic insight. Example: batching Postgres migrations into idempotent steps avoids partial-apply failures on retry.",
+    "sourceType": "knowledge",
+    "repoId": null,
+    "repoLabel": "",
+    "projectLabel": "",
+    "markdownPath": "",
+    "timestamp": "2026-07-16T00:00:00.000Z",
+    "impact": "positive",
+    "xpAwarded": 10,
+    "tags": [
+      "postgres",
+      "node",
+      "migrations"
+    ]
+  }
+]

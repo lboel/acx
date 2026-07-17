@@ -1,0 +1,89 @@
+{
+  "schemaVersion": "acx.registry-index/1",
+  "generatedAt": "2026-07-17T05:39:33.000Z",
+  "count": 2,
+  "cartridges": [
+    {
+      "slug": "io.github.ridgeworks__ada-ridge__cartridge",
+      "path": "cartridges/io.github.ridgeworks/ada-ridge/cartridge.acx",
+      "name": "Ada Ridge",
+      "publisher": "io.github.ridgeworks",
+      "role": "devops_engineer",
+      "provider": "claude",
+      "model": "claude-opus-4-8",
+      "trust": "portable",
+      "trustStatus": "warning",
+      "specClean": true,
+      "romHash": "sha256:06b9ceae34b07743a3934674aeac6aa5548e61d2cef31b12ebaafd4670b45cd5",
+      "bytes": 135168,
+      "capabilities": [
+        {
+          "taskType": "implement-feature",
+          "stack": [
+            "pkg:generic/python",
+            "pkg:generic/snowflake",
+            "pkg:pypi/apache-airflow",
+            "pkg:pypi/dbt-core"
+          ],
+          "domain": "infrastructure",
+          "verified": false
+        },
+        {
+          "taskType": "build-dag",
+          "stack": [
+            "pkg:generic/snowflake",
+            "pkg:pypi/apache-airflow",
+            "pkg:pypi/dbt-core"
+          ],
+          "domain": "infrastructure",
+          "verified": false
+        }
+      ],
+      "level": {
+        "acxLevel": 30,
+        "careerTier": "distinguished",
+        "boundToRom": true
+      }
+    },
+    {
+      "slug": "io.github.calder-sec__rex-calder__cartridge",
+      "path": "cartridges/io.github.calder-sec/rex-calder/cartridge.acx",
+      "name": "Rex Calder",
+      "publisher": "io.github.calder-sec",
+      "role": "security_expert",
+      "provider": "claude",
+      "model": "claude-sonnet-5",
+      "trust": "portable",
+      "trustStatus": "warning",
+      "specClean": true,
+      "romHash": "sha256:904cc2641f846cfb100dc6c6360ae5f84a5069d65c29176046617ae2e048d4d0",
+      "bytes": 135168,
+      "capabilities": [
+        {
+          "taskType": "implement-feature",
+          "stack": [
+            "pkg:generic/node",
+            "pkg:generic/oauth",
+            "pkg:generic/postgresql"
+          ],
+          "domain": "infrastructure",
+          "verified": false
+        },
+        {
+          "taskType": "harden-security",
+          "stack": [
+            "pkg:generic/oauth",
+            "pkg:generic/postgresql"
+          ],
+          "domain": "infrastructure",
+          "verified": false
+        }
+      ],
+      "level": {
+        "acxLevel": 19,
+        "careerTier": "senior",
+        "boundToRom": true
+      }
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+[
+  {
+    "id": "mem-ge-mnhsl3xg",
+    "title": "Scenario Research Designer joined the company",
+    "summary": "New designer added to design.",
+    "sourceType": "agent_hired",
+    "repoId": null,
+    "repoLabel": "Company Standby",
+    "projectLabel": "Company Standby",
+    "markdownPath": "",
+    "timestamp": "2026-04-02T18:12:22.948Z",
+    "impact": "positive",
+    "xpAwarded": 0,
+    "tags": [
+      "agent-hired",
+      "agent_hired",
+      "research",
+      "ux",
+      "benchmarking"
+    ]
+  }
+]

@@ -1,0 +1,191 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://acx.dev/schema/capability/1",
+  "title": "CapabilityRecord",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "id",
+    "taskType",
+    "stack",
+    "domain",
+    "proficiency",
+    "evidenceRefs",
+    "sampleCount",
+    "lastDemonstratedAt",
+    "createdAt",
+    "updatedAt"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "const": "acx.capability/1"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^cap-[0-9a-f]{16}$"
+    },
+    "taskType": {
+      "type": "string",
+      "description": "Seed token or reverse-DNS-namespaced extension token",
+      "pattern": "^([a-z0-9]+(-[a-z0-9]+)*|[a-z0-9.-]+:[a-z0-9]+(-[a-z0-9]+)*)$",
+      "examples": [
+        "build-dag",
+        "write-migration",
+        "design-api",
+        "refactor",
+        "debug",
+        "review",
+        "test-authoring",
+        "optimize-performance",
+        "harden-security",
+        "write-docs",
+        "deploy",
+        "incident-response",
+        "data-modeling",
+        "schema-design",
+        "prompt-engineering",
+        "dependency-upgrade",
+        "dev.acx.x:generate-terraform"
+      ]
+    },
+    "stack": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^pkg:[a-z0-9.+-]+/.+",
+        "examples": [
+          "pkg:pypi/apache-airflow",
+          "pkg:generic/snowflake",
+          "pkg:docker/apache/airflow@2.9.1"
+        ]
+      }
+    },
+    "domain": {
+      "type": "string",
+      "enum": [
+        "frontend",
+        "backend",
+        "infrastructure",
+        "testing",
+        "architecture",
+        "leadership",
+        "product"
+      ],
+      "description": "AGENTIBUS SkillDomain, reused verbatim"
+    },
+    "proficiency": {
+      "type": "object",
+      "required": [
+        "scale",
+        "mu",
+        "sigma",
+        "score",
+        "confidence",
+        "verified"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "scale": {
+          "const": "acx.proficiency/trueskill-1"
+        },
+        "mu": {
+          "type": "number"
+        },
+        "sigma": {
+          "type": "number",
+          "minimum": 0
+        },
+        "score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "verified": {
+          "type": "boolean",
+          "description": "true only if an evidenceRefs level-attestation resolves to a valid non-revoked VC issued after held-out re-run"
+        }
+      }
+    },
+    "evidenceRefs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "kind",
+          "ref"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "level-attestation",
+              "memory-artifact",
+              "trajectory"
+            ]
+          },
+          "ref": {
+            "type": "string",
+            "description": "VC id URI, memory artifactFingerprint, or OCI sha256: digest"
+          }
+        }
+      }
+    },
+    "sampleCount": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "lastDemonstratedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "license": {
+      "type": "string",
+      "description": "SPDX License Expression",
+      "default": "LicenseRef-acx-proprietary"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "proficiency": {
+            "properties": {
+              "verified": {
+                "const": true
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "evidenceRefs": {
+            "minItems": 1,
+            "contains": {
+              "properties": {
+                "kind": {
+                  "const": "level-attestation"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

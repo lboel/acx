@@ -1,0 +1,17 @@
+stats:
+  intelligence: 5
+  speed: 5
+  quality: 5
+  creativity: 5
+  endurance: 5
+  teamwork: 5
+baseStats:
+  intelligence: 5
+  speed: 5
+  quality: 5
+  creativity: 5
+  endurance: 5
+  teamwork: 5
+level: 4
+xp: 0
+skillPoints: 2

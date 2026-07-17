@@ -1,0 +1,73 @@
+{
+  "schemaVersion": "1.1",
+  "packageVersion": "2.0",
+  "exportedAt": "2026-07-16T00:00:00.000Z",
+  "exportedFrom": "agentibus",
+  "originInstanceId": "TODO-your-instance-id",
+  "originInstanceLabel": "TODO Your Machine Label",
+  "agentId": "TODO-your-agent-id",
+  "sourceFingerprint": "TODO:model-id:backend_dev:0:postgres+node",
+  "name": "TODO Your Agent Name",
+  "provider": "TODO-provider",
+  "model": "TODO-model-id",
+  "role": "backend_dev",
+  "careerTier": "intern",
+  "level": 1,
+  "xp": 0,
+  "skillPoints": 0,
+  "completedProjects": 0,
+  "stats": {
+    "intelligence": 5,
+    "speed": 5,
+    "quality": 5,
+    "creativity": 5,
+    "endurance": 5,
+    "teamwork": 5
+  },
+  "baseStats": {
+    "intelligence": 5,
+    "speed": 5,
+    "quality": 5,
+    "creativity": 5,
+    "endurance": 5,
+    "teamwork": 5
+  },
+  "traits": [
+    "curious"
+  ],
+  "appearance": {
+    "bodyType": 1,
+    "skinTone": 1,
+    "hairStyle": 1,
+    "hairColor": 1,
+    "eyeShape": 1,
+    "accessories": [],
+    "outfitAccent": "#22c55e"
+  },
+  "topSkills": [],
+  "unlockedSkills": [],
+  "unlockedSkillCount": 0,
+  "memoryRecordCount": 1,
+  "memoryTopics": [
+    "postgres",
+    "node",
+    "migrations"
+  ],
+  "vectorEngine": "local-hash-128",
+  "portableFormats": [
+    "json"
+  ],
+  "techStack": [
+    "postgres",
+    "node"
+  ],
+  "personality": {
+    "communicationStyle": "direct",
+    "codingPhilosophy": [
+      "pragmatic",
+      "explicit-errors"
+    ],
+    "knownForIn": "backend"
+  },
+  "achievements": []
+}

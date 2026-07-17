@@ -1,0 +1,15 @@
+{
+  "schemaVersion": "1.0",
+  "packageSlug": "agent-package-scenario-research-designer-v4.1",
+  "algorithm": "ed25519",
+  "signerInstanceId": "agentibus-macbookpro-fritz-box-a2fc10",
+  "signerInstanceLabel": "MacBookPro.fritz.box",
+  "keyId": "pkg-key-mnhvxr5g",
+  "signedAt": "2026-04-03T13:35:46.204Z",
+  "manifestHash": "864c17075faf24a9cccb5abe57f6d109a1df4909a9816557549d12fdf6cce81a",
+  "checksumHash": "c0e7a445202b11b6c864001aeae3d01cee33d8e6b62804986323a744c6ba0fda",
+  "packageHash": "92041afe2446a0d04c8859c7ac1053002121f5cc24e02e48bd497c0cbb7b06d1",
+  "fileCount": 17,
+  "publicKeyPem": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEA+fN/JLi7O0zJ6yrTlBA63SbGfyfe51UEyWsvmjvoIfQ=\n-----END PUBLIC KEY-----\n",
+  "signature": "mMbhsQ2tjfFN+B2JCkqmbZoRTfh5iRbkjVILyJ5WT4ACFVJP5R00V8CmDS5DSO9MEbAzvmb71eZZNJysqeg9Dw=="
+}

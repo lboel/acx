@@ -1,0 +1,83 @@
+{
+  "schemaVersion": "1.1",
+  "packageVersion": "2.0",
+  "exportedAt": "2026-04-03T13:35:46.190Z",
+  "exportedFrom": "agentibus",
+  "originInstanceId": "agentibus-macbookpro-fritz-box-a2fc10",
+  "originInstanceLabel": "MacBookPro.fritz.box",
+  "agentId": "ga-scenario-research-designer-9ef2h3",
+  "sourceFingerprint": "gemini:gemini-2.5-pro:designer:0:research+ux+benchmarking",
+  "name": "Scenario Research Designer",
+  "provider": "gemini",
+  "model": "gemini-2.5-pro",
+  "role": "designer",
+  "careerTier": "intern",
+  "level": 4,
+  "xp": 0,
+  "skillPoints": 2,
+  "completedProjects": 0,
+  "stats": {
+    "intelligence": 5,
+    "speed": 5,
+    "quality": 5,
+    "creativity": 5,
+    "endurance": 5,
+    "teamwork": 5
+  },
+  "baseStats": {
+    "intelligence": 5,
+    "speed": 5,
+    "quality": 5,
+    "creativity": 5,
+    "endurance": 5,
+    "teamwork": 5
+  },
+  "traits": [
+    "curious",
+    "veteran"
+  ],
+  "appearance": {
+    "bodyType": 1,
+    "skinTone": 1,
+    "hairStyle": 9,
+    "hairColor": 3,
+    "eyeShape": 3,
+    "accessories": [
+      "glasses"
+    ],
+    "outfitAccent": "#22c55e"
+  },
+  "topSkills": [],
+  "unlockedSkills": [],
+  "unlockedSkillCount": 0,
+  "memoryRecordCount": 1,
+  "memoryTopics": [
+    "research",
+    "ux",
+    "Company Standby",
+    "agent-hired",
+    "benchmarking",
+    "execution"
+  ],
+  "vectorEngine": "local-hash-128",
+  "portableFormats": [
+    "json",
+    "lance"
+  ],
+  "techStack": [
+    "research",
+    "ux",
+    "benchmarking"
+  ],
+  "personality": {
+    "communicationStyle": "direct",
+    "codingPhilosophy": [
+      "pragmatic",
+      "explicit-errors",
+      "learning-driven",
+      "documentation-friendly"
+    ],
+    "knownForIn": "research"
+  },
+  "achievements": []
+}

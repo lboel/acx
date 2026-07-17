@@ -1,0 +1,390 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://acx.dev/schema/level-credential.v1.json",
+  "title": "AcxLevelCredential",
+  "description": "W3C VC 2.0 embedding an Open Badges 3.0 achievement, attesting an ACX agent's provable character level. Media type application/vc.",
+  "type": "object",
+  "required": [
+    "@context",
+    "type",
+    "issuer",
+    "validFrom",
+    "credentialSubject",
+    "credentialStatus",
+    "proof"
+  ],
+  "additionalProperties": true,
+  "properties": {
+    "@context": {
+      "type": "array",
+      "minItems": 3,
+      "prefixItems": [
+        {
+          "const": "https://www.w3.org/ns/credentials/v2"
+        },
+        {
+          "const": "https://purl.imsglobal.org/spec/ob/v3p0/context-3.0.3.json"
+        },
+        {
+          "const": "https://acx.dev/ns/level/v1"
+        }
+      ],
+      "items": {
+        "type": "string",
+        "format": "uri"
+      }
+    },
+    "id": {
+      "type": "string",
+      "format": "uri"
+    },
+    "type": {
+      "type": "array",
+      "minItems": 2,
+      "contains": {
+        "const": "VerifiableCredential"
+      },
+      "allOf": [
+        {
+          "contains": {
+            "const": "OpenBadgeCredential"
+          }
+        }
+      ],
+      "items": {
+        "type": "string"
+      }
+    },
+    "issuer": {
+      "type": "object",
+      "required": [
+        "id"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uri",
+          "description": "Verifier DID (did:web); MUST differ from credentialSubject.id controller and MUST be in the ACX trust registry."
+        },
+        "type": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "validFrom": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "validUntil": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "name": {
+      "type": "string"
+    },
+    "credentialSubject": {
+      "type": "object",
+      "required": [
+        "id",
+        "type",
+        "achievement",
+        "result"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uri"
+        },
+        "type": {
+          "type": "array",
+          "contains": {
+            "const": "AchievementSubject"
+          }
+        },
+        "achievement": {
+          "type": "object",
+          "required": [
+            "id",
+            "type",
+            "criteria",
+            "resultDescription"
+          ],
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uri"
+            },
+            "type": {
+              "type": "array",
+              "contains": {
+                "const": "Achievement"
+              }
+            },
+            "name": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            },
+            "criteria": {
+              "type": "object",
+              "required": [
+                "narrative"
+              ],
+              "properties": {
+                "narrative": {
+                  "type": "string"
+                }
+              }
+            },
+            "resultDescription": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "type",
+                  "resultType"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "array",
+                    "contains": {
+                      "const": "ResultDescription"
+                    }
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "resultType": {
+                    "enum": [
+                      "RubricCriterionLevel",
+                      "ScaledScore",
+                      "Percent",
+                      "GradePointAverage",
+                      "LetterGrade",
+                      "PerformanceLevel",
+                      "RubricCriterion",
+                      "RubricScore",
+                      "Status",
+                      "Text"
+                    ]
+                  },
+                  "valueMin": {
+                    "type": "string"
+                  },
+                  "valueMax": {
+                    "type": "string"
+                  },
+                  "rubricCriterionLevel": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "type": {
+                          "type": "array"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "level": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "result": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "type": "array",
+                "contains": {
+                  "const": "Result"
+                }
+              },
+              "resultDescription": {
+                "type": "string"
+              },
+              "achievedLevel": {
+                "type": "string",
+                "format": "uri"
+              },
+              "value": {
+                "type": "string"
+              },
+              "acx:ratingMu": {
+                "type": "string"
+              },
+              "acx:ratingSigma": {
+                "type": "string"
+              },
+              "acx:gamesPlayed": {
+                "type": "integer",
+                "minimum": 30
+              },
+              "acx:acxLevel": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "acx:careerTier": {
+                "enum": [
+                  "intern",
+                  "junior",
+                  "mid",
+                  "senior",
+                  "staff",
+                  "principal",
+                  "distinguished",
+                  "legend"
+                ]
+              },
+              "acx:cartridgeRomDigest": {
+                "type": "string",
+                "pattern": "^sha256:[0-9a-f]{64}$"
+              },
+              "acx:benchmarkId": {
+                "type": "string"
+              },
+              "acx:benchmarkVersion": {
+                "type": "string"
+              },
+              "acx:benchmarkDigest": {
+                "type": "string",
+                "pattern": "^sha256:[0-9a-f]{64}$"
+              },
+              "acx:heldOutSliceDigest": {
+                "type": "string",
+                "pattern": "^sha256:[0-9a-f]{64}$"
+              }
+            }
+          }
+        }
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "type"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uri",
+            "description": "Immutable URL to a content-addressed signed trajectory."
+          },
+          "type": {
+            "type": "array",
+            "contains": {
+              "const": "Evidence"
+            }
+          },
+          "name": {
+            "type": "string"
+          },
+          "acx:digestMultibase": {
+            "type": "string",
+            "description": "Multibase-multihash (sha2-256) of the trajectory bytes."
+          },
+          "acx:dsseEnvelope": {
+            "type": "string",
+            "format": "uri"
+          }
+        }
+      }
+    },
+    "credentialStatus": {
+      "type": "object",
+      "required": [
+        "id",
+        "type",
+        "statusPurpose",
+        "statusListIndex",
+        "statusListCredential"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uri"
+        },
+        "type": {
+          "const": "BitstringStatusListEntry"
+        },
+        "statusPurpose": {
+          "enum": [
+            "revocation",
+            "suspension"
+          ]
+        },
+        "statusListIndex": {
+          "type": "string",
+          "pattern": "^[0-9]+$"
+        },
+        "statusListCredential": {
+          "type": "string",
+          "format": "uri"
+        }
+      }
+    },
+    "proof": {
+      "type": "object",
+      "required": [
+        "type",
+        "cryptosuite",
+        "created",
+        "verificationMethod",
+        "proofPurpose",
+        "proofValue"
+      ],
+      "properties": {
+        "type": {
+          "const": "DataIntegrityProof"
+        },
+        "cryptosuite": {
+          "enum": [
+            "eddsa-rdfc-2022",
+            "eddsa-jcs-2022"
+          ]
+        },
+        "created": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "verificationMethod": {
+          "type": "string",
+          "format": "uri"
+        },
+        "proofPurpose": {
+          "const": "assertionMethod"
+        },
+        "proofValue": {
+          "type": "string",
+          "pattern": "^z[1-9A-HJ-NP-Za-km-z]+$",
+          "description": "Multibase base58-btc encoded EdDSA signature."
+        }
+      }
+    }
+  }
+}

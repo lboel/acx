@@ -1,0 +1,45 @@
+# Agent Cartridge (.acx)
+
+> An open standard + zero-dependency CLI (`acx`) for portable, signed, provably-leveled specialized coding
+> agents. A cartridge is a single SQLite file with a signed ROM zone (skills, capabilities, loop policy,
+> identity) and a mutable SAVE zone (field-learned memory). Requires Node >= 22; every command runs via
+> `node --experimental-sqlite`.
+
+## Install & use (for agents)
+- Install: `npx agent-cartridge@latest <cmd>` or `npm i -g agent-cartridge` then `acx <cmd>`.
+- Full agent instructions: /reference/for-agents/  (and AGENTS.md at the repo root)
+- Commands: `ls, inspect, verify, spec, check, load, cal, init, export, strip, level, builder`.
+- Rule: always `acx verify` before `acx load`; the tool never executes cartridge content; RAC is descriptions only.
+
+## Core docs
+- Overview: /concepts/overview/
+- The cartridge model (ROM/SAVE): /concepts/cartridge-model/
+- The studio (a company of agents): /concepts/studio/
+- Bundled loops & agent OS: /concepts/agent-os/
+
+## The format
+- Container (single-file SQLite): /format/container/
+- Signing & trust (ed25519 + DSSE/in-toto): /format/signing-trust/
+- Skills (agentskills.io SKILL.md): /format/skills/
+- Capabilities & the sellable claim: /format/capabilities/
+- Memory partition (transferable vs field-learned): /format/memory/
+- Package specification & LanceDB schema: /format/packages/
+- Harness requirements: /format/harness-requirements/
+- Loop & context policy: /format/loop-context/
+- Loop engineering (CAL + RAC): /format/loops-cal/
+- Required context & the Open Knowledge Format: /format/knowledge-okf/
+
+## Leveling & lifecycle
+- How agents level up (provable): /leveling/provable-level/
+- From hire to cartridge and back: /lifecycle/company-loop/
+- Creating agents & agent sets: /lifecycle/init-agent-set/
+- Loading a cartridge: /lifecycle/loading/
+- Distribution (OCI): /lifecycle/distribution/
+- The exchange (browse/verify/trade): /lifecycle/exchange/
+- Sharing over git: /lifecycle/sharing-git/
+
+## Reference
+- CLI reference: /reference/cli/
+- Conformance: /reference/conformance/
+- JSON schemas & media types: /reference/schemas/
+- Proofs (verbatim test output): /proofs/

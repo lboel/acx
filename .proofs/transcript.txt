@@ -1,0 +1,190 @@
+########## PROOF 1: full test suite ##########
+> agent-cartridge@0.1.0 test
+> node --experimental-sqlite --test 'test/*.test.mjs'
+✔ §12.1 header bytes: application_id at offset 68, user_version at offset 60 (16.480167ms)
+✔ §12.1 Cartridge.open rejects a non-.acx file (wrong application_id) (4.044458ms)
+✔ §12.2 sqlar names must be zone-prefixed; zoneOf classifies rom/save (0.06925ms)
+✔ JCS is independent of key insertion order (0.058208ms)
+✔ oidJcs is key-order independent; oidRaw is byte-stable (0.1275ms)
+✔ §12.3 ROM manifest hash is reproducible from the same ROM objects (5.500958ms)
+✔ §12.3 DSSE/in-toto sign+verify round-trip; keyid form; subject.digest = manifest_hash (0.64575ms)
+✔ §12.3 tamper: mutating the signed payload fails DSSE verification (0.24875ms)
+✔ §12.3 tamper: verifying with the wrong public key fails (0.284791ms)
+✔ §12.6 trust: unsigned cartridge -> legacy (5.300667ms)
+✔ §12.6 trust: valid signature + unknown signer -> portable (7.576792ms)
+✔ §12.6 trust: valid signature + registered signer -> trusted (4.884375ms)
+✔ §12.6 trust: signer is our own local key -> local (5.37775ms)
+✔ §12.6 trust: mutated ROM object after signing -> tampered (5.123834ms)
+✔ §12.4 loadTrustRegistry refuses private key material (0.513833ms)
+✔ §12.8 scrub blocks an AWS access key (0.495375ms)
+✔ §12.8 scrub blocks a PEM private key (0.192833ms)
+✔ §12.8 scrub blocks a GitHub token (0.16375ms)
+✔ §12.8 scrub passes clean input (0.042042ms)
+✔ §3.4 strip-to-ROM: manifest hash equal when only SAVE rows are removed (7.094708ms)
+✔ §12.7 sqlar skills are extractable byte-for-byte and index content_sha256 matches (5.663167ms)
+✔ export produces a valid .acx with ROM objects, a skill index, and capabilities (0.860875ms)
+✔ exported cartridge id embeds the publisher + slug (0.068125ms)
+✔ field-learned records are quarantined by default (no repoId leaks into ROM memory) (0.174042ms)
+✔ unknown-signer verification is portable; registered signer is trusted/local (4.038042ms)
+✔ strip-to-ROM on the exported cartridge preserves the manifest hash (2.013333ms)
+✔ a ROM tamper on the exported cartridge is detected (1.911209ms)
+✔ §7.5 scrub gate FAILS CLOSED: export is blocked when a portable record carries a secret (5.478875ms)
+✔ rebuilding the ROM manifest from the stored objects reproduces the signed hash (0.792084ms)
+✔ C1: rewriting signed sqlar content with a stale objects.oid is detected as tampered (27.127875ms)
+✔ C1: rewriting a capability proficiency to verified with a stale oid is tampered (7.642042ms)
+✔ §7.4 mergeRecords never collapses across the tier boundary (0.281375ms)
+✔ §7.3 mergeRecords is commutative (order-independent survivor) (0.779125ms)
+✔ §8 harness-requirements manifest matches its schema (requiredTools, no forbidden keys) (0.121792ms)
+✔ §4.2 DSSE envelope contains exactly {payloadType, payload, signatures} (7.527ms)
+✔ §7.6 stored memory payload carries schema-required zone + artifactFingerprint (6.243708ms)
+✔ §7.5 scrub gate catches hex secrets, access_token=, passwd= (H2) and passes clean text (0.151792ms)
+✔ §4.5 unverifiable envelope (no key) never claims the signature is valid (6.659916ms)
+✔ §10.2 update shrinks sigma and conservative R = mu - 3*sigma (0.752ms)
+✔ §10.2 levelFor + careerTierForLevel bucket the conservative rating (0.577ms)
+✔ base58btc round-trips arbitrary bytes incl. leading zeros (0.214375ms)
+✔ §10.2 makeBenchmark seals a held-out slice and is deterministic (0.41475ms)
+✔ §10.3 referenceSolver is deterministic and ROM-bound (0.087417ms)
+✔ §10.2 a weak agent fails the sigma gate -> no VC issued (4.408833ms)
+✔ §10.2 a strong agent earns a σ-gated VC (4.542667ms)
+✔ §10.1 credential proof round-trips (eddsa-jcs-2022) (4.438125ms)
+✔ §10.1 verifyLevelCredential accepts a valid, gated, ROM-bound credential (4.234459ms)
+✔ §10.1 verifyLevelCredential rejects self-issuance (issuer == subject) (3.8745ms)
+✔ §10.1 verifyLevelCredential rejects a ROM digest mismatch (anti-transplant) (3.65475ms)
+✔ §10.1 verifyLevelCredential rejects a revoked credential (4.0265ms)
+✔ §10.1 verifyLevelCredential rejects a tampered credential body (4.338167ms)
+✔ §7.1 validateRecord accepts a well-formed portable record (0.75525ms)
+✔ §7.1 validateRecord accepts a well-formed field-learned record (0.091334ms)
+✔ §7.1 validateRecord rejects missing boolean portable (0.17775ms)
+✔ §7.1 validateRecord rejects portable=true with a codebaseFingerprint (0.069584ms)
+✔ §7.1 validateRecord rejects portable=true with a repoId (0.059208ms)
+✔ §7.1 validateRecord rejects portable=false without a codebaseFingerprint (0.046416ms)
+✔ §7.3 artifactFingerprint is exactly 10 hex chars (0.45ms)
+✔ §7.3 artifactFingerprint excludes portable + codebaseFingerprint (tier-independent) (0.118084ms)
+✔ §7.3 artifactFingerprint is stable under tag reordering + case + whitespace (0.086083ms)
+✔ §7.3 mergeRecords is idempotent (merge twice == merge once) (0.963209ms)
+✔ §7.3 mergeRecords resolves conflicts: longer text, worse impact, max xp, union tags, latest ts (0.158083ms)
+✔ §7.3 mergeRecords dedupes by artifactFingerprint across different ids (0.176959ms)
+✔ §7.3 mergeRecords keeps distinct records distinct (0.061625ms)
+✔ §7.2 codebaseFingerprint never contains the repo name/label (0.352875ms)
+✔ §7.2 codebaseFingerprint is stable for the same salt + identity (0.23575ms)
+✔ §7.2 codebaseFingerprint differs across installation salts (org quarantine) (0.143542ms)
+✔ §7.2 codebaseFingerprint rejects a weak (<256-bit) salt (0.075291ms)
+✔ §7.2 canonicalRepoIdentity normalizes scheme/credentials/.git/scp forms equally (0.052625ms)
+ℹ tests 69
+ℹ suites 0
+ℹ pass 69
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 156.961125
+
+########## PROOF 2: smoke (export->verify->strip->tamper) ##########
+exported cartridge: io.github.agentibus/scenario-research-designer@22f2ae29-54e8-441a-8853-1c9e84a91873
+rom_manifest_hash: sha256:1726cf1e6025c166e06dc839a5cbae6c900f0ffa3e0b1235be8b78e88ee09943
+ROM objects: 21
+skills: [ 'expertise-designer' ]
+capabilities: [
+  'implement-feature[pkg:generic/benchmarking+pkg:generic/research+pkg:generic/ux]',
+  'build-dag[pkg:generic/snowflake+pkg:pypi/apache-airflow+pkg:pypi/dbt-core]'
+]
+
+verify (empty registry): warning / portable - Signature valid but signer not in trust registry.
+verify (trusted registry, local key): verified / local - Signed by this instance.
+
+strip-to-ROM equal: true (before==after: true )
+verify (objects.oid tamper): invalid / tampered - ROM content diverges from signed manifest (object hash mismatch).
+verify (SKILL.md content tamper, oid stale): invalid / tampered - ROM content diverges from signed manifest (object hash mismatch).
+
+SMOKE OK
+
+########## PROOF 3: prove-level (earn + verify unfakeable level) ##########
+cartridge ROM digest: sha256:1726cf1e6025c166e06dc839a5cbae6c900f0ffa3e0b1235be8b78e88ee09943
+benchmark acx-bench-dag-de@2026.07.1: 160 tasks, held-out slice digest sha256:d16bf83a37c399775…
+
+weak agent (competence 14): NOT ISSUED — gating failed: sigma=2.230 (<1.5?), games=50 (>=30?) | R=5.80 tier=junior
+strong agent (competence 33): ISSUED ✅  | mu=33.03 sigma=1.232 games=90 passRate=60% R=29.34 => acxLevel=29 tier=principal
+
+credential verification: VALID ✅ 
+
+capability build-dag effective proficiency (resolved from attestation): VERIFIED tier=principal mu=33.03 sigma=1.232
+ROM signature after attaching attestation: warning / portable (intact ✅)
+
+anti-gaming — self-issued credential: REJECTED ✅ [ 'self-issuance rejected (issuer == subject)' ]
+anti-transplant — VC on mutated ROM: REJECTED ✅ [ 'ROM digest binding mismatch' ]
+revocation — status bit set: REVOKED ✅
+
+PROVABLE LEVEL OK — level earned from re-run, cryptographically verified, unfakeable
+########## PROOF 4: CLI export ##########
+cartridge id:   io.github.agentibus/scenario-research-designer@025edd67-cc60-47b8-a059-ddd839c29db5
+rom hash:       sha256:f479be021b8ea2e55cc6e3e33b95df9d151196548dfc854dedbe578be7120642
+keyid:          ed25519:17bb8c9290fd2a3d0c3a434ad0e99544d809dbff1540d64be0bab2274df14f66
+signing key:    /tmp/demo.acx.key.pem  (private — keep secret, outside cartridge)
+field-learned:  quarantined (default)
+wrote:          /tmp/demo.acx
+
+########## PROOF 5: CLI inspect ##########
+== meta ==
+  acx.agent_name = Scenario Research Designer
+  acx.cartridge_id = io.github.agentibus/scenario-research-designer@025edd67-cc60-47b8-a059-ddd839c29db5
+  acx.created_at = 2026-04-03T13:35:46.190Z
+  acx.declared_level = 4
+  acx.embedding_engine = {"id":"local-hash-128","dim":128}
+  acx.model = gemini-2.5-pro
+  acx.provider = gemini
+  acx.publisher_id = io.github.agentibus
+  acx.role = designer
+  acx.rom_manifest_hash = sha256:f479be021b8ea2e55cc6e3e33b95df9d151196548dfc854dedbe578be7120642
+  acx.spec_version = 0.1
+  acx.vec0_format = 1
+
+== ROM objects ==
+  total: 21  (memory:1, cartridge:9, sqlar:11)
+
+== skills (acx_skill) ==
+  - expertise-designer: Specialized designer expertise on research, ux, benchmarking. Use when a task matches this agent's d
+
+== capabilities ==
+  - implement-feature[pkg:generic/benchmarking+pkg:generic/research+pkg:generic/ux]  verified=false
+  - build-dag[pkg:generic/snowflake+pkg:pypi/apache-airflow+pkg:pypi/dbt-core]  verified=false
+
+== memory (by zone) ==
+  rom: 1
+
+== attestations ==
+  (none)
+
+########## PROOF 6: CLI verify (empty registry) ##########
+status:   warning
+trust:    portable
+summary:  Signature valid but signer not in trust registry.
+keyid:    ed25519:17bb8c9290fd2a3d0c3a434ad0e99544d809dbff1540d64be0bab2274df14f66
+signedAt: 2026-04-03T13:35:46.190Z
+issues:   Signer keyid not in trust registry
+exit=0
+
+########## PROOF 7: CLI strip (ROM-intact proof) ##########
+rom hash before strip: sha256:f479be021b8ea2e55cc6e3e33b95df9d151196548dfc854dedbe578be7120642
+rom hash after  strip: sha256:f479be021b8ea2e55cc6e3e33b95df9d151196548dfc854dedbe578be7120642
+hash-equality proof:   EQUAL (ROM intact; SAVE removed)
+wrote:                 /tmp/demo.rom.acx
+exit=0
+
+########## PROOF 8: CLI level (earn a level) ##########
+cartridge rom digest: sha256:f479be021b8ea2e55cc6e3e33b95df9d151196548dfc854dedbe578be7120642
+benchmark: acx-bench-dag-de@2026.07.1 (160 tasks, held-out 96)
+
+level: ISSUED
+  acxLevel:  29
+  tier:      principal
+  rating:    mu=32.85 sigma=1.191 games=90 pass@1=60% R=29.27
+  credential verify: VALID
+  capability build-dag -> resolvable as VERIFIED via attestation (ROM signature left intact)
+wrote VC: /tmp/demo.level-attestation.json
+exit=0
+
+########## PROOF 9: stock sqlite3 sqlar interop (extract skills) ##########
+rom/skills/expertise-designer/SKILL.md
+
+########## PROOF 10: file(1) magic + header ##########
+/tmp/demo.acx: SQLite 3.x database, application id 1094932529, user version 16777472, last written using SQLite version 3053002, file counter 14, database pages 33, cookie 0xa, schema 4, UTF-8, version-valid-for 14

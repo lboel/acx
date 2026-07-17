@@ -1,0 +1,1626 @@
+{
+  "@context": [
+    "https://www.w3.org/ns/credentials/v2",
+    "https://purl.imsglobal.org/spec/ob/v3p0/context-3.0.3.json",
+    "https://acx.dev/ns/level/v1"
+  ],
+  "type": [
+    "VerifiableCredential",
+    "OpenBadgeCredential"
+  ],
+  "issuer": {
+    "id": "did:web:verifier.acx.dev",
+    "type": [
+      "Profile"
+    ]
+  },
+  "validFrom": "2026-07-16T00:00:00Z",
+  "credentialSubject": {
+    "type": [
+      "AchievementSubject"
+    ],
+    "id": "urn:acx:cartridge:io.github.agentibus/scenario-research-designer@85f481db-9a2b-4ed6-9d04-8024dee4a026",
+    "achievement": {
+      "id": "https://acx.dev/achievement/acx-bench-dag-de/2026.07.1",
+      "type": [
+        "Achievement"
+      ],
+      "name": "ACX Level — Data-Engineering DAG Construction (Airflow+Snowflake)",
+      "criteria": {
+        "narrative": "Independently re-executed on a sealed held-out slice of Data-Engineering DAG Construction (Airflow+Snowflake) (2026.07.1); TrueSkill conservative rating R=mu-3sigma gated at sigma<1.5 over >=30 games."
+      },
+      "resultDescription": [
+        {
+          "id": "career-tier",
+          "type": [
+            "ResultDescription"
+          ],
+          "name": "Career Tier",
+          "resultType": "RubricCriterionLevel"
+        },
+        {
+          "id": "rating",
+          "type": [
+            "ResultDescription"
+          ],
+          "name": "Conservative rating (0-50)",
+          "resultType": "ScaledScore"
+        },
+        {
+          "id": "passrate",
+          "type": [
+            "ResultDescription"
+          ],
+          "name": "Held-out pass@1",
+          "resultType": "Percent"
+        }
+      ]
+    },
+    "result": [
+      {
+        "type": [
+          "Result"
+        ],
+        "achievedLevel": "principal",
+        "acx:ratingMu": 31.656,
+        "acx:ratingSigma": 1.213,
+        "acx:gamesPlayed": 90,
+        "acx:acxLevel": 28,
+        "acx:careerTier": "principal",
+        "acx:passRate": 0.544,
+        "acx:cartridgeRomDigest": "sha256:d10fa6a7ac5dac0e58912049d36353423b9862e3c15a343678070121a3799c42",
+        "acx:benchmarkId": "acx-bench-dag-de",
+        "acx:benchmarkVersion": "2026.07.1",
+        "acx:benchmarkDigest": "sha256:019fc517108a721b9bfc83e9a8d61c5011c29894c43a361c35fdacb2c783e900",
+        "acx:heldOutSliceDigest": "sha256:d16bf83a37c399775bd88ab3b3a7d889eef3058cbf1196bb283b9c3d26d4507b"
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-052",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:94b78d605f40834d5e3e63ce5327605098abde19f34b1e7b8b5022c2b31c4ef9",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MzMsInBhc3NlZCI6ZmFsc2UsInJvbURpZ2VzdCI6InNoYTI1NjpkMTBmYTZhN2FjNWRhYzBlNTg5MTIwNDlkMzYzNTM0MjNiOTg2MmUzYzE1YTM0MzY3ODA3MDEyMWEzNzk5YzQyIiwidGFzayI6ImRhZy10YXNrLTA1MiIsInZlcnNpb24iOiIyMDI2LjA3LjEifQ==",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "T1/ragBVkvreeSh9NXfCjKMiJ95ypP+lDT7fkb+a+nwZ+TcIApZWHm9la9Tw+Zh34yvPg8caBgwnLbJ7k/kwCw=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-084",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:a046d4fd7b24a487e0a26e0db8ae1e764cff4feaf6f1b8fb5e1be694c7040154",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MzEsInBhc3NlZCI6ZmFsc2UsInJvbURpZ2VzdCI6InNoYTI1NjpkMTBmYTZhN2FjNWRhYzBlNTg5MTIwNDlkMzYzNTM0MjNiOTg2MmUzYzE1YTM0MzY3ODA3MDEyMWEzNzk5YzQyIiwidGFzayI6ImRhZy10YXNrLTA4NCIsInZlcnNpb24iOiIyMDI2LjA3LjEifQ==",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "ip02sPTkcT5uO1u5Q2S9K0QpCEgoQ3mDpzXY/V/QzNXuuNtpwlk7Pz+1szz5x2w9Kz91bfdGcA2b6XoLD/BSBg=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-020",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:2fa4a943031224bef1ebdfbb428364cd7f4bffeb0d571bce7f8f48a5fa5377e7",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MzUsInBhc3NlZCI6ZmFsc2UsInJvbURpZ2VzdCI6InNoYTI1NjpkMTBmYTZhN2FjNWRhYzBlNTg5MTIwNDlkMzYzNTM0MjNiOTg2MmUzYzE1YTM0MzY3ODA3MDEyMWEzNzk5YzQyIiwidGFzayI6ImRhZy10YXNrLTAyMCIsInZlcnNpb24iOiIyMDI2LjA3LjEifQ==",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "TuXs/z+YpMK6xgIBq6hlN8DLL15rk1Q0HD3stgL/AXV7rXs85oGh+gfyVCDj6xQuEXpqaaLxhPnAmMUCTWIgAQ=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-136",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:1cc5d3509e722182e7b1b45000fe4d0f979377e5c4201965e73a34538eb978cb",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MTUsInBhc3NlZCI6dHJ1ZSwicm9tRGlnZXN0Ijoic2hhMjU2OmQxMGZhNmE3YWM1ZGFjMGU1ODkxMjA0OWQzNjM1MzQyM2I5ODYyZTNjMTVhMzQzNjc4MDcwMTIxYTM3OTljNDIiLCJ0YXNrIjoiZGFnLXRhc2stMTM2IiwidmVyc2lvbiI6IjIwMjYuMDcuMSJ9",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "t0EDlEuphHfvi/iiC3RFqkqjoSnX+3u1YTPxB2zq5B9H7XoXHH15ZuJsFpfljO96VSDXa90ST7370jF7FMSTBw=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-053",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:2ce76d4da72f1685c3990e52fac2438c8bed2c7595e5b2590b21d4bd01cd07e5",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MzQsInBhc3NlZCI6ZmFsc2UsInJvbURpZ2VzdCI6InNoYTI1NjpkMTBmYTZhN2FjNWRhYzBlNTg5MTIwNDlkMzYzNTM0MjNiOTg2MmUzYzE1YTM0MzY3ODA3MDEyMWEzNzk5YzQyIiwidGFzayI6ImRhZy10YXNrLTA1MyIsInZlcnNpb24iOiIyMDI2LjA3LjEifQ==",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "iCzXHehA5adLHARZAC5Av1Ak6wjVbbGdnW+lSaX1rh85fAh4yZy0/vDx8RL791J16u4zlpycCOw8nWo4rrv7Cg=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-150",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:098e902cd8aad7f3e5d66c369cbeb33ab93cade600c2555951ad7032eac92faf",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MjksInBhc3NlZCI6dHJ1ZSwicm9tRGlnZXN0Ijoic2hhMjU2OmQxMGZhNmE3YWM1ZGFjMGU1ODkxMjA0OWQzNjM1MzQyM2I5ODYyZTNjMTVhMzQzNjc4MDcwMTIxYTM3OTljNDIiLCJ0YXNrIjoiZGFnLXRhc2stMTUwIiwidmVyc2lvbiI6IjIwMjYuMDcuMSJ9",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "0PcwelypTxTf26B+sQy+B00ZvpFz6q1KygYbWj66cVNdzx0Lcg3UyEOkDrX9UGYv0ClwduusYuIV/uLudomIBQ=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-104",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:5d96070926939a1cf33abf50a7f958f6b36b4698e3505850dfffc5af45c970db",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MTcsInBhc3NlZCI6dHJ1ZSwicm9tRGlnZXN0Ijoic2hhMjU2OmQxMGZhNmE3YWM1ZGFjMGU1ODkxMjA0OWQzNjM1MzQyM2I5ODYyZTNjMTVhMzQzNjc4MDcwMTIxYTM3OTljNDIiLCJ0YXNrIjoiZGFnLXRhc2stMTA0IiwidmVyc2lvbiI6IjIwMjYuMDcuMSJ9",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "xxOEHsEyAs3vgpCq3VY8WF+e079UXC7C/wBz1lIJXCh8MmAo9FCaZpds4yE/oNsfvRaqajZlaPdZooHejbDNBQ=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-149",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:5291f71393eea1e57ea316f323f26cbf03d91e44fe9b7c77137e6d87f6a1b41e",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MjgsInBhc3NlZCI6dHJ1ZSwicm9tRGlnZXN0Ijoic2hhMjU2OmQxMGZhNmE3YWM1ZGFjMGU1ODkxMjA0OWQzNjM1MzQyM2I5ODYyZTNjMTVhMzQzNjc4MDcwMTIxYTM3OTljNDIiLCJ0YXNrIjoiZGFnLXRhc2stMTQ5IiwidmVyc2lvbiI6IjIwMjYuMDcuMSJ9",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "xqQcaPP01ZRw+/9hQev+nnk0eEPeLaTnN03Q0CUlbevNZF74wqLwVWy964zNPFvB/hvQipkD2uYOAnR/lQpqDg=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-039",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:05bbcf706a08ac0d8c008e65ad2edbec4eb2ee1f1215728721441eda98c726f0",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MjAsInBhc3NlZCI6dHJ1ZSwicm9tRGlnZXN0Ijoic2hhMjU2OmQxMGZhNmE3YWM1ZGFjMGU1ODkxMjA0OWQzNjM1MzQyM2I5ODYyZTNjMTVhMzQzNjc4MDcwMTIxYTM3OTljNDIiLCJ0YXNrIjoiZGFnLXRhc2stMDM5IiwidmVyc2lvbiI6IjIwMjYuMDcuMSJ9",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "Vb9r3U8bVOg61ruTVg1SbMbeIhrJ5FsJO7rMQFnmLPVgnmbMaFCoJ0KIxq/HKbcl18q4VJbaHgEGl2n165QYAw=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-043",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:520e183098b6dff86b1baa12034ea0e1a17f04c1976b6bb6e765a01445c88a3e",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MjQsInBhc3NlZCI6dHJ1ZSwicm9tRGlnZXN0Ijoic2hhMjU2OmQxMGZhNmE3YWM1ZGFjMGU1ODkxMjA0OWQzNjM1MzQyM2I5ODYyZTNjMTVhMzQzNjc4MDcwMTIxYTM3OTljNDIiLCJ0YXNrIjoiZGFnLXRhc2stMDQzIiwidmVyc2lvbiI6IjIwMjYuMDcuMSJ9",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "bhYG4olgerAT8n7v5uO3VVdpVny9L96MuYZUEgJgDIHZG8rPy0QcyE8KhdD8FyLpK9/8XSDA2RzbzVTLRxVJBg=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-139",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:e0971c82e93f8b55a385d1d014be15ef9abc82a28cec9c82a4f088d9913a47d3",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MTgsInBhc3NlZCI6dHJ1ZSwicm9tRGlnZXN0Ijoic2hhMjU2OmQxMGZhNmE3YWM1ZGFjMGU1ODkxMjA0OWQzNjM1MzQyM2I5ODYyZTNjMTVhMzQzNjc4MDcwMTIxYTM3OTljNDIiLCJ0YXNrIjoiZGFnLXRhc2stMTM5IiwidmVyc2lvbiI6IjIwMjYuMDcuMSJ9",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "6oQaDnWg1ywqT4JWphKKkPxZKiCe3KKbn0C0W+nvHt7tevf50spjDXqMMRuRLnHd8UfZnQ5ufMcL2RK/9u2MDA=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-081",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:a54f1a12f3b5d5cb5b21199a2b65de1cb3f613e0f743dd422322a7d6afb05164",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MjgsInBhc3NlZCI6dHJ1ZSwicm9tRGlnZXN0Ijoic2hhMjU2OmQxMGZhNmE3YWM1ZGFjMGU1ODkxMjA0OWQzNjM1MzQyM2I5ODYyZTNjMTVhMzQzNjc4MDcwMTIxYTM3OTljNDIiLCJ0YXNrIjoiZGFnLXRhc2stMDgxIiwidmVyc2lvbiI6IjIwMjYuMDcuMSJ9",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "qoydFU5xSdx8ScCZ77dC9x3rn/nSpKCmlp/pFbql0wgk4IKnDAEcL9jQiIK1NhyNDmK+xc0bJAwKMXnwq9IMAw=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-011",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:3a3bf4180a3405e2877f1975476b63808d517ea475a141f491a6a916f4955184",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MjYsInBhc3NlZCI6dHJ1ZSwicm9tRGlnZXN0Ijoic2hhMjU2OmQxMGZhNmE3YWM1ZGFjMGU1ODkxMjA0OWQzNjM1MzQyM2I5ODYyZTNjMTVhMzQzNjc4MDcwMTIxYTM3OTljNDIiLCJ0YXNrIjoiZGFnLXRhc2stMDExIiwidmVyc2lvbiI6IjIwMjYuMDcuMSJ9",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "hsBcjq0+ft6D7CdLPR1M8t3l9Z39BduF3FtcTShSKq3svULayx8VjSSgsoPg9jX8zD5YyZFp4cMNeP93hBGGCQ=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-058",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:8d9d1f95e49cc6acb0a32c26a272ee71962946561b0e53c17afa49019d0964a6",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MzksInBhc3NlZCI6ZmFsc2UsInJvbURpZ2VzdCI6InNoYTI1NjpkMTBmYTZhN2FjNWRhYzBlNTg5MTIwNDlkMzYzNTM0MjNiOTg2MmUzYzE1YTM0MzY3ODA3MDEyMWEzNzk5YzQyIiwidGFzayI6ImRhZy10YXNrLTA1OCIsInZlcnNpb24iOiIyMDI2LjA3LjEifQ==",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "7ELZe20dqpSFmIzYas8tY+WGRB9kyQyLZt8xb+/V17/UkUKNj8F4Z4xu3qi+c+WBsMVcuzTCNvTRM0FOdGEBCg=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-101",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:131cf22eda110fe828fcec3e66e604a63314f008e4229a41623e0fd905a07216",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6NDgsInBhc3NlZCI6ZmFsc2UsInJvbURpZ2VzdCI6InNoYTI1NjpkMTBmYTZhN2FjNWRhYzBlNTg5MTIwNDlkMzYzNTM0MjNiOTg2MmUzYzE1YTM0MzY3ODA3MDEyMWEzNzk5YzQyIiwidGFzayI6ImRhZy10YXNrLTEwMSIsInZlcnNpb24iOiIyMDI2LjA3LjEifQ==",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "DDW0++HoNskJ180aJSzD53NcFBI6V1Xq4BYV3IQwqVxXejJ+d/dbTFhkJa7WbGcR3vluOSbum9Yn85ckvmbNDQ=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-088",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:66c4f01bd0958cffe1d14c98073eb089441101e3404f42bfc36c7bbd2893d06a",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MzUsInBhc3NlZCI6ZmFsc2UsInJvbURpZ2VzdCI6InNoYTI1NjpkMTBmYTZhN2FjNWRhYzBlNTg5MTIwNDlkMzYzNTM0MjNiOTg2MmUzYzE1YTM0MzY3ODA3MDEyMWEzNzk5YzQyIiwidGFzayI6ImRhZy10YXNrLTA4OCIsInZlcnNpb24iOiIyMDI2LjA3LjEifQ==",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "7Xzl65f6ozlGSMH78R/47GrZwR11FX5sw/iH/x3ikfLnPSkZzbYNFMJ9lwOOLrYZeYldYv8xj/Qac2aXnAhNCw=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-148",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:7f8990367dc2f4f0babea0d11d38a4d877ca35528188a65c2e3f448063bcea23",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MjcsInBhc3NlZCI6dHJ1ZSwicm9tRGlnZXN0Ijoic2hhMjU2OmQxMGZhNmE3YWM1ZGFjMGU1ODkxMjA0OWQzNjM1MzQyM2I5ODYyZTNjMTVhMzQzNjc4MDcwMTIxYTM3OTljNDIiLCJ0YXNrIjoiZGFnLXRhc2stMTQ4IiwidmVyc2lvbiI6IjIwMjYuMDcuMSJ9",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "nBpno/WRI3h/hocK/yawmg0ujQuZXaR8wAko7szo5TxjZ4IP+2lGQfSFYXRy9Q+HgBRTnirqCKrPL4mvdVpTDA=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-017",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:9dda98522fb14ee5b644703ea7ff069d53807e12a3380993ae1b6b102dc7992e",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MzIsInBhc3NlZCI6ZmFsc2UsInJvbURpZ2VzdCI6InNoYTI1NjpkMTBmYTZhN2FjNWRhYzBlNTg5MTIwNDlkMzYzNTM0MjNiOTg2MmUzYzE1YTM0MzY3ODA3MDEyMWEzNzk5YzQyIiwidGFzayI6ImRhZy10YXNrLTAxNyIsInZlcnNpb24iOiIyMDI2LjA3LjEifQ==",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "34VT/AQRNvl2M1ihETEG4zJmocmUH7RYiX5zjnIPvqrYFu89qL7JTTl/vZ2zMHjuhUZBvv2CgNA8Imb/pwjKBw=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-047",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:8909fb3c34ace6f920ca990f4be592ca37dd68c346887c36ad27359c5c5bcaff",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MjgsInBhc3NlZCI6ZmFsc2UsInJvbURpZ2VzdCI6InNoYTI1NjpkMTBmYTZhN2FjNWRhYzBlNTg5MTIwNDlkMzYzNTM0MjNiOTg2MmUzYzE1YTM0MzY3ODA3MDEyMWEzNzk5YzQyIiwidGFzayI6ImRhZy10YXNrLTA0NyIsInZlcnNpb24iOiIyMDI2LjA3LjEifQ==",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "U/7DOb0m/TqLyRbAYvpLNa8PRRISqc/JOLsErDWun/cdW4BuY1XENqN+1h5pEXeDDaDYJhrpENtcNNf6cODUCw=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-004",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:d958f75e61331effefee8486ec7a0ee3c11d36fa2842cc2703b0b6b2c62919a9",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MTksInBhc3NlZCI6dHJ1ZSwicm9tRGlnZXN0Ijoic2hhMjU2OmQxMGZhNmE3YWM1ZGFjMGU1ODkxMjA0OWQzNjM1MzQyM2I5ODYyZTNjMTVhMzQzNjc4MDcwMTIxYTM3OTljNDIiLCJ0YXNrIjoiZGFnLXRhc2stMDA0IiwidmVyc2lvbiI6IjIwMjYuMDcuMSJ9",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "YYSYrJ84P/wyPUp8K9ZFJMYzl1KUtbxhe/4KDq4dEHthmzOrOK1Hbe4VBGYtgJxPxAl2S6b/P1I0ZHIA9drxCQ=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-115",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:9040e8d7d07dd83f6c3cfc9212a90b789b748d244222e2311ec0241c027e277f",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MjgsInBhc3NlZCI6dHJ1ZSwicm9tRGlnZXN0Ijoic2hhMjU2OmQxMGZhNmE3YWM1ZGFjMGU1ODkxMjA0OWQzNjM1MzQyM2I5ODYyZTNjMTVhMzQzNjc4MDcwMTIxYTM3OTljNDIiLCJ0YXNrIjoiZGFnLXRhc2stMTE1IiwidmVyc2lvbiI6IjIwMjYuMDcuMSJ9",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "89aOJ8mw/+XRNlOVnYbbiy9ZciBuH7XQlv+Vtm7cCjiZtK+XjECW1lbHqcCmHJuso2DY4xdzNAe1yjBK4XSwCQ=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-000",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:e82cb8b61803470d4357c2f505db14d7c95a7e9c5529b21fce5e49074d10bd68",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MTUsInBhc3NlZCI6dHJ1ZSwicm9tRGlnZXN0Ijoic2hhMjU2OmQxMGZhNmE3YWM1ZGFjMGU1ODkxMjA0OWQzNjM1MzQyM2I5ODYyZTNjMTVhMzQzNjc4MDcwMTIxYTM3OTljNDIiLCJ0YXNrIjoiZGFnLXRhc2stMDAwIiwidmVyc2lvbiI6IjIwMjYuMDcuMSJ9",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "3Rmc7ZOE8R5X/FqJp6Oq/0jTmXmWicbRss3RlkQVYhU3UISr+9/awMnOfNCPaOvi1sKkqnvPYj6sam3w7NyDAw=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-006",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:8a6f5f9f7b2bb49d12b67f4b848f787d0569e4b85190c444223b83295bd2592f",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MjEsInBhc3NlZCI6dHJ1ZSwicm9tRGlnZXN0Ijoic2hhMjU2OmQxMGZhNmE3YWM1ZGFjMGU1ODkxMjA0OWQzNjM1MzQyM2I5ODYyZTNjMTVhMzQzNjc4MDcwMTIxYTM3OTljNDIiLCJ0YXNrIjoiZGFnLXRhc2stMDA2IiwidmVyc2lvbiI6IjIwMjYuMDcuMSJ9",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "CZ2TnAh9/2dVFIfu+PcAO6gKffemvs1tyaB+cWaQYbAt9gvQ19dARlzOi0iJYBlcxlE0ieDA8xOS1Cpr4n6JCA=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-103",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:c8c92bd1293a1f4b293743f620a017c7e034959dcf1f7588b3230e2b48faf810",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MTYsInBhc3NlZCI6dHJ1ZSwicm9tRGlnZXN0Ijoic2hhMjU2OmQxMGZhNmE3YWM1ZGFjMGU1ODkxMjA0OWQzNjM1MzQyM2I5ODYyZTNjMTVhMzQzNjc4MDcwMTIxYTM3OTljNDIiLCJ0YXNrIjoiZGFnLXRhc2stMTAzIiwidmVyc2lvbiI6IjIwMjYuMDcuMSJ9",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "KMutl/Uto89d96YKMDKwi7MSXU2wNZ70YWezPYF2FiViFx+GpqI/pugH3ugG3qna83CJJK7L235KZRWkoKjaCw=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-096",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:d17e206cc85faa5e129a11cf6f6f1677ca7e653cc0a4307ac2d39e191ad62a10",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6NDMsInBhc3NlZCI6ZmFsc2UsInJvbURpZ2VzdCI6InNoYTI1NjpkMTBmYTZhN2FjNWRhYzBlNTg5MTIwNDlkMzYzNTM0MjNiOTg2MmUzYzE1YTM0MzY3ODA3MDEyMWEzNzk5YzQyIiwidGFzayI6ImRhZy10YXNrLTA5NiIsInZlcnNpb24iOiIyMDI2LjA3LjEifQ==",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "cP4g2YYLxDtCSOv6FjHf0hXsBzWxB/hu3O1ak4fc4LgBKf/13rrvw7UkacRGF//SZwbErln8bKDTVbt28CX/Bw=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-080",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:d4c696cf4129bbb43bb96a177741ab9ccd2dcd1cc1d4e67db8299f0532ff9b40",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MjcsInBhc3NlZCI6dHJ1ZSwicm9tRGlnZXN0Ijoic2hhMjU2OmQxMGZhNmE3YWM1ZGFjMGU1ODkxMjA0OWQzNjM1MzQyM2I5ODYyZTNjMTVhMzQzNjc4MDcwMTIxYTM3OTljNDIiLCJ0YXNrIjoiZGFnLXRhc2stMDgwIiwidmVyc2lvbiI6IjIwMjYuMDcuMSJ9",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "VDm4EaQMv31l+X2tC4NCT0YlnPp8F2uRl1l8WdtVrdb7ACkZWD6MoYymu1G/diRO6qyf553hIxvjdIOVCFSqAg=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-119",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:77fec2ac559daa3aaf9a4e8b20b731de3fb88cdb74e313565ea36891bc57ade4",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MzIsInBhc3NlZCI6ZmFsc2UsInJvbURpZ2VzdCI6InNoYTI1NjpkMTBmYTZhN2FjNWRhYzBlNTg5MTIwNDlkMzYzNTM0MjNiOTg2MmUzYzE1YTM0MzY3ODA3MDEyMWEzNzk5YzQyIiwidGFzayI6ImRhZy10YXNrLTExOSIsInZlcnNpb24iOiIyMDI2LjA3LjEifQ==",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "m8lXSnMSjkHIGyB4k/oDK2S08ppzXFE2qwyUcdRoFh28rmOaQtHfPOhll4UhBROfNE/qJLbiiF9pT9XNzE2/AA=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-061",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:4271a5ccfe1e69f28c23d744202e35ec57eee7dca570e74ea20455a64b8b6608",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6NDIsInBhc3NlZCI6ZmFsc2UsInJvbURpZ2VzdCI6InNoYTI1NjpkMTBmYTZhN2FjNWRhYzBlNTg5MTIwNDlkMzYzNTM0MjNiOTg2MmUzYzE1YTM0MzY3ODA3MDEyMWEzNzk5YzQyIiwidGFzayI6ImRhZy10YXNrLTA2MSIsInZlcnNpb24iOiIyMDI2LjA3LjEifQ==",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "U7OowLgrVqei5y+D1CyeYmboK78tJ/bALZG06PwPh2ylpVJGsOH3UkKsdQG+5gWiIrGvqOY41Bo5zHsXtgsuDg=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-027",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:e2f6371ccf3afbac59a5daaec16ff9e401688bbed2faa7fd904bd5ecf13c0361",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6NDIsInBhc3NlZCI6ZmFsc2UsInJvbURpZ2VzdCI6InNoYTI1NjpkMTBmYTZhN2FjNWRhYzBlNTg5MTIwNDlkMzYzNTM0MjNiOTg2MmUzYzE1YTM0MzY3ODA3MDEyMWEzNzk5YzQyIiwidGFzayI6ImRhZy10YXNrLTAyNyIsInZlcnNpb24iOiIyMDI2LjA3LjEifQ==",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "WEP2wj8rQZK+YX+VSs/ML60TBgdJpbKafXZg/mvKw5Xpqh6sLc4Ez0vsU4Rd6J4VNgANNh3lojLnJQ3VRBlrDQ=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-015",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:f86346b3009737b9635811835c94916267c89dc782bfa0eb0905abf736d95d3e",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MzAsInBhc3NlZCI6dHJ1ZSwicm9tRGlnZXN0Ijoic2hhMjU2OmQxMGZhNmE3YWM1ZGFjMGU1ODkxMjA0OWQzNjM1MzQyM2I5ODYyZTNjMTVhMzQzNjc4MDcwMTIxYTM3OTljNDIiLCJ0YXNrIjoiZGFnLXRhc2stMDE1IiwidmVyc2lvbiI6IjIwMjYuMDcuMSJ9",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "QKXD2WUHH96aOKxySJaK8zMCd9KofguzemlbOUom/jUj+HMwcrfONTJqyb4t0yHxY4HGobDejelwMqMAhnBXAQ=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-055",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:52844a7581f5a3d228d22323484ad8282bd133718471ca119905a3b53c6731c9",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MzYsInBhc3NlZCI6ZmFsc2UsInJvbURpZ2VzdCI6InNoYTI1NjpkMTBmYTZhN2FjNWRhYzBlNTg5MTIwNDlkMzYzNTM0MjNiOTg2MmUzYzE1YTM0MzY3ODA3MDEyMWEzNzk5YzQyIiwidGFzayI6ImRhZy10YXNrLTA1NSIsInZlcnNpb24iOiIyMDI2LjA3LjEifQ==",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "yFRmitcILbu1GXhuKcpV24RQScmBju4MTzNGbix8Gl43FEXmV06Ydi009W54xF4jPhmfj244omAUZ9UKUQUJBw=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-140",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:55ad804117bf9c6457db31f5aa53ca68af7800d4c0b41df4b9de0732bc58f6ce",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MTksInBhc3NlZCI6dHJ1ZSwicm9tRGlnZXN0Ijoic2hhMjU2OmQxMGZhNmE3YWM1ZGFjMGU1ODkxMjA0OWQzNjM1MzQyM2I5ODYyZTNjMTVhMzQzNjc4MDcwMTIxYTM3OTljNDIiLCJ0YXNrIjoiZGFnLXRhc2stMTQwIiwidmVyc2lvbiI6IjIwMjYuMDcuMSJ9",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "/CKCwcDX3xszujd689B8D/aTPVbMEckUDBddf+Yn3RhuyEvLsFyJ7d/VWsa2nAW5B581hoSIaqacP8aSuNfHBw=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-118",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:fd8162a01a8ef2e72f9d46daa856a90d618d0aa204f88be716f42004d7014860",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MzEsInBhc3NlZCI6ZmFsc2UsInJvbURpZ2VzdCI6InNoYTI1NjpkMTBmYTZhN2FjNWRhYzBlNTg5MTIwNDlkMzYzNTM0MjNiOTg2MmUzYzE1YTM0MzY3ODA3MDEyMWEzNzk5YzQyIiwidGFzayI6ImRhZy10YXNrLTExOCIsInZlcnNpb24iOiIyMDI2LjA3LjEifQ==",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "UgKWscbFmawLp+dyPzY76XfSw9fSt1DOuCyFIxgy3gRiJli5u6YuZYV6L542RpRTpT7X5paM5PxVPyDrqT4nBA=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-023",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:41898f0ee4c78ca8cc3748cf38f3714e5b81b20657d8038f75256be24d60bbc9",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MzgsInBhc3NlZCI6ZmFsc2UsInJvbURpZ2VzdCI6InNoYTI1NjpkMTBmYTZhN2FjNWRhYzBlNTg5MTIwNDlkMzYzNTM0MjNiOTg2MmUzYzE1YTM0MzY3ODA3MDEyMWEzNzk5YzQyIiwidGFzayI6ImRhZy10YXNrLTAyMyIsInZlcnNpb24iOiIyMDI2LjA3LjEifQ==",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "ca4S1cCjFbQIdQ3TLhz82xZ9Ya8DCukrvvg4RrkzsjCDrrysuLwzTUoFshGWXc8gGxtyLXXpdcEqIw59iilGDA=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-001",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:69af640174b4657009f503b977daf702d6f21d975c113976fe775b0415f82a11",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MTYsInBhc3NlZCI6dHJ1ZSwicm9tRGlnZXN0Ijoic2hhMjU2OmQxMGZhNmE3YWM1ZGFjMGU1ODkxMjA0OWQzNjM1MzQyM2I5ODYyZTNjMTVhMzQzNjc4MDcwMTIxYTM3OTljNDIiLCJ0YXNrIjoiZGFnLXRhc2stMDAxIiwidmVyc2lvbiI6IjIwMjYuMDcuMSJ9",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "WBuL/xqs6Ny13NRfqu/KeOXPcxpm1TNnNn40H48E2+BsSDsdrl1tbV45vnFCvDA26fxFdgJvhPPi9KHBWbplCA=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-117",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:7da59c52e0a98e098b719417a29c9d0b8052aa850c6415ecd59de5e091ff3279",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MzAsInBhc3NlZCI6ZmFsc2UsInJvbURpZ2VzdCI6InNoYTI1NjpkMTBmYTZhN2FjNWRhYzBlNTg5MTIwNDlkMzYzNTM0MjNiOTg2MmUzYzE1YTM0MzY3ODA3MDEyMWEzNzk5YzQyIiwidGFzayI6ImRhZy10YXNrLTExNyIsInZlcnNpb24iOiIyMDI2LjA3LjEifQ==",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "rHPQUZZI3X/Pt9KTmrogbC4MHpe/G6eFSKyh4i1l5qiem3LeT3EtfMyxjVWCbrwWi2Gf9JrgF07VDSQNWokeDw=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-109",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:03b6ee5836c5d2634428bf231cc30ca9983e19f6a0be1974568f5e9eddd52569",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MjIsInBhc3NlZCI6dHJ1ZSwicm9tRGlnZXN0Ijoic2hhMjU2OmQxMGZhNmE3YWM1ZGFjMGU1ODkxMjA0OWQzNjM1MzQyM2I5ODYyZTNjMTVhMzQzNjc4MDcwMTIxYTM3OTljNDIiLCJ0YXNrIjoiZGFnLXRhc2stMTA5IiwidmVyc2lvbiI6IjIwMjYuMDcuMSJ9",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "YGhifUIPeWWRNaA6LtzGr+OSPanIKsdTTkMTUhK28pkl2fP6Jod5rpi9Dd4BoAALsUpBv6FHQCZQ6aXxkv73Bw=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-133",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:f6f5f658e556c64560edbf208a4cf558adc19acac728e1cc2069cf77f6b162dd",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6NDYsInBhc3NlZCI6ZmFsc2UsInJvbURpZ2VzdCI6InNoYTI1NjpkMTBmYTZhN2FjNWRhYzBlNTg5MTIwNDlkMzYzNTM0MjNiOTg2MmUzYzE1YTM0MzY3ODA3MDEyMWEzNzk5YzQyIiwidGFzayI6ImRhZy10YXNrLTEzMyIsInZlcnNpb24iOiIyMDI2LjA3LjEifQ==",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "BUH7MyiVB9iGAuWH6ZwvAJ98H7kmhCis9SKZNPLCS1VKuzaUhxJSUmqoHVFUs1AVM4uLz3Mlq8AgmkdShNelBw=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-124",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:6eabcdd018ad68e3190c86cc9c5d81c7f3183d405889e8cfd8a958a18245b633",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MzcsInBhc3NlZCI6ZmFsc2UsInJvbURpZ2VzdCI6InNoYTI1NjpkMTBmYTZhN2FjNWRhYzBlNTg5MTIwNDlkMzYzNTM0MjNiOTg2MmUzYzE1YTM0MzY3ODA3MDEyMWEzNzk5YzQyIiwidGFzayI6ImRhZy10YXNrLTEyNCIsInZlcnNpb24iOiIyMDI2LjA3LjEifQ==",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "77j9bSpNA4XmzYx4xVGgEvEXGmDsRoqQEFYR9u1ozmFsRDx3c+Ifx+1ofTBxPXWT6WhNAgNPsdN64xmZ35C/BA=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-045",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:ffb4535d0f5a60937d4ba0b64718ff0f6eafed6dda297a3f432d554a78bd930d",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MjYsInBhc3NlZCI6dHJ1ZSwicm9tRGlnZXN0Ijoic2hhMjU2OmQxMGZhNmE3YWM1ZGFjMGU1ODkxMjA0OWQzNjM1MzQyM2I5ODYyZTNjMTVhMzQzNjc4MDcwMTIxYTM3OTljNDIiLCJ0YXNrIjoiZGFnLXRhc2stMDQ1IiwidmVyc2lvbiI6IjIwMjYuMDcuMSJ9",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "oAaTEACSa7UbPf8Bdh5cPXGSDkqXmj16QeaXbfGapeNc4GWZCMEQqXmlIue0tAZY5KrKnKJ81CE5GRaEBzXOAA=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-012",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:7e4b72626a116498bf437205921e4e6df95b3de839ce8b3bfd6550b156950292",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MjcsInBhc3NlZCI6dHJ1ZSwicm9tRGlnZXN0Ijoic2hhMjU2OmQxMGZhNmE3YWM1ZGFjMGU1ODkxMjA0OWQzNjM1MzQyM2I5ODYyZTNjMTVhMzQzNjc4MDcwMTIxYTM3OTljNDIiLCJ0YXNrIjoiZGFnLXRhc2stMDEyIiwidmVyc2lvbiI6IjIwMjYuMDcuMSJ9",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "M1RqBsWjO0pNdtIHp8vTm3w3UHZI3LQCFq9KaNmyfoy7vAIyiFqYkZzT9dVexru66nOw7WOgvxm7J9BRHuT1CQ=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-086",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:40505f24560dff1b4b34dd647158822f1c8fec454c4473f64c1e67fc394682fc",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MzMsInBhc3NlZCI6dHJ1ZSwicm9tRGlnZXN0Ijoic2hhMjU2OmQxMGZhNmE3YWM1ZGFjMGU1ODkxMjA0OWQzNjM1MzQyM2I5ODYyZTNjMTVhMzQzNjc4MDcwMTIxYTM3OTljNDIiLCJ0YXNrIjoiZGFnLXRhc2stMDg2IiwidmVyc2lvbiI6IjIwMjYuMDcuMSJ9",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "uhQsDC94Nf9m+iJVfm/MpcmWKqo37uqt2a1Bm4ez2LPZX7IDN4qEN0e5OrWUNc09+GuZiSib8h4xT0IKhTs+BQ=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-130",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:341011bd399ad976d4b5b151b53ed9a3bad8cf1fe3ff9351eb55161263da59a4",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6NDMsInBhc3NlZCI6ZmFsc2UsInJvbURpZ2VzdCI6InNoYTI1NjpkMTBmYTZhN2FjNWRhYzBlNTg5MTIwNDlkMzYzNTM0MjNiOTg2MmUzYzE1YTM0MzY3ODA3MDEyMWEzNzk5YzQyIiwidGFzayI6ImRhZy10YXNrLTEzMCIsInZlcnNpb24iOiIyMDI2LjA3LjEifQ==",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "zygeJ5onKeXCzyIfeCHItPBeeV8r2zaDxQ5H1HccryVPxwCbemtzNgGmBmSCuEjbTWv6XVThYbtkMfVqPG3NBQ=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-113",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:0e46c09022206e8ee4997a1e83f8668ba2b5152e913173a500b726fcd98b063a",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MjYsInBhc3NlZCI6dHJ1ZSwicm9tRGlnZXN0Ijoic2hhMjU2OmQxMGZhNmE3YWM1ZGFjMGU1ODkxMjA0OWQzNjM1MzQyM2I5ODYyZTNjMTVhMzQzNjc4MDcwMTIxYTM3OTljNDIiLCJ0YXNrIjoiZGFnLXRhc2stMTEzIiwidmVyc2lvbiI6IjIwMjYuMDcuMSJ9",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "2FRyiwy/n+cRreTVl4y/yTfWGjLqGLdnd/tJfXlZSF5BiaMwxJCuQpSaSV+UbcCJHm7ikc0V7AWRuEnI6369Cg=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-068",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:d37c4f758f3a8fb6cb8d0182cf14eeee9bef71ec9ddfebcea2b66cc7deb285a8",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MTUsInBhc3NlZCI6dHJ1ZSwicm9tRGlnZXN0Ijoic2hhMjU2OmQxMGZhNmE3YWM1ZGFjMGU1ODkxMjA0OWQzNjM1MzQyM2I5ODYyZTNjMTVhMzQzNjc4MDcwMTIxYTM3OTljNDIiLCJ0YXNrIjoiZGFnLXRhc2stMDY4IiwidmVyc2lvbiI6IjIwMjYuMDcuMSJ9",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "AENctLPiGy7VREj7v3rBNub+uzmj14lLggc2/VWm1Qvx+KduwLW3GJWAmW7RLuJY/QrcKq2bxUvjqGaUzCKxCw=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-030",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:7953437ae5eea0363b15d247326fb05b266be75ea7a0327aca8f6d8b6a7a52b1",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6NDUsInBhc3NlZCI6ZmFsc2UsInJvbURpZ2VzdCI6InNoYTI1NjpkMTBmYTZhN2FjNWRhYzBlNTg5MTIwNDlkMzYzNTM0MjNiOTg2MmUzYzE1YTM0MzY3ODA3MDEyMWEzNzk5YzQyIiwidGFzayI6ImRhZy10YXNrLTAzMCIsInZlcnNpb24iOiIyMDI2LjA3LjEifQ==",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "hNs1/bR/iKMiJXra2Jcrg5v4cJ6xwyjUlxcN5pS/kqdtzF9Heg7cy3FH+2Oms/S4yQLnhzAWWi+5R+hMk4PECw=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-049",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:9066d775024c3c756620dc7f977aa92ae0872ddfd1fdebeedcfcfd7481d7bdec",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MzAsInBhc3NlZCI6dHJ1ZSwicm9tRGlnZXN0Ijoic2hhMjU2OmQxMGZhNmE3YWM1ZGFjMGU1ODkxMjA0OWQzNjM1MzQyM2I5ODYyZTNjMTVhMzQzNjc4MDcwMTIxYTM3OTljNDIiLCJ0YXNrIjoiZGFnLXRhc2stMDQ5IiwidmVyc2lvbiI6IjIwMjYuMDcuMSJ9",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "KRBWECQYTy7XL29wA3nCNU9U3SUJj4zQyGn5YdSl6A1xk1N40VL5ZML+Z0xruJTLh5krgGQ0X4yYL5xcQTT4CQ=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-063",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:8e2e5ea6c0ff0d0936a689ad514d9694ca9254943042eab73e8f2b1555afd4de",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6NDQsInBhc3NlZCI6ZmFsc2UsInJvbURpZ2VzdCI6InNoYTI1NjpkMTBmYTZhN2FjNWRhYzBlNTg5MTIwNDlkMzYzNTM0MjNiOTg2MmUzYzE1YTM0MzY3ODA3MDEyMWEzNzk5YzQyIiwidGFzayI6ImRhZy10YXNrLTA2MyIsInZlcnNpb24iOiIyMDI2LjA3LjEifQ==",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "dAKMUeKGur8jRPa334UztAmHSHhDp2anff020dTNcScKJ3f+lXWCsq1v8jPVRIIw4ka1UMvqSm0p85xJ78lLAw=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-141",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:031fccb382a88a036ae1fc79dfdc71a67e994787896a241dd0b7894633681af0",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MjAsInBhc3NlZCI6dHJ1ZSwicm9tRGlnZXN0Ijoic2hhMjU2OmQxMGZhNmE3YWM1ZGFjMGU1ODkxMjA0OWQzNjM1MzQyM2I5ODYyZTNjMTVhMzQzNjc4MDcwMTIxYTM3OTljNDIiLCJ0YXNrIjoiZGFnLXRhc2stMTQxIiwidmVyc2lvbiI6IjIwMjYuMDcuMSJ9",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "A9/2W5zFfgFtINGPrgcD3cbtfor4RLRDGHvOJH1QetZ3Pt9zrO2roNd3415r6iNor9XUvutX/lVjbs1silCnAw=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-122",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:a1bfea2c55b3664cd85d4eb194aa4d29deb2171ef6696c63d8f216e0cc32fb36",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MzUsInBhc3NlZCI6ZmFsc2UsInJvbURpZ2VzdCI6InNoYTI1NjpkMTBmYTZhN2FjNWRhYzBlNTg5MTIwNDlkMzYzNTM0MjNiOTg2MmUzYzE1YTM0MzY3ODA3MDEyMWEzNzk5YzQyIiwidGFzayI6ImRhZy10YXNrLTEyMiIsInZlcnNpb24iOiIyMDI2LjA3LjEifQ==",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "Lq2Kyi8eOmF2kv2/XLXKsAj9hrJBIcj9ZVE953WSbMycuMVBlV7ijx/IbAG2XcwurNkG7XtN8EpC2QyNU4grCg=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-003",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:1f6e7a5584790cd71fa0d0b1e00cc83e9386e49294b7587b79228babffc194c3",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MTgsInBhc3NlZCI6dHJ1ZSwicm9tRGlnZXN0Ijoic2hhMjU2OmQxMGZhNmE3YWM1ZGFjMGU1ODkxMjA0OWQzNjM1MzQyM2I5ODYyZTNjMTVhMzQzNjc4MDcwMTIxYTM3OTljNDIiLCJ0YXNrIjoiZGFnLXRhc2stMDAzIiwidmVyc2lvbiI6IjIwMjYuMDcuMSJ9",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "MmIKGolDOSI6IDqE4mlp1mEbAUv6H9i+08asnLB8evaD88Ru8EB0PWtllIR/PUzdzpkq7DSTpBYiqMh20YLoDw=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-121",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:9a7fefb7d6366a430a1366422590deec91ff4e17b48fe7f9566098b9fb6fb238",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MzQsInBhc3NlZCI6ZmFsc2UsInJvbURpZ2VzdCI6InNoYTI1NjpkMTBmYTZhN2FjNWRhYzBlNTg5MTIwNDlkMzYzNTM0MjNiOTg2MmUzYzE1YTM0MzY3ODA3MDEyMWEzNzk5YzQyIiwidGFzayI6ImRhZy10YXNrLTEyMSIsInZlcnNpb24iOiIyMDI2LjA3LjEifQ==",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "HZwxtI8EhVX4b+j7LXec1Kbt5ti/rL1Y5ZVQz64FSC7g6QNFjo3ogJ+V32/pAkwC1SQwQvhrujTeii0kG8jtAw=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-138",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:d1a2a7a081389b085ddb9d94a6f99e70d687305ba8e302c4c50f312953b68b4b",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MTcsInBhc3NlZCI6dHJ1ZSwicm9tRGlnZXN0Ijoic2hhMjU2OmQxMGZhNmE3YWM1ZGFjMGU1ODkxMjA0OWQzNjM1MzQyM2I5ODYyZTNjMTVhMzQzNjc4MDcwMTIxYTM3OTljNDIiLCJ0YXNrIjoiZGFnLXRhc2stMTM4IiwidmVyc2lvbiI6IjIwMjYuMDcuMSJ9",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "kdhklkMhhFeD7BWEH9apAoDne+H9kmlWlM333dlafcf2kOdaASI0/purYVfj19dJ8DqtvdqUS8cd7CLXG5ANDg=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-022",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:78533e7add0d664cca6df78263675d924838717cb710473ec22eecaedbdf641c",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MzcsInBhc3NlZCI6ZmFsc2UsInJvbURpZ2VzdCI6InNoYTI1NjpkMTBmYTZhN2FjNWRhYzBlNTg5MTIwNDlkMzYzNTM0MjNiOTg2MmUzYzE1YTM0MzY3ODA3MDEyMWEzNzk5YzQyIiwidGFzayI6ImRhZy10YXNrLTAyMiIsInZlcnNpb24iOiIyMDI2LjA3LjEifQ==",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "kTKWp1swS9ihS8w7n+NKHPkxdSIPBSq1bTWf9aNA6jJ3xCFgi4fNKliSCKkyKKn0cln2tPSVJmF56ADVEzm6BQ=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-100",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:a29616305a0f36564c9335daac8424882e8e63cf6a784fdd947b9f56f8dca127",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6NDcsInBhc3NlZCI6ZmFsc2UsInJvbURpZ2VzdCI6InNoYTI1NjpkMTBmYTZhN2FjNWRhYzBlNTg5MTIwNDlkMzYzNTM0MjNiOTg2MmUzYzE1YTM0MzY3ODA3MDEyMWEzNzk5YzQyIiwidGFzayI6ImRhZy10YXNrLTEwMCIsInZlcnNpb24iOiIyMDI2LjA3LjEifQ==",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "RuSMqO9kfTJqltZ1l4l276Oi54fCAO1lNDQu5ciai5XagJZg4RekT0hck3zyn//tX/SFAB+J4LaqEn9eRaPlDw=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-112",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:35a6f2cff44016c86c80d8a3909d73253505a2be2b93e60aecfd378ef3f0a723",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MjUsInBhc3NlZCI6dHJ1ZSwicm9tRGlnZXN0Ijoic2hhMjU2OmQxMGZhNmE3YWM1ZGFjMGU1ODkxMjA0OWQzNjM1MzQyM2I5ODYyZTNjMTVhMzQzNjc4MDcwMTIxYTM3OTljNDIiLCJ0YXNrIjoiZGFnLXRhc2stMTEyIiwidmVyc2lvbiI6IjIwMjYuMDcuMSJ9",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "Bru6C11GhnmRkJe1ARLBlFZsmhAluOes9KFng8I7IRmdYcnLHxlIsF+i2wxfoybO7S/8WyT2qaf/1Kk7dNQxDQ=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-066",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:dc174942d65f9d4c3c4965ca4b5ce024019b6375dc038d48ee7a75c6689c44ba",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6NDcsInBhc3NlZCI6ZmFsc2UsInJvbURpZ2VzdCI6InNoYTI1NjpkMTBmYTZhN2FjNWRhYzBlNTg5MTIwNDlkMzYzNTM0MjNiOTg2MmUzYzE1YTM0MzY3ODA3MDEyMWEzNzk5YzQyIiwidGFzayI6ImRhZy10YXNrLTA2NiIsInZlcnNpb24iOiIyMDI2LjA3LjEifQ==",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "yUJVHWyBvw+21+jCTduHB7WVUoTfjJug2iQlmQSvlUwYLdQI5TTGb3R3KA7s/0ZveLAT5rC3hiSmHH0+sZtrDQ=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-093",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:de79964d2f88a3f2873332fda58763d0d6dc07dbe8cbe8601e8b7a180153bdcb",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6NDAsInBhc3NlZCI6ZmFsc2UsInJvbURpZ2VzdCI6InNoYTI1NjpkMTBmYTZhN2FjNWRhYzBlNTg5MTIwNDlkMzYzNTM0MjNiOTg2MmUzYzE1YTM0MzY3ODA3MDEyMWEzNzk5YzQyIiwidGFzayI6ImRhZy10YXNrLTA5MyIsInZlcnNpb24iOiIyMDI2LjA3LjEifQ==",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "+iRFsWk7LjiXK3lbDWR0Ys8pwtxPy+3a4Xxo10I8Iy9uTPQDpKlJi4y7WhT0V3wYM66zMpMHqq3NZxFMC/NYBA=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-085",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:36adba12b0ba751512563d534c6a5f84421d83a11f94955f2c3b3ac3e9fedc38",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MzIsInBhc3NlZCI6ZmFsc2UsInJvbURpZ2VzdCI6InNoYTI1NjpkMTBmYTZhN2FjNWRhYzBlNTg5MTIwNDlkMzYzNTM0MjNiOTg2MmUzYzE1YTM0MzY3ODA3MDEyMWEzNzk5YzQyIiwidGFzayI6ImRhZy10YXNrLTA4NSIsInZlcnNpb24iOiIyMDI2LjA3LjEifQ==",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "8Ih0NmsRv6XWj+v8Q6se6LxsHnTnc1b0iEjDE3Z65gCkAoMQmyx25eQXHoE2vW5WuFI2GlLPQNcY30xMYlsiAg=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-044",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:095dceb6fe93ebb0c16d6c936f4b50fa9d0a50504362d04cfe2bbbb3a6a6d9da",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MjUsInBhc3NlZCI6dHJ1ZSwicm9tRGlnZXN0Ijoic2hhMjU2OmQxMGZhNmE3YWM1ZGFjMGU1ODkxMjA0OWQzNjM1MzQyM2I5ODYyZTNjMTVhMzQzNjc4MDcwMTIxYTM3OTljNDIiLCJ0YXNrIjoiZGFnLXRhc2stMDQ0IiwidmVyc2lvbiI6IjIwMjYuMDcuMSJ9",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "w+31Xw1KtqYCxtXoKQ1xm0Anqyxjze8I0N2/qLKBVhKhRC6hXTWtba5i2j+1eCLWoAYk31a20+llB0GR1quNDA=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-073",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:df7beb26fa6e15048f1eb86ad03ccc2561598f707d9db0c7adeac2037d999334",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MjAsInBhc3NlZCI6dHJ1ZSwicm9tRGlnZXN0Ijoic2hhMjU2OmQxMGZhNmE3YWM1ZGFjMGU1ODkxMjA0OWQzNjM1MzQyM2I5ODYyZTNjMTVhMzQzNjc4MDcwMTIxYTM3OTljNDIiLCJ0YXNrIjoiZGFnLXRhc2stMDczIiwidmVyc2lvbiI6IjIwMjYuMDcuMSJ9",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "nY+v0H1K9+qNaz2/FGrkQdwjT5qVBKpwKZjlq+CiZk2N7pag5nc5jm2x3z6ORvKaOSbiKZ6Ni8njzFAS2EJhCA=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-050",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:aa54d514f07edc624e6030a42d0278c8812b3f30be830d406c9e8b121afa2a03",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MzEsInBhc3NlZCI6dHJ1ZSwicm9tRGlnZXN0Ijoic2hhMjU2OmQxMGZhNmE3YWM1ZGFjMGU1ODkxMjA0OWQzNjM1MzQyM2I5ODYyZTNjMTVhMzQzNjc4MDcwMTIxYTM3OTljNDIiLCJ0YXNrIjoiZGFnLXRhc2stMDUwIiwidmVyc2lvbiI6IjIwMjYuMDcuMSJ9",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "jXth6SMgCH5UpOjVA6hQ+VsmJylszbXYPyre3lypohNWnf+m/147ECa/ZbW+g5bbWfmwq7cKyLFsu53DpJO+Bg=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-090",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:8836b1078bd26963771b797fabee158a26b0b38f39350d75b75005d54cd6c768",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MzcsInBhc3NlZCI6ZmFsc2UsInJvbURpZ2VzdCI6InNoYTI1NjpkMTBmYTZhN2FjNWRhYzBlNTg5MTIwNDlkMzYzNTM0MjNiOTg2MmUzYzE1YTM0MzY3ODA3MDEyMWEzNzk5YzQyIiwidGFzayI6ImRhZy10YXNrLTA5MCIsInZlcnNpb24iOiIyMDI2LjA3LjEifQ==",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "Yeci4Y2DIKhZE3KGWGoiFdWp/xxIK6kra7hYHi+f4n5vL08UVVxbRKO5rfrkfJPAgMti019escOFuBTDj2FqAw=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-025",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:01c4ed663713131741d619a5618ca3e79fcf6dcfb89b8240bd810aa7ea5ae0c3",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6NDAsInBhc3NlZCI6ZmFsc2UsInJvbURpZ2VzdCI6InNoYTI1NjpkMTBmYTZhN2FjNWRhYzBlNTg5MTIwNDlkMzYzNTM0MjNiOTg2MmUzYzE1YTM0MzY3ODA3MDEyMWEzNzk5YzQyIiwidGFzayI6ImRhZy10YXNrLTAyNSIsInZlcnNpb24iOiIyMDI2LjA3LjEifQ==",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "CEk2mBTgoOniLSpjXndgpnvetGVf2vgVOoVfMlyZh3fKgev8sk3bHY7PoUj7uDoIumSlpd1mxpANjUwc7bV+BA=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-038",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:a6b223b199edbb4d21a430c4200ea2dcd90baa0d0abf5b73df59f8f95203aa33",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MTksInBhc3NlZCI6dHJ1ZSwicm9tRGlnZXN0Ijoic2hhMjU2OmQxMGZhNmE3YWM1ZGFjMGU1ODkxMjA0OWQzNjM1MzQyM2I5ODYyZTNjMTVhMzQzNjc4MDcwMTIxYTM3OTljNDIiLCJ0YXNrIjoiZGFnLXRhc2stMDM4IiwidmVyc2lvbiI6IjIwMjYuMDcuMSJ9",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "uqx+z7JswBSIXgfbjatkW9HMbuLqt8uaFFfbJB5sJedwADiLbjE9JVXvAmmNqjIxpzWSbI4xBOpuaPMvTWc+CA=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-036",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:5674f353cc3b229ceaa9e4293499f2ba7085dac410e9e651dc0432e59edaac12",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MTcsInBhc3NlZCI6dHJ1ZSwicm9tRGlnZXN0Ijoic2hhMjU2OmQxMGZhNmE3YWM1ZGFjMGU1ODkxMjA0OWQzNjM1MzQyM2I5ODYyZTNjMTVhMzQzNjc4MDcwMTIxYTM3OTljNDIiLCJ0YXNrIjoiZGFnLXRhc2stMDM2IiwidmVyc2lvbiI6IjIwMjYuMDcuMSJ9",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "OMlznuCToW03ncOTHckqqA3TDxITspaBiRoVjOTM/ZbyCk2EFBPebMH6jfYP2JoJbqhYfSHV6t67my/Ntod8DA=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-129",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:dbaf4c9fc7cd6ac6f6401956414ca5d6c3312bf70a5e7605471360a26f1efbaa",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6NDIsInBhc3NlZCI6ZmFsc2UsInJvbURpZ2VzdCI6InNoYTI1NjpkMTBmYTZhN2FjNWRhYzBlNTg5MTIwNDlkMzYzNTM0MjNiOTg2MmUzYzE1YTM0MzY3ODA3MDEyMWEzNzk5YzQyIiwidGFzayI6ImRhZy10YXNrLTEyOSIsInZlcnNpb24iOiIyMDI2LjA3LjEifQ==",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "rlrgGMEu1FuhDdI6G2o4yYBDYUzlit9CE/hwzEU+jQFQjLo+yAKCemRMx1hw3EEKZCjcNj2rnxmZkqONIJRYDw=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-056",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:d4508999cdec6d4fa0fef12fe95bed42210e922a2b0df507a2459c32e2776cfd",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MzcsInBhc3NlZCI6ZmFsc2UsInJvbURpZ2VzdCI6InNoYTI1NjpkMTBmYTZhN2FjNWRhYzBlNTg5MTIwNDlkMzYzNTM0MjNiOTg2MmUzYzE1YTM0MzY3ODA3MDEyMWEzNzk5YzQyIiwidGFzayI6ImRhZy10YXNrLTA1NiIsInZlcnNpb24iOiIyMDI2LjA3LjEifQ==",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "LbU+JxO555wz9h25en5nj9Rn1s0Wj7BgaegmIUtMVQdkyai5d/X1rdfxUCp2nN0DisalLTr6/2mq5geY8zxhDg=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-095",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:44bd50fbb1a66ec6efdbf407cb15f7d407a58a00ab4af558b569d4f18ade622e",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6NDIsInBhc3NlZCI6ZmFsc2UsInJvbURpZ2VzdCI6InNoYTI1NjpkMTBmYTZhN2FjNWRhYzBlNTg5MTIwNDlkMzYzNTM0MjNiOTg2MmUzYzE1YTM0MzY3ODA3MDEyMWEzNzk5YzQyIiwidGFzayI6ImRhZy10YXNrLTA5NSIsInZlcnNpb24iOiIyMDI2LjA3LjEifQ==",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "XXxVRHMMEoKxLK+TarRJl4E+SncBUXjPbbRAnghhxDP0snGpraaHT1FkP2mU54TOJ+ozhYjZ4IGi7K7kAMSxCA=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-067",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:6376aff1f2f8eefe067c661610deb475d55b4c765a56c3951722a2eed36edc87",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6NDgsInBhc3NlZCI6ZmFsc2UsInJvbURpZ2VzdCI6InNoYTI1NjpkMTBmYTZhN2FjNWRhYzBlNTg5MTIwNDlkMzYzNTM0MjNiOTg2MmUzYzE1YTM0MzY3ODA3MDEyMWEzNzk5YzQyIiwidGFzayI6ImRhZy10YXNrLTA2NyIsInZlcnNpb24iOiIyMDI2LjA3LjEifQ==",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "uXhgiYoM5nPAzJF6OiH6h6BW2YNciKDaQIoHpVvZ/ulsuqU8GXCMSMPRGSFk49kdSep7uSlVgXywTWzPugN/DA=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-159",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:16ac15c41501d8198eedac88ce9637b251f23c4f4198fee664a62324d34c01a1",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MzgsInBhc3NlZCI6dHJ1ZSwicm9tRGlnZXN0Ijoic2hhMjU2OmQxMGZhNmE3YWM1ZGFjMGU1ODkxMjA0OWQzNjM1MzQyM2I5ODYyZTNjMTVhMzQzNjc4MDcwMTIxYTM3OTljNDIiLCJ0YXNrIjoiZGFnLXRhc2stMTU5IiwidmVyc2lvbiI6IjIwMjYuMDcuMSJ9",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "W1oTV3Hduo4DdClTtyiKmpnBV4DUraoRsGCkQ5E4LfKyVW/2JnXR/UcplMvnOQw1r8Pxns4TMMNznQGNyPo3Cg=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-069",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:b9e7eb20a41e145ae919201719a32a2368aeb25a4f46b690bc73bdbdd9f6b8de",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MTYsInBhc3NlZCI6dHJ1ZSwicm9tRGlnZXN0Ijoic2hhMjU2OmQxMGZhNmE3YWM1ZGFjMGU1ODkxMjA0OWQzNjM1MzQyM2I5ODYyZTNjMTVhMzQzNjc4MDcwMTIxYTM3OTljNDIiLCJ0YXNrIjoiZGFnLXRhc2stMDY5IiwidmVyc2lvbiI6IjIwMjYuMDcuMSJ9",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "Cwuvw13yXWi7qbpUS1fgY+Us/8cf0q4gK9bnnbiN2ePbFyPuUlnWIuFj/JCPQ3gfNkrNhlgbukNQstvEYlENDw=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-031",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:1ba6564e1e4982afd6d015ef730173ad880f0c7c41e1c559222310af7c0d970e",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6NDYsInBhc3NlZCI6ZmFsc2UsInJvbURpZ2VzdCI6InNoYTI1NjpkMTBmYTZhN2FjNWRhYzBlNTg5MTIwNDlkMzYzNTM0MjNiOTg2MmUzYzE1YTM0MzY3ODA3MDEyMWEzNzk5YzQyIiwidGFzayI6ImRhZy10YXNrLTAzMSIsInZlcnNpb24iOiIyMDI2LjA3LjEifQ==",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "j5IUSpaQewM927LFJBklx4li4kDlM/5WU9bdDpR00h+NVC9uWV7k7foRl/KeOXz/Bqi2T7I4Am7CUsNrptkCAQ=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-154",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:b32a0a2b9f5a763b0367a33947802b44a7274a7262882814fba1f116c0c8183a",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MzMsInBhc3NlZCI6dHJ1ZSwicm9tRGlnZXN0Ijoic2hhMjU2OmQxMGZhNmE3YWM1ZGFjMGU1ODkxMjA0OWQzNjM1MzQyM2I5ODYyZTNjMTVhMzQzNjc4MDcwMTIxYTM3OTljNDIiLCJ0YXNrIjoiZGFnLXRhc2stMTU0IiwidmVyc2lvbiI6IjIwMjYuMDcuMSJ9",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "z4KKBzKZ2DP4c/375LLeNZAb+tujqDGbg+5qKedU0cPsFl3vmFR+i+wMxDYZa0ll98yBgUYDypWSQLdFGRJJCQ=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-114",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:47df85c644dc99d4058f9988aea3e5dfc209d3831a6f042b3dfbce79018d16c2",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MjcsInBhc3NlZCI6dHJ1ZSwicm9tRGlnZXN0Ijoic2hhMjU2OmQxMGZhNmE3YWM1ZGFjMGU1ODkxMjA0OWQzNjM1MzQyM2I5ODYyZTNjMTVhMzQzNjc4MDcwMTIxYTM3OTljNDIiLCJ0YXNrIjoiZGFnLXRhc2stMTE0IiwidmVyc2lvbiI6IjIwMjYuMDcuMSJ9",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "IQbqvcankp4l9kx9WDkemXk1tf2uQVzZIA3OQOQTa4IXWg6faHeF+B946qMFeLw6BI8N3kS8qqCz2SZzZs9LAw=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-078",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:b0749c80fb20b236159a928057be5e8ce58d0d4668237ca1775b2e7cb01ef14a",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MjUsInBhc3NlZCI6dHJ1ZSwicm9tRGlnZXN0Ijoic2hhMjU2OmQxMGZhNmE3YWM1ZGFjMGU1ODkxMjA0OWQzNjM1MzQyM2I5ODYyZTNjMTVhMzQzNjc4MDcwMTIxYTM3OTljNDIiLCJ0YXNrIjoiZGFnLXRhc2stMDc4IiwidmVyc2lvbiI6IjIwMjYuMDcuMSJ9",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "pxHQ/x/RbcVkxeJkk1UEKhmiylm6F5OSQMi9BRiIwOnT+maTtLAXHveWaWt9pvVZfp8YMSmfe5rkZXyyBVjwCg=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-105",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:eb27501517629dd5fa781bc1ada299763f7d9c8ca2b51cad04bfb7ee818bf8ac",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MTgsInBhc3NlZCI6dHJ1ZSwicm9tRGlnZXN0Ijoic2hhMjU2OmQxMGZhNmE3YWM1ZGFjMGU1ODkxMjA0OWQzNjM1MzQyM2I5ODYyZTNjMTVhMzQzNjc4MDcwMTIxYTM3OTljNDIiLCJ0YXNrIjoiZGFnLXRhc2stMTA1IiwidmVyc2lvbiI6IjIwMjYuMDcuMSJ9",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "4C4iU7COsWsABV0p2Kb6ClmfBBbUgvATw27s/8b3uWkvuqtQHwSG4RD5DdzoR+IeWRMmQ+dIZFvkMVBY7rhvBg=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-048",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:105fd854cc18c53b443a3a3cf74fee7769e507f9d7ca9a761cfca91ed2b0ff55",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MjksInBhc3NlZCI6dHJ1ZSwicm9tRGlnZXN0Ijoic2hhMjU2OmQxMGZhNmE3YWM1ZGFjMGU1ODkxMjA0OWQzNjM1MzQyM2I5ODYyZTNjMTVhMzQzNjc4MDcwMTIxYTM3OTljNDIiLCJ0YXNrIjoiZGFnLXRhc2stMDQ4IiwidmVyc2lvbiI6IjIwMjYuMDcuMSJ9",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "iSmYx9o9l/VwupiKkbAE4zzLoIF5vKY06bhBb607E0LMgM+NbrLQhgoEQWpO9tdyAyXtEb2esTc2cmsjtD0hDw=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-145",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:206656598ea843b4012bb5124c309558b5192ccda0ba7cb07697f3a7bc94acf6",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MjQsInBhc3NlZCI6dHJ1ZSwicm9tRGlnZXN0Ijoic2hhMjU2OmQxMGZhNmE3YWM1ZGFjMGU1ODkxMjA0OWQzNjM1MzQyM2I5ODYyZTNjMTVhMzQzNjc4MDcwMTIxYTM3OTljNDIiLCJ0YXNrIjoiZGFnLXRhc2stMTQ1IiwidmVyc2lvbiI6IjIwMjYuMDcuMSJ9",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "NAr0V5V7B/j2uQg0XcVL99lDshxhHZ+Z7+L4CyOrUsBU9qk1QDqUOH0DgIQX/bu1MJkaIYbAPZ79ZQlZrAk9AA=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-097",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:2f566fb7d006e09aa47c493fb58e04e674a3aca1c14cb7c043f0184cd5234848",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6NDQsInBhc3NlZCI6ZmFsc2UsInJvbURpZ2VzdCI6InNoYTI1NjpkMTBmYTZhN2FjNWRhYzBlNTg5MTIwNDlkMzYzNTM0MjNiOTg2MmUzYzE1YTM0MzY3ODA3MDEyMWEzNzk5YzQyIiwidGFzayI6ImRhZy10YXNrLTA5NyIsInZlcnNpb24iOiIyMDI2LjA3LjEifQ==",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "bwnvh0ncWqhn3cRy1wiXLNQbgraDmf+eqpxnbCHvpScTt0smg0dgISQwp7K6W4XCxg2f5dipz/Qw4SejLHQoDg=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-123",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:90b77ae7983a9acd08ab0e1d063be75016002c4ecd7adbe7d0d61a9ef2b8fede",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MzYsInBhc3NlZCI6ZmFsc2UsInJvbURpZ2VzdCI6InNoYTI1NjpkMTBmYTZhN2FjNWRhYzBlNTg5MTIwNDlkMzYzNTM0MjNiOTg2MmUzYzE1YTM0MzY3ODA3MDEyMWEzNzk5YzQyIiwidGFzayI6ImRhZy10YXNrLTEyMyIsInZlcnNpb24iOiIyMDI2LjA3LjEifQ==",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "TeBvHMspUL+yAwOfblgXhghB+6cSu+eFm6rF5fELZ/6u2hrfCZ7cmMNT0aifKMEnm3bdHDZ435pH3wPv0fvpDA=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-137",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:4ec3b74eeb6dfb0a427cb6ad69a0568ce736b94f7b2441f7fe6dcc4c2b3a067b",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MTYsInBhc3NlZCI6dHJ1ZSwicm9tRGlnZXN0Ijoic2hhMjU2OmQxMGZhNmE3YWM1ZGFjMGU1ODkxMjA0OWQzNjM1MzQyM2I5ODYyZTNjMTVhMzQzNjc4MDcwMTIxYTM3OTljNDIiLCJ0YXNrIjoiZGFnLXRhc2stMTM3IiwidmVyc2lvbiI6IjIwMjYuMDcuMSJ9",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "c1IPgq+GeXkRPOgKH9azTo91zuzY28uLdwW8Gp/E6YGSHEXvJrEMdVhhU/Z/pxzkx98KzGi48u4SmJ1mEOhpCw=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-075",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:4ec4023cf64612d265cd7a7a9178933206a0670ea0930667ad9a9d65188fa4e4",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MjIsInBhc3NlZCI6dHJ1ZSwicm9tRGlnZXN0Ijoic2hhMjU2OmQxMGZhNmE3YWM1ZGFjMGU1ODkxMjA0OWQzNjM1MzQyM2I5ODYyZTNjMTVhMzQzNjc4MDcwMTIxYTM3OTljNDIiLCJ0YXNrIjoiZGFnLXRhc2stMDc1IiwidmVyc2lvbiI6IjIwMjYuMDcuMSJ9",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "ZZn62SKCFFYbj7mNnaQ0rm8wH9S8oNBHoLHjMuilpyE34SYO0eP1ROwT9g1y+lY4fKGh/LUKY+UPT0Zo86jPAQ=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-108",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:99fe23d7e5cb76ad85edb26834ad6c15185e64c6b0294b15b12d31d5a5d540b3",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MjEsInBhc3NlZCI6dHJ1ZSwicm9tRGlnZXN0Ijoic2hhMjU2OmQxMGZhNmE3YWM1ZGFjMGU1ODkxMjA0OWQzNjM1MzQyM2I5ODYyZTNjMTVhMzQzNjc4MDcwMTIxYTM3OTljNDIiLCJ0YXNrIjoiZGFnLXRhc2stMTA4IiwidmVyc2lvbiI6IjIwMjYuMDcuMSJ9",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "Ro3sWF7m9SFcEIvTX+DSmjVzvedJ1ftxyvqtLYWQx/jRxbXribFNHLJHmsqN3w4Hi5YPas0OPuRRkkxPQJSPBA=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-033",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:1762467f21bd18d75a6f72559d2858a7affc8a7be72d257e6c7805dfc3370e8b",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6NDgsInBhc3NlZCI6ZmFsc2UsInJvbURpZ2VzdCI6InNoYTI1NjpkMTBmYTZhN2FjNWRhYzBlNTg5MTIwNDlkMzYzNTM0MjNiOTg2MmUzYzE1YTM0MzY3ODA3MDEyMWEzNzk5YzQyIiwidGFzayI6ImRhZy10YXNrLTAzMyIsInZlcnNpb24iOiIyMDI2LjA3LjEifQ==",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "5o3XqgrsQELRoCCd9rQzhVZ1fKHixGFP9DiiBS3lPchYGBsRy7JINpZc4yAkgCfNMHUOOblZ+SB4U8N7aWRRBQ=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-009",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:28a6d4bbc8ca8babc7aced8af05a4fd0e82cfb4c7c18589ef855649106a7fb2d",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MjQsInBhc3NlZCI6dHJ1ZSwicm9tRGlnZXN0Ijoic2hhMjU2OmQxMGZhNmE3YWM1ZGFjMGU1ODkxMjA0OWQzNjM1MzQyM2I5ODYyZTNjMTVhMzQzNjc4MDcwMTIxYTM3OTljNDIiLCJ0YXNrIjoiZGFnLXRhc2stMDA5IiwidmVyc2lvbiI6IjIwMjYuMDcuMSJ9",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "lQjg9Tq+tuWw7H9m2UIUNi4bH9uE5Ysx3SfBDKWzk2K7ltQEKG0fNIHPekNV5FYJ/MqasmxkrQ783BY980QJAg=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-156",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:9aab79e1c246a75ed6bd9fb6aed523c35ce6d31e5c59f202aa816a725bbfd323",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MzUsInBhc3NlZCI6ZmFsc2UsInJvbURpZ2VzdCI6InNoYTI1NjpkMTBmYTZhN2FjNWRhYzBlNTg5MTIwNDlkMzYzNTM0MjNiOTg2MmUzYzE1YTM0MzY3ODA3MDEyMWEzNzk5YzQyIiwidGFzayI6ImRhZy10YXNrLTE1NiIsInZlcnNpb24iOiIyMDI2LjA3LjEifQ==",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "pwbd2a10ESMBi0VaKake8rgEDsxuhimdm4ytLXTJDNjsknQkgCXNCAS4DIzRt5PkM3b/XWYltB6+kDfRIi0lDA=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-051",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:9fd397f0c94fcaaaafba6f499fa1b6590488ad8875938b815ab4cf080a9c74ae",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MzIsInBhc3NlZCI6ZmFsc2UsInJvbURpZ2VzdCI6InNoYTI1NjpkMTBmYTZhN2FjNWRhYzBlNTg5MTIwNDlkMzYzNTM0MjNiOTg2MmUzYzE1YTM0MzY3ODA3MDEyMWEzNzk5YzQyIiwidGFzayI6ImRhZy10YXNrLTA1MSIsInZlcnNpb24iOiIyMDI2LjA3LjEifQ==",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "PqaOl9bJeWEUy+QjHO0B+4Zs749e4q9Ms/9BNBDbK4OdDVEVm4C+wcZ2Vhmp5x2JT7vvv/DcfDcicgDwg/abDg=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-005",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:b44c2c690bd2bc31fab4abf97027669a7c76d3af335ada4caba747ffabc5ce73",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MjAsInBhc3NlZCI6dHJ1ZSwicm9tRGlnZXN0Ijoic2hhMjU2OmQxMGZhNmE3YWM1ZGFjMGU1ODkxMjA0OWQzNjM1MzQyM2I5ODYyZTNjMTVhMzQzNjc4MDcwMTIxYTM3OTljNDIiLCJ0YXNrIjoiZGFnLXRhc2stMDA1IiwidmVyc2lvbiI6IjIwMjYuMDcuMSJ9",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "v1uHKbULtpzXfSpfLzDuO5SuDymYArtrEgDHkumadvCn3l1Lr08fjIP03b7Kh5AgbEE8jBZyzV7Xzh73LGbyDQ=="
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://acx.dev/evidence/acx-bench-dag-de/dag-task-087",
+      "type": [
+        "Evidence"
+      ],
+      "acx:digestMultibase": "sha256:10ea60708a0927ce0201d83adce73f03162e9ddaa3fbd3316c07e5de7025c598",
+      "acx:dsseEnvelope": {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": "eyJiZW5jaG1hcmsiOiJhY3gtYmVuY2gtZGFnLWRlIiwiZGlmZmljdWx0eSI6MzQsInBhc3NlZCI6dHJ1ZSwicm9tRGlnZXN0Ijoic2hhMjU2OmQxMGZhNmE3YWM1ZGFjMGU1ODkxMjA0OWQzNjM1MzQyM2I5ODYyZTNjMTVhMzQzNjc4MDcwMTIxYTM3OTljNDIiLCJ0YXNrIjoiZGFnLXRhc2stMDg3IiwidmVyc2lvbiI6IjIwMjYuMDcuMSJ9",
+        "signatures": [
+          {
+            "keyid": "ed25519:ce1392805057fde5fa7c63d759dd13b98abd3e6c7fde75b1f8d5229810694ad7",
+            "sig": "7dLfntPH7PFtVLEhSh4qLSufFQpWLqCLAOsBIBawCjImxf6PRFuOjPoa+shKar+Pe2LbgBFNl2QL2s0k7iutAg=="
+          }
+        ]
+      }
+    }
+  ],
+  "credentialStatus": {
+    "id": "https://acx.dev/status/1#0",
+    "type": "BitstringStatusListEntry",
+    "statusPurpose": "revocation",
+    "statusListIndex": "0",
+    "statusListCredential": "https://acx.dev/status/1"
+  },
+  "proof": {
+    "type": "DataIntegrityProof",
+    "cryptosuite": "eddsa-jcs-2022",
+    "created": "2026-07-16T00:00:00Z",
+    "verificationMethod": "did:web:verifier.acx.dev#key-1",
+    "proofPurpose": "assertionMethod",
+    "proofValue": "z4ZK7qqk7TTdd1xDWNGPvHicGGKNHKFdEcuRAVcGAXWyK3ZBodBAsMHHB3VoMvq4ExitRTv2yyGk5au6gYa5v4Cww"
+  }
+}

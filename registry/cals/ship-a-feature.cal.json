@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "acx.cal/1",
+  "id": "ship-a-feature",
+  "name": "Ship a data-pipeline feature",
+  "description": "A conditional agentic loop: an architect designs, a pipeline engineer builds a DAG, a security sentinel reviews; loops back until the review passes. Agents are referenced by role slot (staffed from any matching cartridge) — swap in a specific cartridge by romDigest to pin it.",
+
+  "participants": [
+    { "alias": "architect", "bind": "slot", "slot": { "role": "architect", "capabilities": [{ "taskType": "design-api" }] } },
+    { "alias": "builder", "bind": "slot", "slot": { "role": "devops_engineer", "minLevel": { "acxLevel": 15 }, "capabilities": [{ "taskType": "build-dag" }] } },
+    { "alias": "reviewer", "bind": "slot", "slot": { "role": "security_expert", "capabilities": [{ "taskType": "harden-security" }] } }
+  ],
+
+  "rac": [
+    { "id": "infra-arch", "kind": "terraform", "required": true, "description": "Terraform modules describing the network + IAM architecture (structure only, not the .tf contents).", "check": { "type": "file-glob", "hint": "infra/**/*.tf" } },
+    { "id": "code-wiki", "kind": "wiki", "required": true, "description": "An LLM-readable wiki / knowledge map of the codebase: modules, data flows, conventions.", "check": { "type": "mcp-resource", "hint": "wiki://project/overview" } },
+    { "id": "warehouse-schema", "kind": "api-spec", "required": false, "description": "A description of the target Snowflake warehouse schema (table names + grains, not the data).", "check": { "type": "manual", "hint": "confirm the DE team shared the schema doc" } }
+  ],
+
+  "variables": [
+    { "name": "review", "type": "object" },
+    { "name": "attempts", "type": "int", "init": 0 }
+  ],
+
+  "start": "design",
+  "nodes": [
+    { "id": "design", "type": "task", "agent": "architect", "action": "Design the pipeline + interfaces",
+      "requires": { "capabilities": ["design-api"], "rac": ["infra-arch", "code-wiki"] },
+      "completion": { "type": "artifact", "produces": "design-doc" } },
+    { "id": "build", "type": "task", "agent": "builder", "action": "Build + backfill the Airflow DAG",
+      "requires": { "capabilities": ["build-dag"], "rac": ["infra-arch", "warehouse-schema"] },
+      "completion": { "type": "verification", "commands": ["lint", "dag:validate", "test:touched"], "passIntent": "DAG parses, tasks wire up, touched tests green" } },
+    { "id": "gate", "type": "gateway", "gateway": "exclusive" },
+    { "id": "review", "type": "task", "agent": "reviewer", "action": "Security + quality review",
+      "requires": { "capabilities": ["harden-security"] },
+      "completion": { "type": "guardrail", "kind": "milestone" } },
+    { "id": "done", "type": "event", "event": "end" }
+  ],
+
+  "edges": [
+    { "from": "design", "to": "build" },
+    { "from": "build", "to": "gate" },
+    { "from": "gate", "to": "review", "when": { "always": true } },
+    { "from": "review", "to": "done", "when": { "var": "review.outcome", "op": "eq", "value": "completed" } },
+    { "from": "review", "to": "build", "when": { "not": { "var": "review.outcome", "op": "eq", "value": "completed" } } }
+  ]
+}

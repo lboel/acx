@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://acx.dev/schemas/skill-descriptor/1",
+  "title": "ACX Skill Index Descriptor (acx_skill row)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "name",
+    "description",
+    "sqlar_path",
+    "content_sha256",
+    "resources",
+    "schema_version"
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "description": "agentskills.io name; MUST equal skills/<name>/ dir and frontmatter name"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024,
+      "description": "Level-1 payload: what the skill does and when to use it"
+    },
+    "license": {
+      "type": "string"
+    },
+    "compatibility": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 500
+    },
+    "skill_version": {
+      "type": "string",
+      "description": "SemVer from frontmatter metadata.version",
+      "pattern": "^\\d+\\.\\d+\\.\\d+"
+    },
+    "sqlar_path": {
+      "type": "string",
+      "pattern": "^skills/[a-z0-9]+(-[a-z0-9]+)*/SKILL\\.md$"
+    },
+    "body_tokens": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Estimated Level-2 body cost; SHOULD be < 5000"
+    },
+    "content_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "sha256 of uncompressed SKILL.md bytes; MUST match integrity manifest entry"
+    },
+    "resources": {
+      "type": "array",
+      "description": "Level-3 inventory; enables enumeration without BLOB inflation",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "path",
+          "bytes",
+          "sha256"
+        ],
+        "properties": {
+          "path": {
+            "type": "string",
+            "pattern": "^skills/[a-z0-9-]+/(references|scripts|assets)/.+"
+          },
+          "bytes": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        }
+      }
+    },
+    "ext": {
+      "type": "object",
+      "description": "Reverse-DNS namespaced host-superset fields; hosts ignore unknown namespaces",
+      "propertyNames": {
+        "pattern": "^[a-z0-9-]+(\\.[a-z0-9-]+)+$"
+      },
+      "additionalProperties": {
+        "type": "object"
+      }
+    },
+    "zone": {
+      "type": "string",
+      "const": "rom",
+      "description": "Skills are always ROM-zone (signed, immutable)"
+    },
+    "schema_version": {
+      "type": "string",
+      "const": "acx.skill/1"
+    }
+  }
+}

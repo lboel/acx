@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://acx.dev/schema/package-spec.v1.json",
+  "title": "ACX Package Spec (acx.package-spec/1)",
+  "description": "Self-describing manifest that enumerates every artifact in a cartridge and its versioned schema id, MCP-style. ROM-signed at rom/package-spec.json.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "artifacts"],
+  "properties": {
+    "schemaVersion": { "const": "acx.package-spec/1" },
+    "cartridgeId": { "type": "string" },
+    "specVersion": { "type": "string" },
+    "embeddingEngine": {
+      "type": "object",
+      "properties": { "id": { "type": "string" }, "dim": { "type": "integer" } }
+    },
+    "artifacts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["role", "kind", "schema"],
+        "properties": {
+          "role": { "type": "string" },
+          "kind": { "enum": ["meta", "table", "sqlar", "lance", "attestation"] },
+          "schema": {
+            "enum": [
+              "acx.cartridge-meta/1", "acx.memory-record.v1", "acx.lance-memory/1",
+              "acx.skill/1", "acx.capability/1", "acx.harness.v1",
+              "acx.loop-context-policy/1.1", "acx.level-credential.v1",
+              "acx.rom-manifest.v1", "acx.trust-registry.v1"
+            ]
+          },
+          "required": { "type": "boolean" },
+          "path": { "type": "string" },
+          "table": { "type": "string" },
+          "count": { "type": "integer" }
+        }
+      }
+    }
+  }
+}

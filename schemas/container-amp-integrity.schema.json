@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://acx.dev/schema/rom-manifest.v1.json",
+  "title": "ACX ROM Integrity Manifest (DSSE payload)",
+  "description": "Canonical (RFC 8785) JSON that is hashed to manifest_hash and Ed25519/DSSE-signed. Covers only zone='rom' objects. Never the raw SQLite file bytes.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "specVersion",
+    "cartridgeId",
+    "applicationId",
+    "userVersion",
+    "embeddingEngine",
+    "objects"
+  ],
+  "properties": {
+    "specVersion": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "cartridgeId": {
+      "type": "string",
+      "description": "Reverse-DNS publisher id + uuid, e.g. dev.acx.acme:agent/9f3c-...",
+      "pattern": "^[a-z0-9.-]+:[A-Za-z0-9._/-]+$"
+    },
+    "applicationId": {
+      "const": 1094932529,
+      "description": "0x41435831 = 'ACX1'"
+    },
+    "userVersion": {
+      "type": "integer",
+      "description": "Packed [MAJOR][MINOR][vec0_format][flags]"
+    },
+    "embeddingEngine": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "dim"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "dim": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "metric": {
+          "type": "string",
+          "enum": [
+            "cosine",
+            "l2",
+            "l1"
+          ]
+        }
+      }
+    },
+    "objects": {
+      "type": "array",
+      "minItems": 1,
+      "description": "ROM objects sorted ascending by (kind, sourceRef) in Unicode codepoint order.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "sourceRef",
+          "oid",
+          "canon",
+          "sz"
+        ],
+        "properties": {
+          "sourceRef": {
+            "type": "string",
+            "description": "sqlar name | 'memory:'||id | 'cartridge:'||key"
+          },
+          "oid": {
+            "type": "string",
+            "pattern": "^sha256:[0-9a-f]{64}$"
+          },
+          "canon": {
+            "type": "string",
+            "enum": [
+              "raw",
+              "jcs-rfc8785"
+            ]
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "sqlar",
+              "memory",
+              "cartridge",
+              "skill",
+              "attestation"
+            ]
+          },
+          "sz": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    }
+  }
+}
