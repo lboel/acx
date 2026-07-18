@@ -1,0 +1,124 @@
+{
+  "schemaVersion": "acx.cal/1",
+  "id": "research-council",
+  "version": "1.0.0",
+  "name": "Research council",
+  "description": "A reusable agent-team workflow that researches a question in parallel, challenges the evidence, and synthesizes a decision-ready brief.",
+  "license": "Apache-2.0",
+  "authors": [
+    { "name": "ACX Community" }
+  ],
+  "tags": ["research", "fact-checking", "synthesis", "agent-team"],
+  "participants": [
+    {
+      "alias": "scout",
+      "bind": "slot",
+      "slot": {
+        "role": "ux_researcher",
+        "capabilities": [{ "taskType": "research" }]
+      }
+    },
+    {
+      "alias": "skeptic",
+      "bind": "slot",
+      "slot": {
+        "role": "business_analyst",
+        "capabilities": [{ "taskType": "fact-check" }]
+      }
+    },
+    {
+      "alias": "editor",
+      "bind": "slot",
+      "slot": {
+        "role": "content_creator",
+        "capabilities": [{ "taskType": "synthesize" }]
+      }
+    }
+  ],
+  "rac": [
+    {
+      "id": "research-question",
+      "kind": "custom",
+      "description": "The research question, decision criteria, audience, and deadline.",
+      "required": true,
+      "check": { "type": "manual", "hint": "confirm scope with the decision owner" }
+    },
+    {
+      "id": "source-policy",
+      "kind": "runbook",
+      "description": "The source-quality and citation policy that every claim must satisfy.",
+      "required": true,
+      "check": { "type": "url", "hint": "https://example.com/source-policy" }
+    }
+  ],
+  "variables": [],
+  "limits": {
+    "maxSteps": 12,
+    "maxDurationMs": 1800000,
+    "maxParallel": 2
+  },
+  "start": "start",
+  "nodes": [
+    { "id": "start", "type": "event", "event": "start" },
+    { "id": "split", "type": "gateway", "gateway": "parallel" },
+    {
+      "id": "research",
+      "type": "task",
+      "agent": "scout",
+      "action": "Collect the strongest relevant evidence and opposing views",
+      "requires": { "capabilities": ["research"], "rac": ["research-question", "source-policy"] },
+      "sideEffects": "none",
+      "approval": "never",
+      "completion": { "type": "artifact", "produces": "evidence-map" }
+    },
+    {
+      "id": "challenge",
+      "type": "task",
+      "agent": "skeptic",
+      "action": "Stress-test assumptions, source quality, and missing evidence",
+      "requires": { "capabilities": ["fact-check"], "rac": ["research-question", "source-policy"] },
+      "sideEffects": "none",
+      "approval": "never",
+      "completion": { "type": "artifact", "produces": "challenge-log" }
+    },
+    { "id": "join", "type": "gateway", "gateway": "parallel" },
+    {
+      "id": "synthesize",
+      "type": "task",
+      "agent": "editor",
+      "action": "Reconcile the evidence and challenge log into a decision-ready brief",
+      "requires": { "capabilities": ["synthesize"], "rac": ["research-question"] },
+      "sideEffects": "none",
+      "approval": "always",
+      "completion": { "type": "artifact", "produces": "decision-brief" }
+    },
+    { "id": "done", "type": "event", "event": "end" }
+  ],
+  "edges": [
+    { "from": "start", "to": "split" },
+    { "from": "split", "to": "research" },
+    { "from": "split", "to": "challenge" },
+    { "from": "research", "to": "join" },
+    { "from": "challenge", "to": "join" },
+    { "from": "join", "to": "synthesize" },
+    { "from": "synthesize", "to": "done" }
+  ],
+  "integrity": {
+    "schemaVersion": "acx.workflow-signature/1",
+    "digest": "sha256:3300ea74052dc7f76aa81f79cd37b269267b2f06b4ae4710480dc73d62102ed8",
+    "publisherId": "io.github.lboel",
+    "keyid": "ed25519:8e09e077cfbb83d5569deff0903ec83386d8f3e957e52d51be1ad96c41534e05",
+    "publicKeyPem": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEA1+5HsJrq2todR0A9c4iVAXnd+JRanOeX2M6+/UGHzK0=\n-----END PUBLIC KEY-----\n",
+    "signedAt": "2026-07-18T15:27:30.680Z",
+    "envelope": {
+      "payloadType": "application/vnd.in-toto+json",
+      "payload": "eyJfdHlwZSI6Imh0dHBzOi8vaW4tdG90by5pby9TdGF0ZW1lbnQvdjEiLCJwcmVkaWNhdGUiOnsiYWN4U2NoZW1hVmVyc2lvbiI6ImFjeC5jYWwvMSIsIm5vZGVzIjo3LCJwYXJ0aWNpcGFudHMiOjMsInB1Ymxpc2hlcklkIjoiaW8uZ2l0aHViLmxib2VsIiwic2lnbmVkQXQiOiIyMDI2LTA3LTE4VDE1OjI3OjMwLjY4MFoiLCJ3b3JrZmxvd0RpZ2VzdCI6InNoYTI1NjozMzAwZWE3NDA1MmRjN2Y3NmFhODFmNzljZDM3YjI2OTI2N2IyZjA2YjRhZTQ3MTA0ODBkYzczZDYyMTAyZWQ4Iiwid29ya2Zsb3dJZCI6InJlc2VhcmNoLWNvdW5jaWwiLCJ3b3JrZmxvd1ZlcnNpb24iOiIxLjAuMCJ9LCJwcmVkaWNhdGVUeXBlIjoiaHR0cHM6Ly9hY3guZGV2L2F0dGVzdGF0aW9uL3dvcmtmbG93L3YxIiwic3ViamVjdCI6W3siZGlnZXN0Ijp7InNoYTI1NiI6IjMzMDBlYTc0MDUyZGM3Zjc2YWE4MWY3OWNkMzdiMjY5MjY3YjJmMDZiNGFlNDcxMDQ4MGRjNzNkNjIxMDJlZDgifSwibmFtZSI6InVybjphY3g6d29ya2Zsb3c6cmVzZWFyY2gtY291bmNpbEAxLjAuMCJ9XX0=",
+      "signatures": [
+        {
+          "keyid": "ed25519:8e09e077cfbb83d5569deff0903ec83386d8f3e957e52d51be1ad96c41534e05",
+          "sig": "noLeMiWGUuQV57qw8go8R9cOgUXgReFXZrMZq4IIrnQUwgCfvvmcYxbwP53i1xalpkvmmIQovJLyMpBKHnMCBg=="
+        }
+      ]
+    }
+  }
+}

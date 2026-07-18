@@ -1,0 +1,4 @@
+interface:
+  display_name: "Share an ACX Agent"
+  short_description: "Verify and publish agents through a safe PR"
+  default_prompt: "Use $acx-share-agent to verify and prepare this agent or workflow for sharing through the ACX registry."

@@ -1,7 +1,6 @@
-# Builds the Zensical docs site in docs-site/ and hosts it statically on
-# GitHub Pages. On every push to main that touches docs-site/**, this installs
-# zensical, runs `zensical build` (output -> docs-site/site), then uploads that
-# static directory as the Pages artifact and deploys it.
+# Builds the Zensical docs site for relevant pull requests and pushes. A push
+# to main (or manual dispatch) additionally uploads the static output from
+# docs-site/site and deploys it to GitHub Pages.
 name: Docs
 
 on:
@@ -10,13 +9,17 @@ on:
     paths:
       - "docs-site/**"
       - ".github/workflows/docs.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "docs-site/**"
+      - ".github/workflows/docs.yml"
   workflow_dispatch:
 
-# Least-privilege token: Pages deploy needs to write Pages and mint an OIDC token.
+# Pull requests only build the static site. The deploy job receives its
+# additional Pages permissions only after a push to main or manual dispatch.
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 # Serialize deploys; never cancel an in-flight production deploy.
 concurrency:
@@ -33,12 +36,13 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.x"
+          python-version: "3.12"
 
-      - name: Install Zensical
-        run: pip install zensical
+      - name: Install pinned documentation builder
+        run: python -m pip install zensical==0.0.50
 
       - name: Configure Pages
+        if: github.event_name != 'pull_request'
         uses: actions/configure-pages@v5
 
       - name: Build docs site
@@ -46,13 +50,18 @@ jobs:
         run: zensical build
 
       - name: Upload Pages artifact
+        if: github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v3
         with:
           path: docs-site/site
 
   deploy:
     needs: build
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

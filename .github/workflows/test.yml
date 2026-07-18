@@ -20,3 +20,9 @@ jobs:
         run: node --experimental-sqlite scripts/smoke.mjs
       - name: Provable level (earn + verify)
         run: node --experimental-sqlite scripts/prove-level.mjs
+      - name: Registry gate is reproducible
+        run: |
+          node --experimental-sqlite tools/build-registry-index.mjs
+          git diff --exit-code -- registry/index.json
+      - name: npm package contents
+        run: npm pack --dry-run

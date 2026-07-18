@@ -26,7 +26,7 @@ node --experimental-sqlite scripts/smoke.mjs          # export → verify → st
 node --experimental-sqlite scripts/prove-level.mjs    # earn + verify a provable level
 ```
 
-See [`CLAUDE.md`](./CLAUDE.md) for the architecture and the non-obvious invariants (the load-bearing one:
+See [`AGENTS.md`](./AGENTS.md) for the architecture and the non-obvious invariants (the load-bearing one:
 signing recomputes object hashes from live content — never trust `objects.oid`).
 
 ## Pull requests
@@ -39,5 +39,7 @@ signing recomputes object hashes from live content — never trust `objects.oid`
 ## Sharing a cartridge or template
 
 See [`registry/README.md`](./registry/README.md) — fork, add your cartridge under
-`registry/cartridges/<publisher>/<name>/`, and open a PR. CI verifies every cartridge and rejects tampered
-ones.
+`registry/cartridges/<publisher>/<name>/` or a signed workflow under `registry/cals/`, and open a PR. CI
+verifies every signed artifact and rejects unsigned, tampered, invalid, or structurally unclean
+ones. Use `acx share … --dry-run` before writing registry files, or invoke the bundled
+`$acx-share-agent` skill for an agent-guided, reviewable submission.

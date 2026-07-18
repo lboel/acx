@@ -58,4 +58,4 @@ resolved), and the reference implementation demonstrates every headline property
 single-file container, ROM/SAVE partition with a machine-checkable strip-to-ROM proof, content-bound
 DSSE/ed25519 signing that now catches content tampering (C1), the fail-closed scrub gate, and a
 **provable character level** earned only via independent held-out re-run, σ-gated, ROM-bound,
-revocable, and unfakeable. 69 tests green.
+revocable, and unfakeable. 88 tests green, including signed workflow, team-readiness, and safe PR-sharing coverage.

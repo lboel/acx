@@ -50,7 +50,7 @@ The decoded Statement:
     "fileCount": 17,
     "embeddingEngine": "local-hash-128",
     "signedAt": "2026-04-03T13:35:46Z",
-    "provenanceInstanceId": "agentibus-macbookpro-fritz-box-a2fc10"
+    "provenanceInstanceId": "agentibus-public-sample-000001"
   }
 }
 ```

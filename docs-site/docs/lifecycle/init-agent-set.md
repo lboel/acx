@@ -36,7 +36,7 @@ Generated an agent set in /tmp/agent-set:
 Required Available Context (descriptions only):
   □ code-wiki      [wiki] An LLM-readable knowledge map / wiki of the codebase: modules, data flows, conventions (structure only).
 
-Next: fill agents/<role>/, export each, then 'acx cal /tmp/agent-set/cal/from-code.cal.json --cartridges .'
+Next: fill agents/<role>/, export each, then 'acx workflow ready /tmp/agent-set/cal/from-code.cal.json --cartridges .'
 ```
 
 It writes:
@@ -77,7 +77,7 @@ agent-set/
 flowchart LR
   A["acx init --from-code"] --> B["fill agents/&lt;role&gt;/"]
   B --> C["acx export each → .acx"]
-  C --> D["acx cal from-code.cal.json --cartridges ."]
+  C --> D["acx workflow ready from-code.cal.json --cartridges ."]
   D -->|READY ✓| E["push to the git registry"]
   D -->|not ready| B
 ```
@@ -85,7 +85,7 @@ flowchart LR
 1. **init** — generate the set from your code.
 2. **fill** — write each agent's manifest + transferable memory.
 3. **export** — turn each into a signed cartridge.
-4. **check** — [`acx cal`](../format/loops-cal.md) resolves the loop and tells you what's missing; [`acx check`](loading.md) confirms a host can boot each cartridge.
+4. **check** — [`acx workflow lint`](../format/loops-cal.md) validates the portable workflow, `acx workflow ready` resolves the local roster and tells you what's missing, and [`acx check`](loading.md) confirms a host can boot each cartridge.
 5. **share** — [push to the git registry](sharing-git.md), the [OCI registry](distribution.md), or the [exchange](exchange.md).
 
 This mirrors how OpenWiki generates an Open Knowledge Format wiki from a codebase — generation on one side,

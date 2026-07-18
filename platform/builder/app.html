@@ -78,6 +78,11 @@
   .chip.skill { background:#e0e7ff; color:#4338ca; border-color:#c7d2fe; }
   .add-btn { width:100%; margin-top:.35rem; text-align:left; color:var(--teal); border-style:dashed; border-color:var(--line-2); font-size:.78rem; }
   .add-btn:hover { border-color:var(--teal); background:#f0fdfa; }
+  .meta-fields label { display:block; margin:.45rem 0; font-size:.68rem; font-weight:600; color:var(--muted); text-transform:uppercase; }
+  .meta-fields input, .meta-fields textarea { width:100%; margin-top:.2rem; padding:.4rem .5rem; border:1px solid var(--line-2);
+    border-radius:var(--r-sm); font:inherit; font-size:.78rem; background:#fff; color:var(--ink); }
+  .meta-fields textarea { resize:vertical; min-height:62px; }
+  .meta-grid { display:grid; grid-template-columns:1fr 1fr; gap:.4rem; }
 
   /* ---- canvas ---- */
   #canvasWrap { position:relative; overflow:auto; background:
@@ -92,7 +97,7 @@
 
   /* ---- nodes ---- */
   .node { position:absolute; width:186px; background:var(--surface); border:1px solid var(--line);
-    border-radius:var(--r); box-shadow:var(--shadow-md); user-select:none; overflow:hidden;
+    border-radius:var(--r); box-shadow:var(--shadow-md); user-select:none; overflow:visible;
     transition:box-shadow .12s ease, transform .06s ease; }
   .node::before { content:""; position:absolute; top:0; left:0; right:0; height:4px; background:var(--cyan); }
   .node:hover { box-shadow:var(--shadow-lg); }
@@ -158,14 +163,30 @@
     <button onclick="addNode('gateway')">+ Gateway</button>
     <button onclick="addNode('event')">+ Event</button>
     <span class="div"></span>
-    <button class="cyan" onclick="validate()">Validate</button>
-    <button onclick="exportCal()">Export</button>
-    <button class="primary" onclick="save()">Save</button>
+    <button class="cyan" onclick="validate()">Validate for share</button>
+    <button onclick="exportCal()">Export draft</button>
+    <button class="primary" onclick="save()">Save draft</button>
   </div>
 </header>
 <div id="banner"></div>
 <main>
   <div class="panel" id="palette">
+    <h4>Publication</h4>
+    <div class="meta-fields">
+      <div class="meta-grid">
+        <label>Version<input id="workflowVersion" value="0.1.0"></label>
+        <label>License<input id="workflowLicense" value="Apache-2.0"></label>
+      </div>
+      <label>Description<textarea id="workflowDescription">Describe what this agent-team workflow accomplishes and when to use it.</textarea></label>
+      <label>Author<input id="workflowAuthor" placeholder="Your name or organization"></label>
+      <label>Tags<input id="workflowTags" value="agent-team" placeholder="agent-team, research"></label>
+      <div class="meta-grid">
+        <label>Max steps<input id="maxSteps" type="number" min="1" value="50"></label>
+        <label>Max parallel<input id="maxParallel" type="number" min="1" value="4"></label>
+      </div>
+      <label>Max duration ms<input id="maxDurationMs" type="number" min="1" value="3600000"></label>
+      <p class="small">Export a draft, then sign it with <code>acx workflow sign</code>.</p>
+    </div>
     <h4>Nodes <span class="small">drag onto canvas</span></h4>
     <div class="drag" draggable="true" data-new="task"><span class="ic">▸</span> Task <span class="small">agent step</span></div>
     <div class="drag" draggable="true" data-new="gateway"><span class="ic">◇</span> Gateway <span class="small">branch</span></div>
@@ -192,10 +213,17 @@
 </main>
 
 <script>
-const cal = { schemaVersion:'acx.cal/1', id:'my-loop', name:'', description:'', participants:[], rac:[], variables:[], start:null, nodes:[], edges:[] };
+const cal = {
+  schemaVersion:'acx.cal/1', id:'my-loop', version:'0.1.0', name:'My loop',
+  description:'Describe what this agent-team workflow accomplishes and when to use it.',
+  license:'Apache-2.0', authors:[], tags:['agent-team'],
+  participants:[], rac:[], variables:[], limits:{maxSteps:50,maxDurationMs:3600000,maxParallel:4}, start:null, nodes:[], edges:[]
+};
 const pos = {}; let catalog = []; let sel = null; let linkFrom = null; let uid = 1;
 const nid = (p)=>{ let n; do { n = p+'-'+(uid++); } while (cal.nodes.some(x=>x.id===n)); return n; };
 const el = (id)=>document.getElementById(id);
+const esc = (value)=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+const enc = (value)=>encodeURIComponent(String(value??''));
 const NW = 186, PORTY = 22;
 
 // ---- catalog + palette ----
@@ -203,16 +231,16 @@ async function loadCatalog(){ catalog = await (await fetch('/api/catalog')).json
 function allCaps(){ return [...new Set(catalog.flatMap(c=>c.capabilities))].sort(); }
 function allSkills(){ return [...new Set(catalog.flatMap(c=>c.skills))].sort(); }
 function renderChips(){
-  el('capChips').innerHTML = allCaps().map(c=>`<span class="chip" draggable="true" data-cap="${c}">${c}</span>`).join('') || '<span class="small">no cartridges in catalog</span>';
-  el('skillChips').innerHTML = allSkills().map(s=>`<span class="chip skill" draggable="true" data-skill="${s}">${s}</span>`).join('');
+  el('capChips').innerHTML = allCaps().map(c=>`<span class="chip" draggable="true" data-cap="${esc(c)}">${esc(c)}</span>`).join('') || '<span class="small">no cartridges in catalog</span>';
+  el('skillChips').innerHTML = allSkills().map(s=>`<span class="chip skill" draggable="true" data-skill="${esc(s)}">${esc(s)}</span>`).join('');
   document.querySelectorAll('[data-cap],[data-skill]').forEach(ch=>ch.addEventListener('dragstart',e=>{ e.dataTransfer.setData('text/plain', JSON.stringify({ cap:ch.dataset.cap, skill:ch.dataset.skill })); }));
 }
 
 // ---- add nodes / participants / rac ----
-function addNode(type, x=80+Math.random()*60, y=80+cal.nodes.length*20){
+function addNode(type, x=80+(cal.nodes.length%3)*240, y=80+Math.floor(cal.nodes.length/3)*140){
   const id = nid(type);
   let node = { id, type };
-  if (type==='task') node = { id, type:'task', agent:cal.participants[0]?.alias||'', action:'', requires:{capabilities:[],skills:[],rac:[]}, completion:{type:'verification', commands:['lint','test:touched'], passIntent:''} };
+  if (type==='task') node = { id, type:'task', agent:cal.participants[0]?.alias||'', action:'', requires:{capabilities:[],skills:[],rac:[]}, sideEffects:'workspace', approval:'on-request', completion:{type:'verification', commands:['lint','test:touched'], passIntent:''} };
   if (type==='gateway') node.gateway='exclusive';
   if (type==='event'){ node.event = cal.nodes.some(n=>n.type==='event'&&n.event==='start')?'end':'start'; }
   cal.nodes.push(node); pos[id]={x,y};
@@ -224,8 +252,8 @@ function addRac(){ const id='rac'+(cal.rac.length+1); cal.rac.push({ id, kind:'w
 
 // ---- rendering ----
 function render(){ renderNodes(); renderEdges(); renderParticipants(); renderRac(); renderInspector(); }
-function renderParticipants(){ el('pList').innerHTML = cal.participants.map(p=>`<div class="list-item"><span onclick="select('participant','${p.alias}')" style="cursor:pointer">${p.alias} <span class="small">(${p.bind})</span></span><button onclick="delParticipant('${p.alias}')">✕</button></div>`).join(''); }
-function renderRac(){ el('racList').innerHTML = cal.rac.map(r=>`<div class="list-item"><span onclick="select('rac','${r.id}')" style="cursor:pointer">${r.id} <span class="small">[${r.kind}]</span></span><button onclick="delRac('${r.id}')">✕</button></div>`).join(''); }
+function renderParticipants(){ el('pList').innerHTML = cal.participants.map(p=>`<div class="list-item"><span onclick="select('participant',decodeURIComponent('${enc(p.alias)}'))" style="cursor:pointer">${esc(p.alias)} <span class="small">(${esc(p.bind)})</span></span><button onclick="delParticipant(decodeURIComponent('${enc(p.alias)}'))">✕</button></div>`).join(''); }
+function renderRac(){ el('racList').innerHTML = cal.rac.map(r=>`<div class="list-item"><span onclick="select('rac',decodeURIComponent('${enc(r.id)}'))" style="cursor:pointer">${esc(r.id)} <span class="small">[${esc(r.kind)}]</span></span><button onclick="delRac(decodeURIComponent('${enc(r.id)}'))">✕</button></div>`).join(''); }
 function delParticipant(a){ cal.participants=cal.participants.filter(p=>p.alias!==a); render(); }
 function delRac(i){ cal.rac=cal.rac.filter(r=>r.id!==i); render(); }
 
@@ -236,9 +264,9 @@ function renderNodes(){
     const d = document.createElement('div');
     d.className = 'node '+n.type+(sel&&sel.type==='node'&&sel.id===n.id?' sel':'')+(linkFrom&&linkFrom===n.id?' linking':'');
     d.style.left=p.x+'px'; d.style.top=p.y+'px'; d.dataset.id=n.id;
-    let sub = n.type==='task' ? `<div class="bd">agent: <b>${n.agent||'—'}</b><br>${n.action||'<span class="small">(no action)</span>'}<br>${(n.requires?.capabilities||[]).map(c=>'<span class="chip">'+c+'</span>').join('')}${(n.requires?.skills||[]).map(s=>'<span class="chip skill">'+s+'</span>').join('')}</div>`
-      : n.type==='gateway' ? `<div class="bd">${n.gateway}</div>` : `<div class="bd">${n.event}${cal.start===n.id?' · start':''}</div>`;
-    d.innerHTML = `<div class="hd">${n.id} <small>${n.type}</small></div>${sub}<div class="port in"></div><div class="port out"></div>`;
+    let sub = n.type==='task' ? `<div class="bd">agent: <b>${esc(n.agent||'—')}</b><br>${n.action?esc(n.action):'<span class="small">(no action)</span>'}<br>${(n.requires?.capabilities||[]).map(c=>'<span class="chip">'+esc(c)+'</span>').join('')}${(n.requires?.skills||[]).map(s=>'<span class="chip skill">'+esc(s)+'</span>').join('')}</div>`
+      : n.type==='gateway' ? `<div class="bd">${esc(n.gateway)}</div>` : `<div class="bd">${esc(n.event)}${cal.start===n.id?' · start':''}</div>`;
+    d.innerHTML = `<div class="hd">${esc(n.id)} <small>${esc(n.type)}</small></div>${sub}<div class="port in"></div><div class="port out"></div>`;
     host.appendChild(d);
     d.querySelector('.hd').addEventListener('pointerdown', e=>startDrag(e,n.id));
     d.addEventListener('click', e=>{ if(e.target.classList.contains('port'))return; if(linkFrom&&linkFrom!==n.id){ makeEdge(linkFrom,n.id); linkFrom=null; render(); } else select('node', n.id); });
@@ -284,76 +312,109 @@ function renderInspector(){
   else if(sel.type==='participant'){ box.innerHTML=inspParticipant(cal.participants.find(p=>p.alias===sel.id)); }
   else if(sel.type==='rac'){ box.innerHTML=inspRac(cal.rac.find(r=>r.id===sel.id)); }
 }
-function opt(v,cur){ return `<option ${v===cur?'selected':''}>${v}</option>`; }
+function opt(v,cur){ return `<option value="${esc(v)}" ${v===cur?'selected':''}>${esc(v)}</option>`; }
+function completionFields(n){
+  const c=n.completion||{};
+  if(c.type==='verification') return `<div class="row"><label>commands (comma)</label><input value="${esc((c.commands||[]).join(','))}" onchange="setCompField('${n.id}','commands',this.value,true)"></div>
+    <div class="row"><label>pass intent</label><textarea rows="2" onchange="setCompField('${n.id}','passIntent',this.value)">${esc(c.passIntent||'')}</textarea></div>`;
+  if(c.type==='skill-scripts') return `<div class="row"><label>scripts (comma)</label><input value="${esc((c.scripts||[]).join(','))}" onchange="setCompField('${n.id}','scripts',this.value,true)"></div>`;
+  if(c.type==='guardrail') return `<div class="row"><label>guardrail kind</label><input value="${esc(c.kind||'')}" onchange="setCompField('${n.id}','kind',this.value)"></div>`;
+  return `<div class="row"><label>produced artifact</label><input value="${esc(c.produces||'')}" onchange="setCompField('${n.id}','produces',this.value)"></div>`;
+}
 function inspNode(n){
   const del = `<button onclick="cal.nodes=cal.nodes.filter(x=>x.id!=='${n.id}');cal.edges=cal.edges.filter(e=>e.from!=='${n.id}'&&e.to!=='${n.id}');sel=null;render()">Delete node</button>`;
   if(n.type==='task'){ const caps=allCaps(), sk=allSkills();
     return `<h4>Task ${n.id}</h4>
     <div class="row"><label>agent</label><select onchange="setF('${n.id}','agent',this.value)">${cal.participants.map(p=>opt(p.alias,n.agent)).join('')||'<option>(add a participant)</option>'}</select></div>
-    <div class="row"><label>action</label><input value="${n.action||''}" onchange="setF('${n.id}','action',this.value)"></div>
-    <div class="row"><label>requires.capabilities</label><div>${(n.requires.capabilities||[]).map(c=>`<span class="chip" onclick="rmReq('${n.id}','capabilities','${c}')">${c} ✕</span>`).join('')}</div>
+    <div class="row"><label>action</label><input value="${esc(n.action||'')}" onchange="setF('${n.id}','action',this.value)"></div>
+    <div class="row"><label>requires.capabilities</label><div>${(n.requires.capabilities||[]).map(c=>`<span class="chip" onclick="rmReq('${n.id}','capabilities',decodeURIComponent('${enc(c)}'))">${esc(c)} ✕</span>`).join('')}</div>
       <select onchange="addReq('${n.id}','capabilities',this.value)"><option>+ add</option>${caps.map(c=>opt(c)).join('')}</select></div>
-    <div class="row"><label>requires.skills</label><div>${(n.requires.skills||[]).map(s=>`<span class="chip skill" onclick="rmReq('${n.id}','skills','${s}')">${s} ✕</span>`).join('')}</div>
+    <div class="row"><label>requires.skills</label><div>${(n.requires.skills||[]).map(s=>`<span class="chip skill" onclick="rmReq('${n.id}','skills',decodeURIComponent('${enc(s)}'))">${esc(s)} ✕</span>`).join('')}</div>
       <select onchange="addReq('${n.id}','skills',this.value)"><option>+ add</option>${sk.map(s=>opt(s)).join('')}</select></div>
-    <div class="row"><label>requires.rac</label>${cal.rac.map(r=>`<label class="small"><input type="checkbox" ${(n.requires.rac||[]).includes(r.id)?'checked':''} onchange="toggleRac('${n.id}','${r.id}',this.checked)" style="width:auto"> ${r.id}</label>`).join('')||'<span class="small">no RAC items</span>'}</div>
+    <div class="row"><label>requires.rac</label>${cal.rac.map(r=>`<label class="small"><input type="checkbox" ${(n.requires.rac||[]).includes(r.id)?'checked':''} onchange="toggleRac('${n.id}',decodeURIComponent('${enc(r.id)}'),this.checked)" style="width:auto"> ${esc(r.id)}</label>`).join('')||'<span class="small">no RAC items</span>'}</div>
+    <div class="row"><label>side effects</label><select onchange="setF('${n.id}','sideEffects',this.value)">${['none','workspace','external'].map(v=>opt(v,n.sideEffects)).join('')}</select></div>
+    <div class="row"><label>approval</label><select onchange="setF('${n.id}','approval',this.value)">${['never','on-request','always'].map(v=>opt(v,n.approval)).join('')}</select></div>
     <div class="row"><label>completion</label><select onchange="setComp('${n.id}',this.value)">${['verification','skill-scripts','guardrail','artifact'].map(t=>opt(t,n.completion?.type)).join('')}</select></div>
+    ${completionFields(n)}
     ${del}`;
   }
   if(n.type==='gateway') return `<h4>Gateway ${n.id}</h4><div class="row"><label>gateway</label><select onchange="setF('${n.id}','gateway',this.value)">${['exclusive','parallel','inclusive'].map(g=>opt(g,n.gateway)).join('')}</select></div>${del}`;
-  return `<h4>Event ${n.id}</h4><div class="row"><label>event</label><select onchange="setF('${n.id}','event',this.value)">${['start','end','stop','handoff','timer'].map(v=>opt(v,n.event)).join('')}</select></div><div class="row"><button onclick="cal.start='${n.id}';render()">set as loop start</button></div>${del}`;
+  return `<h4>Event ${n.id}</h4><div class="row"><label>event</label><select onchange="setF('${n.id}','event',this.value)">${['start','end','stop','handoff','timer'].map(v=>opt(v,n.event)).join('')}</select></div>
+    ${n.event==='timer'?`<div class="row"><label>after ms</label><input type="number" min="1" value="${n.afterMs||1000}" onchange="setF('${n.id}','afterMs',Number(this.value))"></div>`:''}
+    <div class="row"><button onclick="cal.start='${n.id}';render()">set as loop start</button></div>${del}`;
 }
 function inspEdge(e,i){ const mode = e.when?.racAvailable?'rac':e.when?.var?'var':'always';
-  return `<h4>Edge ${e.from} → ${e.to}</h4>
+  return `<h4>Edge ${esc(e.from)} → ${esc(e.to)}</h4>
   <div class="row"><label>condition</label><select onchange="setCondMode(${i},this.value)">${['always','var','rac'].map(m=>opt(m,mode)).join('')}</select></div>
-  ${mode==='var'?`<div class="row"><label>var</label><input value="${e.when?.var||''}" onchange="setCond(${i},'var',this.value)"></div>
+  ${mode==='var'?`<div class="row"><label>var</label><input value="${esc(e.when?.var||'')}" onchange="setCond(${i},'var',this.value)"></div>
     <div class="row"><label>op</label><select onchange="setCond(${i},'op',this.value)">${['eq','ne','lt','gt','le','ge','in'].map(o=>opt(o,e.when?.op)).join('')}</select></div>
-    <div class="row"><label>value</label><input value="${e.when?.value??''}" onchange="setCond(${i},'value',this.value)"></div>`:''}
+    <div class="row"><label>value</label><input value="${esc(e.when?.value??'')}" onchange="setCond(${i},'value',this.value)"></div>`:''}
   ${mode==='rac'?`<div class="row"><label>racAvailable</label><select onchange="setCond(${i},'racAvailable',this.value)">${cal.rac.map(r=>opt(r.id,e.when?.racAvailable)).join('')}</select></div>`:''}
   <button onclick="cal.edges.splice(${i},1);sel=null;render()">Delete edge</button>`;
 }
-function inspParticipant(p){ if(!p)return''; const roles=[...new Set(catalog.map(c=>c.role))];
-  return `<h4>Participant ${p.alias}</h4>
-  <div class="row"><label>alias</label><input value="${p.alias}" onchange="renameP('${p.alias}',this.value)"></div>
-  <div class="row"><label>bind</label><select onchange="setP('${p.alias}','bind',this.value)">${['slot','hash'].map(b=>opt(b,p.bind)).join('')}</select></div>
-  ${p.bind==='slot'?`<div class="row"><label>slot.role</label><select onchange="setSlot('${p.alias}','role',this.value)">${roles.map(r=>opt(r,p.slot?.role)).join('')}</select></div>
-    <div class="row"><label>slot.capabilities (comma)</label><input value="${(p.slot?.capabilities||[]).map(c=>c.taskType).join(',')}" onchange="setSlotCaps('${p.alias}',this.value)"></div>`
-    :`<div class="row"><label>romDigest</label><select onchange="setP('${p.alias}','romDigest',this.value)">${catalog.map(c=>`<option value="${c.romHash}" ${p.romDigest===c.romHash?'selected':''}>${c.name} (${c.level})</option>`).join('')}</select></div>`}`;
+function inspParticipant(p){ if(!p)return''; const roles=[...new Set(catalog.map(c=>c.role))]; const pa=enc(p.alias);
+  return `<h4>Participant ${esc(p.alias)}</h4>
+  <div class="row"><label>alias</label><input value="${esc(p.alias)}" onchange="renameP(decodeURIComponent('${pa}'),this.value)"></div>
+  <div class="row"><label>bind</label><select onchange="setP(decodeURIComponent('${pa}'),'bind',this.value)">${['slot','hash'].map(b=>opt(b,p.bind)).join('')}</select></div>
+  ${p.bind==='slot'?`<div class="row"><label>slot.role</label><select onchange="setSlot(decodeURIComponent('${pa}'),'role',this.value)">${roles.map(r=>opt(r,p.slot?.role)).join('')}</select></div>
+    <div class="row"><label>minimum ACX level</label><input type="number" min="0" value="${p.slot?.minLevel?.acxLevel??0}" onchange="setMinLevel(decodeURIComponent('${pa}'),this.value)"></div>
+    <div class="row"><label>slot.capabilities (comma)</label><input value="${esc((p.slot?.capabilities||[]).map(c=>c.taskType).join(','))}" onchange="setSlotCaps(decodeURIComponent('${pa}'),this.value)"></div>`
+    :`<div class="row"><label>romDigest</label><select onchange="setP(decodeURIComponent('${pa}'),'romDigest',this.value)">${catalog.map(c=>`<option value="${esc(c.romHash)}" ${p.romDigest===c.romHash?'selected':''}>${esc(c.name)} (${esc(c.level)})</option>`).join('')}</select></div>`}`;
 }
 function inspRac(r){ if(!r)return'';
-  return `<h4>RAC ${r.id}</h4>
-  <div class="row"><label>id</label><input value="${r.id}" onchange="renameRac('${r.id}',this.value)"></div>
-  <div class="row"><label>kind</label><select onchange="setRac('${r.id}','kind',this.value)">${['wiki','code-map','infra','terraform','api-spec','dataset','runbook','custom'].map(k=>opt(k,r.kind)).join('')}</select></div>
-  <div class="row"><label>description (only — never content)</label><textarea rows="3" onchange="setRac('${r.id}','description',this.value)">${r.description||''}</textarea></div>
-  <div class="row"><label>check.type</label><select onchange="setCheck('${r.id}','type',this.value)">${['file-glob','url','mcp-resource','manual'].map(t=>opt(t,r.check?.type)).join('')}</select></div>
-  <div class="row"><label>check.hint</label><input value="${r.check?.hint||''}" onchange="setCheck('${r.id}','hint',this.value)"></div>`;
+  const ri=enc(r.id); return `<h4>RAC ${esc(r.id)}</h4>
+  <div class="row"><label>id</label><input value="${esc(r.id)}" onchange="renameRac(decodeURIComponent('${ri}'),this.value)"></div>
+  <div class="row"><label>kind</label><select onchange="setRac(decodeURIComponent('${ri}'),'kind',this.value)">${['wiki','code-map','infra','terraform','api-spec','dataset','runbook','custom'].map(k=>opt(k,r.kind)).join('')}</select></div>
+  <div class="row"><label><input type="checkbox" ${r.required===false?'':'checked'} onchange="setRac(decodeURIComponent('${ri}'),'required',this.checked)" style="width:auto"> required</label></div>
+  <div class="row"><label>description (only — never content)</label><textarea rows="3" onchange="setRac(decodeURIComponent('${ri}'),'description',this.value)">${esc(r.description||'')}</textarea></div>
+  <div class="row"><label>check.type</label><select onchange="setCheck(decodeURIComponent('${ri}'),'type',this.value)">${['file-glob','url','mcp-resource','manual'].map(t=>opt(t,r.check?.type)).join('')}</select></div>
+  <div class="row"><label>check.hint</label><input value="${esc(r.check?.hint||'')}" onchange="setCheck(decodeURIComponent('${ri}'),'hint',this.value)"></div>`;
 }
 
 // ---- mutators ----
 const findN=(id)=>cal.nodes.find(n=>n.id===id);
-function setF(id,f,v){ findN(id)[f]=v; if(f==='event'&&v==='start'&&!cal.start)cal.start=id; render(); }
+function setF(id,f,v){ const n=findN(id); n[f]=v; if(f==='event'&&v==='start'&&!cal.start)cal.start=id; if(f==='event'&&v==='timer'&&!n.afterMs)n.afterMs=1000; if(f==='event'&&v!=='timer')delete n.afterMs; render(); }
 function addReq(id,k,v){ if(v==='+ add')return; const n=findN(id); n.requires[k]=n.requires[k]||[]; if(!n.requires[k].includes(v))n.requires[k].push(v); render(); }
 function rmReq(id,k,v){ const n=findN(id); n.requires[k]=n.requires[k].filter(x=>x!==v); render(); }
 function toggleRac(id,rid,on){ const n=findN(id); n.requires.rac=n.requires.rac||[]; n.requires.rac = on?[...new Set([...n.requires.rac,rid])]:n.requires.rac.filter(x=>x!==rid); render(); }
 function setComp(id,t){ const n=findN(id); n.completion = t==='verification'?{type:t,commands:['lint','test:touched'],passIntent:''}:t==='skill-scripts'?{type:t,scripts:[]}:t==='guardrail'?{type:t,kind:'milestone'}:{type:t,produces:''}; render(); }
-function setCondMode(i,m){ const e=cal.edges[i]; e.when = m==='always'?{always:true}:m==='var'?{var:'review.outcome',op:'eq',value:'completed'}:{racAvailable:cal.rac[0]?.id||''}; render(); }
-function setCond(i,f,v){ cal.edges[i].when[f]=v; render(); }
+function setCompField(id,f,v,list=false){ findN(id).completion[f]=list?v.split(',').map(s=>s.trim()).filter(Boolean):v; render(); }
+function declareVariable(path){ const name=String(path||'').split('.')[0]; if(name&&!cal.variables.some(v=>v.name===name))cal.variables.push({name,type:'object'}); }
+function setCondMode(i,m){ const e=cal.edges[i]; e.when = m==='always'?{always:true}:m==='var'?{var:'review.outcome',op:'eq',value:'completed'}:{racAvailable:cal.rac[0]?.id||''}; if(m==='var')declareVariable(e.when.var); render(); }
+function setCond(i,f,v){ cal.edges[i].when[f]=v; if(f==='var')declareVariable(v); render(); }
 function renameP(a,b){ const p=cal.participants.find(x=>x.alias===a); cal.nodes.forEach(n=>{if(n.agent===a)n.agent=b;}); p.alias=b; sel={type:'participant',id:b}; render(); }
 function setP(a,f,v){ const p=cal.participants.find(x=>x.alias===a); if(f==='bind'){ if(v==='slot')p.slot={role:catalog[0]?.role||'backend_dev',capabilities:[]},delete p.romDigest; else p.romDigest=catalog[0]?.romHash||'',delete p.slot; } p[f]=v; render(); }
 function setSlot(a,f,v){ const p=cal.participants.find(x=>x.alias===a); p.slot[f]=v; render(); }
+function setMinLevel(a,v){ const p=cal.participants.find(x=>x.alias===a); const level=Number(v); if(Number.isInteger(level)&&level>0)p.slot.minLevel={acxLevel:level};else delete p.slot.minLevel; render(); }
 function setSlotCaps(a,v){ const p=cal.participants.find(x=>x.alias===a); p.slot.capabilities=v.split(',').map(s=>s.trim()).filter(Boolean).map(t=>({taskType:t})); render(); }
 function renameRac(a,b){ const r=cal.rac.find(x=>x.id===a); cal.nodes.forEach(n=>{if(n.requires?.rac)n.requires.rac=n.requires.rac.map(x=>x===a?b:x);}); r.id=b; sel={type:'rac',id:b}; render(); }
 function setRac(id,f,v){ cal.rac.find(r=>r.id===id)[f]=v; render(); }
 function setCheck(id,f,v){ const r=cal.rac.find(r=>r.id===id); r.check=r.check||{}; r.check[f]=v; render(); }
 
 // ---- export / validate / save ----
-function build(){ cal.name=el('loopName').value; cal.id=el('loopName').value.toLowerCase().replace(/[^a-z0-9-]+/g,'-'); if(!cal.start&&cal.nodes[0])cal.start=cal.nodes[0].id; return JSON.parse(JSON.stringify(cal)); }
-function banner(ok,msg){ el('banner').innerHTML=`<div class="banner ${ok?'ok':'bad'}">${msg}</div>`; }
+function build(){
+  cal.name=el('loopName').value;
+  cal.id=el('loopName').value.toLowerCase().replace(/[^a-z0-9-]+/g,'-');
+  cal.version=el('workflowVersion').value.trim();
+  cal.description=el('workflowDescription').value.trim();
+  cal.license=el('workflowLicense').value.trim();
+  const author=el('workflowAuthor').value.trim(); cal.authors=author?[{name:author}]:[];
+  cal.tags=el('workflowTags').value.split(',').map(s=>s.trim().toLowerCase()).filter(Boolean);
+  cal.limits={
+    maxSteps:Number(el('maxSteps').value),
+    maxDurationMs:Number(el('maxDurationMs').value),
+    maxParallel:Number(el('maxParallel').value)
+  };
+  if(!cal.start&&cal.nodes[0])cal.start=cal.nodes[0].id;
+  return JSON.parse(JSON.stringify(cal));
+}
+function banner(ok,msg){ el('banner').innerHTML=`<div class="banner ${ok?'ok':'bad'}">${esc(msg)}</div>`; }
 async function validate(){ const c=build(); const r=await (await fetch('/api/validate',{method:'POST',body:JSON.stringify(c)})).json();
   const parts=(r.resolved||[]).map(p=>`${p.bound?'✓':'✗'} ${p.alias}`).join(' · ');
-  banner(r.ok, r.ok?`READY ✓ — ${parts}`:`NOT READY — ${(r.issues||[]).join(' · ')}`); }
+  banner(r.ok, r.ok?`SHARE-READY ✓ — ${parts}`:`NOT SHARE-READY — ${(r.issues||[]).join(' · ')}`); }
 function exportCal(){ const c=build(); const blob=new Blob([JSON.stringify(c,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=(cal.id||'loop')+'.cal.json'; a.click(); }
 async function save(){ const c=build(); const r=await (await fetch('/api/save',{method:'POST',body:JSON.stringify({name:el('loopName').value,cal:c})})).json();
-  if(r.error){banner(false,'save failed: '+r.error);return;} banner(r.lint?.ok, `saved → ${r.saved} ${r.lint?.ok?'(READY ✓)':'(not ready)'}`); }
+  if(r.error){banner(false,'save failed: '+r.error);return;} banner(r.lint?.ok, `draft saved → ${r.saved} ${r.lint?.ok?'(share-ready ✓ — sign with the CLI)':'(keep editing)'}`); }
 
 // ---- init ----
 loadCatalog().then(()=>{ addNode('event',60,80); cal.nodes[0].event='start'; cal.start=cal.nodes[0].id; render(); });

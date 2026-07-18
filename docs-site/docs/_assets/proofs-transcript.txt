@@ -70,9 +70,28 @@
 ✔ §7.2 codebaseFingerprint differs across installation salts (org quarantine) (0.143542ms)
 ✔ §7.2 codebaseFingerprint rejects a weak (<256-bit) salt (0.075291ms)
 ✔ §7.2 canonicalRepoIdentity normalizes scheme/credentials/.git/scp forms equally (0.052625ms)
-ℹ tests 69
+✔ local-hash-128 embed is 128-dim, deterministic, and L2-normalized
+✔ empty text embeds to an all-zero vector
+✔ materializes a genuine LanceDB dataset into the SAVE zone without breaking the ROM signature
+✔ acx.cal/1 publish profile accepts a complete, bounded workflow
+✔ CAL conditions are closed structured data and resolve declared state
+✔ structural linter rejects duplicates, dangling conditions, and malformed completion contracts
+✔ structural linter rejects unknown fields and malformed objects without throwing
+✔ cyclic workflows fail closed unless limits.maxSteps bounds the loop
+✔ slot staffing checks role, proven tier/level, capability, and stack
+✔ workflow signing binds the canonical document and verifies as portable
+✔ workflow verification rejects content tampering and publisher-binding tampering
+✔ workflow verification rejects a valid signature with incomplete in-toto bindings
+✔ workflow verification upgrades a namespace-proven publisher to trusted
+✔ workflow verification fails closed for a key-compromise revocation
+✔ workflow lint separates portable structure checks from roster readiness
+✔ share agent prepares only the verified artifact and generated discovery card
+✔ share agent dry-run is non-mutating and refuses unsafe identity changes
+✔ share workflow preserves signed bytes and renders a reviewable PR body
+✔ share preparation is idempotent and requires force for changed bytes
+ℹ tests 88
 ℹ suites 0
-ℹ pass 69
+ℹ pass 88
 ℹ fail 0
 ℹ cancelled 0
 ℹ skipped 0
@@ -109,6 +128,7 @@ credential verification: VALID ✅
 
 capability build-dag effective proficiency (resolved from attestation): VERIFIED tier=principal mu=33.03 sigma=1.232
 ROM signature after attaching attestation: warning / portable (intact ✅)
+standalone VC: /tmp/acx-prove-level-<run>/level-attestation.json
 
 anti-gaming — self-issued credential: REJECTED ✅ [ 'self-issuance rejected (issuer == subject)' ]
 anti-transplant — VC on mutated ROM: REJECTED ✅ [ 'ROM digest binding mismatch' ]

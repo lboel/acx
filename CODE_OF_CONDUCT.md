@@ -8,8 +8,8 @@ tolerated. Assume good faith, welcome newcomers, and keep discussion focused on 
 
 ## Reporting
 
-Report unacceptable behavior to the maintainers at **`<add a contact email>`** (replace before publishing),
-or via the repository's private reporting. Reports are handled confidentially. Maintainers may remove
-comments, commits, or contributions that violate this Code, and may ban repeat or severe offenders.
+Report unacceptable behavior privately through the repository owner's GitHub contact channel. Reports are
+handled confidentially. Maintainers may remove comments, commits, or contributions that violate this Code,
+and may ban repeat or severe offenders.
 
 The full text of the Contributor Covenant 2.1 governs; see the link above for enforcement guidelines.

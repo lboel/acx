@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://acx.dev/schema/cal-skillset.v1.json",
   "title": "ACX CAL Skill Set (acx.cal-skillset/1)",
-  "description": "The BPM participation declaration stored IN a cartridge (rom/cal/skillset.json, ROM-signed): which roles it plays, which other agents it references (by hash), and which loops it participates in.",
+  "description": "The ROM-signed team/workflow participation declaration stored in a cartridge.",
   "type": "object",
   "additionalProperties": false,
   "required": ["schemaVersion", "plays"],
@@ -10,21 +10,46 @@
     "schemaVersion": { "const": "acx.cal-skillset/1" },
     "plays": {
       "type": "array",
+      "minItems": 1,
       "items": {
         "type": "object",
+        "additionalProperties": false,
         "required": ["role"],
         "properties": {
-          "role": { "type": "string" },
-          "providesCapabilities": { "type": "array", "items": { "type": "string" } },
-          "canComplete": { "type": "array", "items": { "type": "string" }, "description": "skill names this agent can run to completion (incl. skill scripts)" }
+          "role": { "type": "string", "minLength": 1 },
+          "providesCapabilities": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": { "type": "string", "minLength": 1 }
+          },
+          "canComplete": {
+            "type": "array",
+            "uniqueItems": true,
+            "description": "Skill names this agent can run to completion.",
+            "items": { "type": "string", "minLength": 1 }
+          }
         }
       }
     },
     "references": {
       "type": "array",
-      "description": "other agents this one hands off to / references, by content hash",
-      "items": { "type": "object", "properties": { "alias": { "type": "string" }, "romDigest": { "type": "string" }, "role": { "type": "string" } } }
+      "description": "Other agents this cartridge hands off to, pinned by signed ROM digest.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["alias", "romDigest"],
+        "properties": {
+          "alias": { "type": "string", "pattern": "^[a-z][a-z0-9._-]{0,127}$" },
+          "romDigest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+          "role": { "type": "string", "minLength": 1 }
+        }
+      }
     },
-    "processes": { "type": "array", "items": { "type": "string" }, "description": "CAL ids this agent participates in" }
+    "processes": {
+      "type": "array",
+      "uniqueItems": true,
+      "description": "ACX workflow ids this agent participates in.",
+      "items": { "type": "string", "pattern": "^[a-z][a-z0-9._-]{0,127}$" }
+    }
   }
 }

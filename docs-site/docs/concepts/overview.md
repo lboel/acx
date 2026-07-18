@@ -1,6 +1,6 @@
 # Overview
 
-An **Agent Cartridge** (`.acx`) is a single SQLite database that packages a specialized coding agent — its skills, capability claims, memory, runtime contract, loop/context policy, and a cryptographically provable competence level — into one portable, signable, distributable artifact.
+An **Agent Cartridge** (`.acx`) is a single SQLite database that packages an AI agent — its skills, capability claims, memory, runtime contract, loop/context policy, and a cryptographically provable competence level — into one portable, signable, distributable artifact. Software engineering is the flagship use case, but the format is task-general: any agent that has skills, **learns**, and runs a loop fits — and cartridges **level up**, **form teams**, and **run workflows** together.
 
 !!! tip "Where cartridges come from"
     A cartridge is the portable *output* of a company of agents. In [the studio](studio.md) (AGENTIBUS),
@@ -112,4 +112,4 @@ And beyond the format:
 - **[Distribution](../lifecycle/distribution.md)** — the `.acx` file as one layer in an OCI image manifest (`artifactType application/vnd.acx.cartridge.v1`), verifiable with stock cosign/oras (SPEC §11).
 
 !!! note "About the reference implementation"
-    The reference implementation is **zero-dependency** — Node ≥ 22's built-in `node:sqlite` and `node:crypto` — and runs with `node --experimental-sqlite`. Its crypto, σ-gating, and credential machinery are fully real (69 tests pass; see [Proofs](../proofs.md)). The benchmark's reference solver is **deterministic and pluggable** — a production verifier plugs in a real sandboxed agent run. OCI push, live namespace-proof verification (DNS-TXT / GitHub-OIDC), the host handshake runtime, the loop-policy evaluator, and `vec0` vectors are **specified normatively and are host-side** — they are not exercised by the reference impl.
+    The reference implementation is **zero-dependency** — Node ≥ 22's built-in `node:sqlite` and `node:crypto` — and runs with `node --experimental-sqlite`. Its cartridge crypto, workflow signing, structural termination checks, safe sharing path, σ-gating, and credential machinery are fully real (88 tests pass; see [Proofs](../proofs.md)). The benchmark's reference solver is **deterministic and pluggable** — a production verifier plugs in a real sandboxed agent run. OCI push, live namespace-proof verification (DNS-TXT / GitHub-OIDC), the host handshake runtime, the loop-policy evaluator, and `vec0` vectors are **specified normatively and are host-side** — they are not exercised by the reference impl.

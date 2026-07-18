@@ -2,14 +2,14 @@
   "schemaVersion": "1.0",
   "packageSlug": "agent-package-scenario-research-designer-v4.1",
   "algorithm": "ed25519",
-  "signerInstanceId": "agentibus-macbookpro-fritz-box-a2fc10",
-  "signerInstanceLabel": "MacBookPro.fritz.box",
-  "keyId": "pkg-key-mnhvxr5g",
-  "signedAt": "2026-04-03T13:35:46.204Z",
-  "manifestHash": "864c17075faf24a9cccb5abe57f6d109a1df4909a9816557549d12fdf6cce81a",
-  "checksumHash": "c0e7a445202b11b6c864001aeae3d01cee33d8e6b62804986323a744c6ba0fda",
-  "packageHash": "92041afe2446a0d04c8859c7ac1053002121f5cc24e02e48bd497c0cbb7b06d1",
+  "signerInstanceId": "agentibus-public-sample-000001",
+  "signerInstanceLabel": "ACX Public Sample",
+  "keyId": "pkg-key-public-sample-v1",
+  "signedAt": "2026-07-18T18:00:00.000Z",
+  "manifestHash": "10264a3d0119f9139d1b18e1242adfc2f7ff865338fb398425108af0e844652a",
+  "checksumHash": "415818960df37396049ccd97f03baebda0bd3ae919b4ef2e93a3cedc6127b6a5",
+  "packageHash": "6c413a8a115e1af2ff3c31822ad584174f6a4abbcbd956e62a4f5e039d657b16",
   "fileCount": 17,
-  "publicKeyPem": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEA+fN/JLi7O0zJ6yrTlBA63SbGfyfe51UEyWsvmjvoIfQ=\n-----END PUBLIC KEY-----\n",
-  "signature": "mMbhsQ2tjfFN+B2JCkqmbZoRTfh5iRbkjVILyJ5WT4ACFVJP5R00V8CmDS5DSO9MEbAzvmb71eZZNJysqeg9Dw=="
+  "publicKeyPem": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEA1+T6sDm0wtWYjmJDptWzghl5LRyTWUnXZrACX0QQHvY=\n-----END PUBLIC KEY-----\n",
+  "signature": "Yv9RtsaNsKdcvT8I/jBAj5Ek4eUA4qL2JR0hydu2lhcQUC2i7BVGNu4OPFl2QoL/Aom9wXxUYEyluNpwz1+eBw=="
 }

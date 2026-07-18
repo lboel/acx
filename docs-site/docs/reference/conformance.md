@@ -1,15 +1,15 @@
 # Conformance
 
-The 14 normative **MUST** items of SPEC §12, mapped to the tests that exercise them in the zero-dependency reference implementation — and an honest accounting of the five requirements that are specified but deliberately left host-side.
+The 15 normative **MUST** items of SPEC §12, mapped to the tests that exercise them in the zero-dependency reference implementation — and an honest accounting of the five requirements that are specified but deliberately left host-side.
 
-A conformant Agent Cartridge is a contract with two parties: the **producer** (the tooling that authors, signs, and levels a `.acx` file) and the **host** (the harness that boots it). SPEC §12 enumerates fourteen `MUST` clauses that bind both. The reference implementation proves the producer-side and cryptographic clauses end-to-end; a handful of runtime clauses — OCI push, live namespace proofs, the activation handshake, the loop evaluator, and `vec0` vectors — are **specified normatively but implemented by the host**, not by this repo.
+A conformant Agent Cartridge is a contract with two parties: the **producer** (the tooling that authors, signs, and levels a `.acx` file or ACX Workflow) and the **host** (the harness that boots it). SPEC §12 enumerates fifteen `MUST` clauses that bind both. The reference implementation proves the producer-side and cryptographic clauses end-to-end; a handful of runtime clauses — OCI push, live namespace proofs, the activation handshake, the loop evaluator, and `vec0` vectors — are **specified normatively but implemented by the host**, not by this repo.
 
 !!! note "How to read this page"
     Each row links to the SPEC clause, to the format page that documents it, and — where applicable — to the exact test name that appears in the [Proofs](../proofs.md) transcript. "Exercised" means a passing assertion re-runs the behaviour on real bytes; "Host-side" means the clause is a normative requirement for a *host*, and the reference impl stops at the seam.
 
-## The 14 MUST items
+## The 15 MUST items
 
-The full suite is **69 tests, 0 failures** (`node --experimental-sqlite --test 'test/*.test.mjs'` — [Proof 1](../proofs.md)). The status column below reflects what that run and the nine scripted proofs actually assert.
+The full suite is **88 tests, 0 failures** (`node --experimental-sqlite --test 'test/*.test.mjs'` — [Proof 1](../proofs.md)). The status column below reflects what that run and the scripted proofs actually assert.
 
 | # | §12 requirement | Status | Where it is proven |
 |---|-----------------|--------|--------------------|
@@ -27,6 +27,7 @@ The full suite is **69 tests, 0 failures** (`node --experimental-sqlite --test '
 | 12 | Exactly one ROM-zone loop-context policy evaluated **as data**, all vendor/effort/KV-cache/summarization specifics confined to an ignorable `hints` object; enforce host `resource-limits.yaml` precedence over cartridge `budget` | :material-alert: Specified; host-side | Policy is carried in ROM and schema-validated; **the loop-policy evaluator and resource-limits precedence run in the host** — [loop & context](../format/loop-context.md) |
 | 13 | Any level is a revocable, evidence-linked VC 2.0 / Open Badge 3.0, issued only after independent held-out re-execution, TrueSkill σ-gated (`sigma < 1.5`, `gamesPlayed ≥ 30`, `R = mu − 3σ`), bound to the ROM digest | :material-check-circle: Exercised | `§10.1 verifyLevelCredential accepts a valid, gated, ROM-bound credential` (+ rejects self-issuance / ROM mismatch / revoked / tampered), `§10.2 a weak agent fails the sigma gate → no VC issued`; [Proof 3](../proofs.md) — [provable level](../leveling/provable-level.md) |
 | 14 | Distribute as **one** OCI image (§11), `artifactType application/vnd.acx.cartridge.v1`, verifiable with stock cosign/oras and **zero** registry change | :material-alert: Specified; host-side | The OCI wrapping is normatively specified; **the push/verify runtime is host-side** (stock `cosign`/`oras`, no code in this repo) — [distribution](../lifecycle/distribution.md) |
+| 15 | Validate workflows independently of staffing; require closed structured conditions, complete references and completion contracts, terminal reachability, bounded cycles, and verify the JCS digest plus DSSE/in-toto publisher binding before slot resolution | :material-check-circle: Exercised | `acx.cal/1 publish profile accepts…`, `CAL conditions are closed structured data…`, `cyclic workflows fail closed…`, `workflow signing binds…`, tamper/trust/revocation tests, and `workflow lint separates portable structure checks from roster readiness` — [loop engineering](../format/loops-cal.md) |
 
 !!! success "What the crypto actually proves"
     Items 3, 4, 6, 8, and 13 are the security spine, and they are **fully real** — no stubs. Signing recomputes every object hash from live bytes (`buildRomManifest` → `liveOid()`), so a rewritten `SKILL.md` body or an upgraded capability proficiency is caught even when its stored `objects.oid` is left stale:
@@ -89,6 +90,7 @@ SPEC §12 closes with a rule that keeps future readers safe: **every stored arti
 | Loop-context policy | `schemaVersion` | `acx.loop-context-policy/1` |
 | Memory record | `schemaVersion` | memory-record v1 |
 | OCI distribution | `artifactType` | `application/vnd.acx.cartridge.v1` |
+| ACX Workflow | `schemaVersion` + SemVer + integrity version | `acx.cal/1`, `version: 1.0.0`, `acx.workflow-signature/1` |
 
 Spec evolution follows a two-track rule: **`spec_MAJOR` bumps break readers; `spec_MINOR` is additive.** v1.1 of the loop-context policy was a `spec_MINOR` addition — it layered `plan`/`reflect` phases, `verification.regression` (held-in/held-out), `observability`, `subAgents[].mode`, and `context.playbook` onto v1 without breaking a v1 reader (SPEC §9.6).
 
@@ -119,8 +121,8 @@ The format is stitched together from six independent design blocks, which disagr
 | 6 | ROM digest naming: block C's `manifest_hash` vs block Identity's `packageHash` | Same value; unified as "the ROM `manifest_hash`, which is this format's `packageHash`" | §3.3, §4.1 |
 
 !!! note "Open questions carried forward (non-normative)"
-    SPEC §13 lists what is deliberately *not* pinned yet: the minimum `sqlite-vec` version and a stable `vec1` format; the canonical JSON form (JCS vs sorted-key) fed to PAE before signing; trust-registry federation and rollback protection; keyless Sigstore (Fulcio/Rekor) as an alternative to the static registry; `installationSalt` rotation and SAVE re-namespacing; the exact `R → acxLevel` bucketing calibration; verifier accreditation/quorum governance; and selective-disclosure (BBS/SD-JWT) for trajectory evidence. These do not affect v1 conformance.
+    SPEC §13 lists what is deliberately *not* pinned yet: the minimum `sqlite-vec` version and a stable `vec1` format; trust-registry federation and rollback protection; keyless Sigstore (Fulcio/Rekor) as an alternative to the static registry; `installationSalt` rotation and SAVE re-namespacing; the exact `R → acxLevel` bucketing calibration; verifier accreditation/quorum governance; and selective-disclosure (BBS/SD-JWT) for trajectory evidence. Workflow signing itself is pinned to RFC 8785/JCS. These open questions do not affect v1 conformance.
 
 ---
 
-**See also:** [Proofs](../proofs.md) (the full transcript behind every test name above) · [CLI](cli.md) (the commands that produced Proofs 4–8) · [Schemas](schemas.md) (the eight draft-2020-12 schemas the `schemaVersion` tags point at).
+**See also:** [Proofs](../proofs.md) (the transcript and workflow checks behind the test names above) · [CLI](cli.md) · [Schemas](schemas.md) (the 12 draft-2020-12 schemas the `schemaVersion` tags point at).

@@ -6,13 +6,12 @@ zero-dependency and runs on Node ≥ 22.
 
 !!! tip "Reproduce it"
     ```bash
-    cd agent-cartridge
-    npm test                                        # 69 conformance tests
+    npm test                                        # 88 conformance, workflow, and sharing tests
     node --experimental-sqlite scripts/smoke.mjs    # export → verify → strip → tamper
     node --experimental-sqlite scripts/prove-level.mjs   # earn + verify a level
     ```
 
-## 1 · Conformance test suite — 69/69 green
+## 1 · Conformance test suite — 88/88 green
 
 Every MUST the reference implementation supports is exercised. A representative slice:
 
@@ -28,12 +27,47 @@ Every MUST the reference implementation supports is exercised. A representative 
 ✔ §7.4 mergeRecords never collapses across the tier boundary
 ✔ §10.1 verifyLevelCredential rejects self-issuance / ROM digest mismatch / revocation / tampered body
 ✔ §7.2 codebaseFingerprint never contains the repo name/label
-ℹ tests 69
-ℹ pass 69
+✔ cyclic workflows fail closed unless limits.maxSteps bounds the loop
+✔ workflow signing binds the canonical document and verifies as portable
+✔ workflow verification rejects content tampering and publisher-binding tampering
+✔ workflow verification rejects a valid signature with incomplete in-toto bindings
+✔ workflow lint separates portable structure checks from roster readiness
+✔ share agent prepares only the verified artifact and generated discovery card
+✔ share agent dry-run is non-mutating and refuses unsafe identity changes
+✔ share workflow preserves signed bytes and renders a reviewable PR body
+✔ share preparation is idempotent and requires force for changed bytes
+ℹ tests 88
+ℹ pass 88
 ℹ fail 0
 ```
 
-## 2 · Round-trip: export → verify → strip → tamper
+## 2 · Signed team workflow — lint → verify → staff
+
+The repository includes two signed, publishable workflows: `ship-a-feature` (a bounded
+design/build/review loop) and `research-council` (parallel research and challenge followed by an
+approval-gated synthesis).
+
+```text
+$ acx workflow lint registry/cals/ship-a-feature.cal.json --publish
+verdict: VALID ✓ — structure and publish profile pass
+
+$ acx workflow verify registry/cals/ship-a-feature.cal.json
+status:     verified
+trust:      portable
+digest:     sha256:588424a9ec12483ce13f28e81e9d0833777676bbd2c0c0686bbc27bb58f93dee
+publisher:  io.github.lboel
+structure:  publishable ✓
+  - signer keyid not in trust registry
+
+$ acx workflow ready registry/cals/ship-a-feature.cal.json --cartridges platform/catalog
+verdict: READY ✓ — structure valid, team staffed, requirements covered
+```
+
+The tests additionally mutate graph content and publisher identity, revoke a signer for key compromise,
+feed unknown executable-looking fields, remove cycle bounds, and separate portable validity from local
+staffing. Every case fails closed at the expected boundary.
+
+## 3 · Round-trip: export → verify → strip → tamper
 
 ```text
 exported cartridge: io.github.agentibus/scenario-research-designer@22f2ae29-…
@@ -63,7 +97,7 @@ SMOKE OK
     - Both a metadata tamper *and* a content-body tamper (the critical **C1** attack — rewrite a signed
       `SKILL.md` while leaving the object hash stale) are caught as `tampered`.
 
-## 3 · Provable level — earned, verified, unfakeable
+## 4 · Provable level — earned, verified, unfakeable
 
 ```text
 cartridge ROM digest: sha256:1726cf1e6025c166e06dc839a5cbae6c900f0ffa3e0b1235be8b78e88ee09943
@@ -89,7 +123,7 @@ PROVABLE LEVEL OK — level earned from re-run, cryptographically verified, unfa
     and every forgery route — self-issuance, transplanting the level onto a mutated cartridge, and a
     revoked credential — is rejected. See [how agents level up](leveling/provable-level.md).
 
-## 4 · The CLI, end to end
+## 5 · The CLI, end to end
 
 ```text
 $ acx export <agent-package> demo.acx --publisher io.github.agentibus
@@ -113,7 +147,7 @@ credential verify: VALID
 
 See the full [CLI reference](reference/cli.md).
 
-## 5 · Interoperability & file identity
+## 6 · Interoperability & file identity
 
 The cartridge is a plain SQLite file — the stock tools recognize and open it:
 

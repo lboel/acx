@@ -26,7 +26,12 @@ export function readCard(cart, registryPath) {
   const reg = registryPath ? loadTrustRegistry(registryPath) : emptyTrustRegistry()
   const v = evaluateTrust(cart, { registry: reg })
   const caps = cart.db.prepare('SELECT json FROM capabilities').all()
-    .map((r) => JSON.parse(r.json)).map((c) => ({ taskType: c.taskType, verified: !!c.proficiency?.verified }))
+    .map((r) => JSON.parse(r.json)).map((c) => ({
+      taskType: c.taskType,
+      stack: c.stack || [],
+      domain: c.domain || null,
+      verified: !!c.proficiency?.verified,
+    }))
   const skills = cart.db.prepare('SELECT name, sqlar_path FROM acx_skill ORDER BY name').all()
   // provable level from a bound attestation, else declared
   let level = { tier: null, acxLevel: Number(meta['acx.declared_level'] || 0), proven: false, boundToRom: false }

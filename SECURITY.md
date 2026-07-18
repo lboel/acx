@@ -21,8 +21,9 @@ impact. We aim to acknowledge within a few days.
 - **Level forgery.** Issuing or accepting a provable-level credential without the required independent
   held-out re-run, self-issuance, or transplanting a level onto a mutated cartridge.
 - **Scrub-gate escape.** Getting a secret past the fail-closed export scrub.
-- **Exchange/registry.** Path traversal, publishing a tampered cartridge, XSS via cartridge metadata, or
-  making the platform execute cartridge content (it must only read metadata and verify signatures).
+- **Exchange/registry.** Path traversal, publishing a tampered cartridge or workflow, workflow
+  signature/publisher bypass, XSS via artifact metadata, or making the platform execute artifact content
+  during inspection (it must only read metadata and verify signatures).
 
 ## Not in scope
 

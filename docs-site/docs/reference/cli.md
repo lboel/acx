@@ -1,6 +1,8 @@
 # CLI reference
 
-`acx` is the zero-dependency reference command-line tool for building, inspecting, verifying, stripping, and leveling `.acx` Agent Cartridges — every subcommand below is shown with its **real, verbatim output** copied from [the proofs transcript](../proofs.md).
+`acx` is the zero-dependency reference command-line tool for building, inspecting, verifying, stripping,
+leveling, and safely sharing `.acx` Agent Cartridges — and for linting, signing, verifying, inspecting,
+staffing, and submitting reusable ACX Workflows.
 
 ## Running the tool
 
@@ -25,6 +27,16 @@ Usage:
   acx inspect <file.acx>
   acx verify  <file.acx> [--registry <trust.json>]
   acx strip   <file.acx> <out.acx>
+  acx spec    <file.acx>
+  acx check   <file.acx> [--all-tools]
+  acx load    <file.acx> [--host claude|codex|cursor]
+  acx workflow lint    <workflow.cal.json> [--publish]
+  acx workflow sign    <workflow.cal.json> --publisher <reverse-dns> [--key <pem>] [--out <file>]
+  acx workflow verify  <workflow.cal.json> [--registry <trust.json>]
+  acx workflow inspect <workflow.cal.json>
+  acx workflow ready   <workflow.cal.json> [--cartridges <dir>]
+  acx share agent      <file.acx> --slug <slug> [--dry-run]
+  acx share workflow   <workflow.cal.json> [--dry-run]
   acx level   <file.acx>
 ```
 
@@ -33,11 +45,102 @@ Usage:
 | [`export`](#export)  | Package an agent directory into a signed `.acx` | §12 |
 | [`inspect`](#inspect) | Print meta, ROM objects, skills, capabilities, memory, attestations | §12 |
 | [`verify`](#verify)  | Evaluate the trust taxonomy (`local/trusted/portable/legacy/tampered`) | §4.5, §12.6 |
+| [`workflow`](#workflow) | Validate, sign, verify, inspect, and staff portable agent-team workflows | §14 |
+| [`share`](#share) | Verify and prepare one focused registry pull request | Reference distribution workflow |
 | [`strip`](#strip)   | Re-export SAVE-free and prove the ROM hash is unchanged | §3.4 |
 | [`level`](#level)   | Earn a σ-gated, ROM-bound level credential from an independent verifier | §10 |
 
 !!! note "What is real vs. host-side here"
     The crypto, hashing, DSSE/in-toto signing, trust evaluation, scrub gate, TrueSkill gating, and credential verification are **fully implemented**. The `level` benchmark's **reference solver is deterministic and pluggable** — a production verifier plugs a real sandboxed agent run into the same gate. OCI push, DNS-TXT/OIDC namespace proofs, the host handshake runtime, and `vec0` vector search are **specified normatively but not part of this CLI**.
+
+---
+
+## `share`
+
+Prepare a signed agent or workflow for the git registry. `share` performs no git, network, push, or PR
+operation: it verifies the artifact, enforces safe canonical paths, copies only the public artifact, and
+generates review metadata.
+
+```bash
+acx share agent agent.acx --slug research-designer --dry-run
+acx share agent agent.acx --slug research-designer
+
+acx share workflow research-council.cal.json --dry-run
+acx share workflow research-council.cal.json
+```
+
+| Flag | Meaning |
+| --- | --- |
+| `--registry <dir>` | Registry root; defaults to this checkout's `registry/` |
+| `--publisher <id>` | Require an exact match with the publisher bound into the signature |
+| `--slug <slug>` | Required safe destination slug for an agent |
+| `--dry-run` | Verify and print the planned paths/PR body without writing |
+| `--force` | Permit a consciously reviewed update when different bytes already exist |
+
+For agents, `share` requires a valid signed cartridge and clean `acx.package-spec/1`, then produces
+`registry/cartridges/<publisher>/<slug>/cartridge.acx` plus a generated README card. For workflows, it
+requires the complete publication profile and valid JCS/DSSE/in-toto publisher binding, then produces
+`registry/cals/<id>.cal.json`. It refuses legacy/unsigned artifacts, tampering, publisher mismatches, unsafe
+identifiers, and silent overwrite.
+
+Continue with the deterministic index builder and tests:
+
+```bash
+node --experimental-sqlite tools/build-registry-index.mjs
+npm test
+git diff --check
+git diff -- registry/
+```
+
+See [Share ACX](../share.md) for the human path and the bundled
+[`$acx-share-agent`](../share.md#let-an-agent-prepare-its-own-share-pr) skill for agent-driven PR
+preparation.
+
+---
+
+## `workflow`
+
+Work with a standalone `acx.cal/1` team workflow without executing it. The five subcommands deliberately
+separate a portable artifact's validity and trust from one machine's ability to staff it.
+
+| Subcommand | Purpose | Exit behavior |
+|---|---|---|
+| `workflow lint <file> [--publish]` | Validate closed conditions, references, completion contracts, reachability, termination, cycle bounds, and optionally public metadata | non-zero on any structural/publication issue |
+| `workflow sign <file> --publisher <id> [--key <pem>] [--out <file>]` | JCS-canonicalize the document, compute its SHA-256 digest, and create an Ed25519 DSSE/in-toto integrity block | non-zero if invalid or not publishable |
+| `workflow verify <file> [--registry <trust.json>]` | Recompute the digest and verify the signature, workflow id/version, publisher, key id, time, and trust-registry binding | non-zero when invalid or tampered |
+| `workflow inspect <file>` | Print a discovery card: identity, team slots, required capabilities, digest, signature, and trust | read-only; never executes tasks |
+| `workflow ready <file> [--cartridges <dir>]` | Recursively scan `.acx` files, staff slots by role/proven level/capability/stack, and check each task's skill/capability coverage | non-zero when this roster cannot run it |
+
+`acx cal <file> [--cartridges <dir>]` remains a backward-compatible alias for `workflow ready`.
+
+### Share a workflow
+
+```bash
+# 1. Portable validation: no local cartridges required.
+node --experimental-sqlite src/cli.mjs workflow lint team.cal.json --publish
+
+# 2. Sign. With no --key, a new private key is written beside the output.
+node --experimental-sqlite src/cli.mjs workflow sign team.cal.json \
+  --publisher io.github.yourhandle --out team.signed.cal.json
+
+# 3. Anyone can verify the exact shared graph before staffing or execution.
+node --experimental-sqlite src/cli.mjs workflow verify team.signed.cal.json
+
+# 4. The receiving studio checks whether its local roster can fill every slot.
+node --experimental-sqlite src/cli.mjs workflow ready team.signed.cal.json \
+  --cartridges ./roster
+```
+
+Signing covers every top-level field except `integrity` using RFC 8785/JCS and binds the digest into an
+in-toto Statement carried by DSSE. The generated private key stays outside the JSON and must never enter
+git. A valid but unregistered signer is `portable`; a namespace-proven trust-registry entry upgrades it to
+`trusted`; content or identity tampering is `tampered`.
+
+!!! warning "Validation does not execute the workflow"
+    `lint`, `verify`, `inspect`, and `ready` consume declarative data only. Actual dispatch, tool calls,
+    approvals, timers, variable updates, and branch advancement belong to a conformant host runtime.
+    Before execution, a host must enforce each task's `sideEffects`, `approval`, completion contract,
+    resource limits, and its own stricter policy.
 
 ---
 

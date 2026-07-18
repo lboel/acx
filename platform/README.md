@@ -61,6 +61,19 @@ Some of the roster carries an independently issued **level credential**; the
 rest are shown at their declared level only. The catalog directory is the
 Exchange's entire persistence — deleting it resets the floor.
 
+## Visual workflow builder
+
+The same package includes a local visual authoring surface for ACX Workflows:
+
+```bash
+node --experimental-sqlite src/cli.mjs builder --port 8799
+```
+
+Open `http://localhost:8799`. The builder validates the full publication profile and local roster,
+including metadata, bounds, safety/approval intent, completion contracts, and terminal reachability.
+It saves unsigned drafts under `platform/builder/drafts/`; publishing is always an explicit CLI signing
+step, so the browser never silently creates or retains a publishing key.
+
 ## Endpoints
 
 | Method     | Path              | Purpose                                                                                     |

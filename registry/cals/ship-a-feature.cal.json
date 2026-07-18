@@ -1,8 +1,14 @@
 {
   "schemaVersion": "acx.cal/1",
   "id": "ship-a-feature",
+  "version": "1.0.0",
   "name": "Ship a data-pipeline feature",
   "description": "A conditional agentic loop: an architect designs, a pipeline engineer builds a DAG, a security sentinel reviews; loops back until the review passes. Agents are referenced by role slot (staffed from any matching cartridge) — swap in a specific cartridge by romDigest to pin it.",
+  "license": "Apache-2.0",
+  "authors": [
+    { "name": "ACX Community" }
+  ],
+  "tags": ["coding", "data-pipeline", "security-review", "agent-team"],
 
   "participants": [
     { "alias": "architect", "bind": "slot", "slot": { "role": "architect", "capabilities": [{ "taskType": "design-api" }] } },
@@ -18,29 +24,56 @@
 
   "variables": [
     { "name": "review", "type": "object" },
-    { "name": "attempts", "type": "int", "init": 0 }
+    { "name": "attempts", "type": "integer", "init": 0 }
   ],
+
+  "limits": {
+    "maxSteps": 24,
+    "maxDurationMs": 3600000,
+    "maxParallel": 1
+  },
 
   "start": "design",
   "nodes": [
     { "id": "design", "type": "task", "agent": "architect", "action": "Design the pipeline + interfaces",
       "requires": { "capabilities": ["design-api"], "rac": ["infra-arch", "code-wiki"] },
+      "sideEffects": "none", "approval": "never",
       "completion": { "type": "artifact", "produces": "design-doc" } },
     { "id": "build", "type": "task", "agent": "builder", "action": "Build + backfill the Airflow DAG",
       "requires": { "capabilities": ["build-dag"], "rac": ["infra-arch", "warehouse-schema"] },
+      "sideEffects": "workspace", "approval": "on-request",
       "completion": { "type": "verification", "commands": ["lint", "dag:validate", "test:touched"], "passIntent": "DAG parses, tasks wire up, touched tests green" } },
-    { "id": "gate", "type": "gateway", "gateway": "exclusive" },
     { "id": "review", "type": "task", "agent": "reviewer", "action": "Security + quality review",
       "requires": { "capabilities": ["harden-security"] },
+      "sideEffects": "none", "approval": "never",
       "completion": { "type": "guardrail", "kind": "milestone" } },
+    { "id": "gate", "type": "gateway", "gateway": "exclusive" },
     { "id": "done", "type": "event", "event": "end" }
   ],
 
   "edges": [
     { "from": "design", "to": "build" },
-    { "from": "build", "to": "gate" },
-    { "from": "gate", "to": "review", "when": { "always": true } },
-    { "from": "review", "to": "done", "when": { "var": "review.outcome", "op": "eq", "value": "completed" } },
-    { "from": "review", "to": "build", "when": { "not": { "var": "review.outcome", "op": "eq", "value": "completed" } } }
-  ]
+    { "from": "build", "to": "review" },
+    { "from": "review", "to": "gate" },
+    { "from": "gate", "to": "done", "when": { "var": "review.outcome", "op": "eq", "value": "completed" } },
+    { "from": "gate", "to": "build", "when": { "not": { "var": "review.outcome", "op": "eq", "value": "completed" } } }
+  ],
+  "integrity": {
+    "schemaVersion": "acx.workflow-signature/1",
+    "digest": "sha256:588424a9ec12483ce13f28e81e9d0833777676bbd2c0c0686bbc27bb58f93dee",
+    "publisherId": "io.github.lboel",
+    "keyid": "ed25519:8e09e077cfbb83d5569deff0903ec83386d8f3e957e52d51be1ad96c41534e05",
+    "publicKeyPem": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEA1+5HsJrq2todR0A9c4iVAXnd+JRanOeX2M6+/UGHzK0=\n-----END PUBLIC KEY-----\n",
+    "signedAt": "2026-07-18T15:27:27.624Z",
+    "envelope": {
+      "payloadType": "application/vnd.in-toto+json",
+      "payload": "eyJfdHlwZSI6Imh0dHBzOi8vaW4tdG90by5pby9TdGF0ZW1lbnQvdjEiLCJwcmVkaWNhdGUiOnsiYWN4U2NoZW1hVmVyc2lvbiI6ImFjeC5jYWwvMSIsIm5vZGVzIjo1LCJwYXJ0aWNpcGFudHMiOjMsInB1Ymxpc2hlcklkIjoiaW8uZ2l0aHViLmxib2VsIiwic2lnbmVkQXQiOiIyMDI2LTA3LTE4VDE1OjI3OjI3LjYyNFoiLCJ3b3JrZmxvd0RpZ2VzdCI6InNoYTI1Njo1ODg0MjRhOWVjMTI0ODNjZTEzZjI4ZTgxZTlkMDgzMzc3NzY3NmJiZDJjMGMwNjg2YmJjMjdiYjU4ZjkzZGVlIiwid29ya2Zsb3dJZCI6InNoaXAtYS1mZWF0dXJlIiwid29ya2Zsb3dWZXJzaW9uIjoiMS4wLjAifSwicHJlZGljYXRlVHlwZSI6Imh0dHBzOi8vYWN4LmRldi9hdHRlc3RhdGlvbi93b3JrZmxvdy92MSIsInN1YmplY3QiOlt7ImRpZ2VzdCI6eyJzaGEyNTYiOiI1ODg0MjRhOWVjMTI0ODNjZTEzZjI4ZTgxZTlkMDgzMzc3NzY3NmJiZDJjMGMwNjg2YmJjMjdiYjU4ZjkzZGVlIn0sIm5hbWUiOiJ1cm46YWN4OndvcmtmbG93OnNoaXAtYS1mZWF0dXJlQDEuMC4wIn1dfQ==",
+      "signatures": [
+        {
+          "keyid": "ed25519:8e09e077cfbb83d5569deff0903ec83386d8f3e957e52d51be1ad96c41534e05",
+          "sig": "wcBZCMVuE9ng1YcEhCWGjhiyP0U6l4FD+YoW/gHooi6rMPD6PO+9guIWrJVUuHzvDYFBThhX1GsRgJO9kM9mAg=="
+        }
+      ]
+    }
+  }
 }

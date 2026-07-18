@@ -4,6 +4,28 @@ A **CAL (Conditional Agentic Loop)** is a signed, BPMN-like process document tha
 
 Schema: [`cal.schema.json`](../reference/schemas.md) (`acx.cal/1`) and [`cal-skillset.schema.json`](../reference/schemas.md) (`acx.cal-skillset/1`). Implementation: `src/cal.mjs`.
 
+## Share an agent team in 60 seconds
+
+```bash
+# Validate the portable contract and required public metadata.
+acx workflow lint my-team.cal.json --publish
+
+# Sign the exact graph. Keep the emitted .key.pem private and out of git.
+acx workflow sign my-team.cal.json \
+  --publisher io.github.yourhandle \
+  --out my-team.signed.cal.json
+
+# A recipient verifies before trusting, staffing, or executing anything.
+acx workflow verify my-team.signed.cal.json
+
+# Then — separately — it checks whether its own roster can fill every slot.
+acx workflow ready my-team.signed.cal.json --cartridges ./roster
+```
+
+This separation is the portable contract: the same signed workflow can be shared through git, HTTP, or
+OCI; each receiving studio supplies its own cartridges. `lint`, `sign`, `verify`, `inspect`, and `ready`
+are read-only with respect to agent work — none dispatches tasks or evaluates arbitrary code.
+
 ## One agent vs. many
 
 The [loop & context policy](loop-context.md) block engineers the loop *inside* a single cartridge: `maxTurns`, the `plan → gather_context → act → verify → reflect` cycle, stop conditions, verification. A CAL is the layer above it — the loop *between* cartridges. Where the policy answers "how does this one agent iterate?", the CAL answers "which agents, in which order, gated by what?"
@@ -27,10 +49,14 @@ Each participant still runs its own signed single-agent loop when it takes a tas
 | `RacItem` | Required Available Context: a **description** of knowledge that must be present (`kind`, `description`, `required`, a `check` for how to confirm it, optional `okf` descriptor). **MUST NOT carry content** | `cal.rac[]` |
 | `CalNode` | A `task` (agent alias + `requires{skills, capabilities, rac}` + a `completion` condition), a `gateway` (`exclusive` / `parallel` / `inclusive`), or an `event` (`start` / `end` / `stop` / `handoff` / `timer`) | `cal.nodes[]` |
 | `CalEdge` | A transition `{from, to, when}` with a **structured** condition — no expression eval | `cal.edges[]` |
-| `Cal` | The whole document: `participants[] + rac[] + variables[] + start + nodes[] + edges[]` | a standalone `.cal.json` (e.g. `registry/cals/`) |
+| `Cal` | The whole document: discovery metadata + `participants[] + rac[] + variables[] + limits + start + nodes[] + edges[] + integrity` | a standalone `.cal.json` (e.g. `registry/cals/`) |
 | `CalSkillSet` | The per-cartridge participation declaration: which roles it plays, which other agents it references by `romDigest`, which CAL ids it takes part in | **inside each cartridge** at `rom/cal/skillset.json` (ROM-signed) |
 
 Everything connects: a `CalNode` names a participant alias; the alias resolves via a `CartridgeRef`; the node's `requires.rac` points at `RacItem` ids; `CalEdge` conditions read the CAL's declared `variables` or RAC availability; and each cartridge advertises its side of the contract in its own signed `CalSkillSet`.
+
+For public discovery, a publishable workflow also carries a stable `id`, SemVer `version`, human-readable
+`name` and `description`, SPDX `license`, `authors[]`, and `tags[]`. Unknown top-level fields are rejected;
+vendor additions belong under reverse-DNS keys in `extensions`.
 
 ## Participants: hash or slot
 
@@ -98,6 +124,14 @@ A RAC item declares knowledge that must exist before the loop runs. The rule is 
     | `guardrail` | a guardrail of the given `kind` fired (e.g. a milestone) |
     | `artifact` | the task `produces` the named artifact |
 
+    Every task can also declare the host-facing safety contract:
+
+    - `sideEffects`: `none | workspace | external`
+    - `approval`: `never | on-request | always`
+
+    A host may always impose a stricter approval or resource policy. A workflow never grants authority the
+    host or operator did not already provide.
+
 === "gateway"
 
     ```json
@@ -129,24 +163,42 @@ An edge is `{from, to, when}`. Omitting `when` means the transition always fires
 
 This is the same design stance as the [loop policy](loop-context.md)'s structured stop conditions: conditions are *data* a host evaluates, never code a host executes.
 
+## Bounded graph semantics
+
+Portable validity is stricter than “all referenced ids exist”:
+
+- every node must be reachable from `start`;
+- every reachable node must have a path to an `end` or `stop` event;
+- terminal events must not have outgoing edges;
+- non-terminal nodes must have at least one outgoing edge;
+- duplicate ids and duplicate edges are rejected;
+- multiple branches from a non-gateway node must all be conditional;
+- every cyclic graph must declare a positive `limits.maxSteps`;
+- `limits.maxDurationMs` and `limits.maxParallel` let hosts impose further bounds.
+
+These are structural guarantees, not a claim that the graph will finish under every real-world condition.
+A conformant runtime still enforces the limits and fails closed when a completion contract is not met.
+
 ## Worked example: `ship-a-feature`
 
-The repository ships a real CAL at `registry/cals/ship-a-feature.cal.json`: an architect designs, a builder builds, an exclusive gateway routes to a security review, and the review **loops back to build** until it passes.
+The repository ships a real CAL at `registry/cals/ship-a-feature.cal.json`: an architect designs, a
+builder builds, a security sentinel reviews, and an exclusive gateway **loops back to build** until that
+review passes.
 
 ```mermaid
 flowchart LR
   design["design<br/><small>architect · artifact: design-doc</small>"] --> build["build<br/><small>builder · verification</small>"]
-  build --> gate{gate<br/>exclusive}
-  gate -->|always| review["review<br/><small>reviewer · guardrail</small>"]
-  review -->|"review.outcome == completed"| done(("done"))
-  review -->|"not completed"| build
+  build --> review["review<br/><small>reviewer · guardrail</small>"]
+  review --> gate{gate<br/>exclusive}
+  gate -->|"review.outcome == completed"| done(("done"))
+  gate -->|"not completed"| build
 ```
 
 All three participants are slot-bound (`architect`, `devops_engineer` with `minLevel.acxLevel: 15`, `security_expert`), so the same document staffs itself from whatever roster is on hand — or you pin any of them by `romDigest`. Resolving it against the bundled catalog:
 
 ```console
-$ node --experimental-sqlite src/cli.mjs cal registry/cals/ship-a-feature.cal.json
-CAL: Ship a data-pipeline feature  (5 nodes, 3 participants)
+$ node --experimental-sqlite src/cli.mjs workflow ready registry/cals/ship-a-feature.cal.json
+ACX Workflow: Ship a data-pipeline feature @ 1.0.0  (5 nodes, 3 participants)
 
 Participants (agents, referenced by hash or staffed by slot):
   ✓ architect      slot  Mia Torres — staffed best of 1 match(es)
@@ -161,19 +213,60 @@ Required Available Context (RAC — descriptions only, confirm before running):
 Flow:
   [task] design         agent=architect    Design the pipeline + interfaces  {cap:design-api rac:infra-arch rac:code-wiki}  completion=artifact
   [task] build          agent=builder      Build + backfill the Airflow DAG  {cap:build-dag rac:infra-arch rac:warehouse-schema}  completion=verification
-  [gateway] gate (exclusive)
   [task] review         agent=reviewer     Security + quality review  {cap:harden-security}  completion=guardrail
+  [gateway] gate (exclusive)
   [event] done
 
 Conditional transitions:
-  gate → review  when {"always":true}
-  review → done  when {"var":"review.outcome","op":"eq","value":"completed"}
-  review → build  when {"not":{"var":"review.outcome","op":"eq","value":"completed"}}
+  gate → done   when {"var":"review.outcome","op":"eq","value":"completed"}
+  gate → build  when {"not":{"var":"review.outcome","op":"eq","value":"completed"}}
 
-verdict: READY ✓ — all participants resolved, requirements covered
+verdict: READY ✓ — structure valid, team staffed, requirements covered
 ```
 
-`acx cal <cal.json> [--cartridges <dir>]` scans a directory of `.acx` files (default: the bundled catalog), resolves every participant, prints the RAC checklist (`□` required, `·` optional) and the flow, and exits non-zero with itemized issues when anything is unresolved, uncovered, or unreachable. The structural linter also catches dangling references: unknown agent aliases, `requires.rac` ids that don't exist, edges to missing nodes, tasks without a `completion`, and nodes unreachable from `start`.
+`acx workflow ready <cal.json> [--cartridges <dir>]` recursively scans `.acx` files (default: the bundled
+catalog), resolves every participant, prints the RAC checklist (`□` required, `·` optional) and flow, and
+exits non-zero when anything is unresolved or uncovered. `acx cal` remains an alias.
+
+The registry also ships `research-council.cal.json`, a task-general example: a scout and skeptic work in
+parallel, then an editor with `approval: always` synthesizes a decision brief. It demonstrates that ACX is
+not tied to coding workflows.
+
+## Integrity, identity, and trust
+
+A signed workflow carries an `acx.workflow-signature/1` `integrity` block. The signer:
+
+1. removes the top-level `integrity` field;
+2. canonicalizes the remaining document with RFC 8785/JCS;
+3. addresses it as `sha256:<digest>`;
+4. binds the digest, workflow `id` and `version`, `publisherId`, and `signedAt` in an in-toto Statement v1;
+5. signs the Statement as a DSSE envelope with Ed25519.
+
+Verification recomputes all of those bindings. A valid signature from an unknown key is `portable`; a
+matching, namespace-proven public-key registry entry is `trusted`; a digest, signature, identity, or
+key-compromise mismatch is `tampered` and exits non-zero. The private key is never embedded.
+
+```bash
+acx workflow inspect registry/cals/ship-a-feature.cal.json
+acx workflow verify registry/cals/ship-a-feature.cal.json
+```
+
+The public profile uses media type `application/vnd.acx.workflow.v1+json`. Its DSSE payload type is
+`application/vnd.in-toto+json`, matching the cartridge signing model.
+
+## Interoperability profile
+
+ACX defines a portable workflow artifact, not another transport or tool-calling protocol:
+
+- An [A2A Agent Card](https://a2a-protocol.org/latest/specification/) can advertise ACX support through
+  `AgentExtension`; ACX supplies the signed team graph and staffing constraints.
+- [MCP tools](https://modelcontextprotocol.io/specification/2025-11-25/server/tools) can satisfy task
+  capabilities at runtime; ACX declares roles, required capabilities, context, completion, and control flow.
+- An [OCI 1.1 artifact manifest](https://github.com/opencontainers/image-spec/blob/main/manifest.md) can
+  transport the JSON as a typed artifact; git and HTTP work equally because verification covers the bytes,
+  not the transport.
+
+These mappings are informative. The normative ACX artifact remains usable without A2A, MCP, or OCI.
 
 ## The per-cartridge `CalSkillSet`
 
@@ -200,6 +293,25 @@ The CAL is a standalone document, but each cartridge also carries its **own** si
 
 Because the file lives in ROM, it is covered by the content-addressed manifest and the DSSE/ed25519 [signature](signing-trust.md): an agent's declared collaborations cannot be swapped out after signing. Every cartridge carries this alongside the clean package spec (`rom/package-spec.json`, `acx.package-spec/1`) and the fixed memory schema (`acx.lance-memory/1`); `acx spec` validates all of them.
 
+## Visual authoring
+
+```bash
+acx builder --port 8799
+```
+
+The local builder edits discovery metadata, bounds, participants, RAC, nodes, task safety/approval,
+completion contracts, and structured edges. “Validate for share” runs the same publication and roster
+checks as the CLI. “Save draft” writes an **unsigned** draft under `platform/builder/drafts/`; it never
+writes directly into the signed registry. Export or save, then sign explicitly:
+
+```bash
+acx workflow sign platform/builder/drafts/my-loop.cal.json \
+  --publisher io.github.yourhandle \
+  --out registry/cals/my-loop.cal.json
+```
+
+This boundary is intentional: a browser editor does not silently create or retain a publishing private key.
+
 ## Generating a loop from a codebase
 
 `acx init` bootstraps both sides:
@@ -213,7 +325,7 @@ The first form scaffolds a single fillable agent package. The second (`src/init.
 
 !!! warning "Honesty: what the reference implementation does and does not do"
     - The `--from-code` analyzer is a **heuristic scaffold — no LLM is invoked**. It proposes roles and RAC descriptions from file-system signals; you fill in the specifics before exporting real cartridges.
-    - `acx cal` is a **resolver and readiness linter**, and `evalCondition` is a real structured-condition interpreter — but a runtime that *drives* the loop (dispatching tasks to hosts, advancing edges as completions land) is host-side, like the single-agent [loop-policy evaluator](loop-context.md).
+    - `acx workflow lint` is a **portable structural linter**, `workflow ready` is a **local roster resolver**, and `evalCondition` is a real structured-condition interpreter — but a runtime that *drives* the loop (dispatching tasks to hosts, enforcing approvals and limits, advancing edges as completions land) is host-side, like the single-agent [loop-policy evaluator](loop-context.md).
     - RAC items and OKF descriptors are **metadata only**, always. If you find yourself wanting to put content in one, that content belongs in a knowledge source the `check` can point at — see [knowledge & OKF](knowledge-okf.md).
 
 ## See also

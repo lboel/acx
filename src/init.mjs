@@ -94,7 +94,22 @@ function calFromAgentSet(agentSet, rac) {
     edges.push({ from: prev, to: id }); prev = id
   })
   nodes.push({ id: 'done', type: 'event', event: 'end' }); edges.push({ from: prev, to: 'done' })
-  return { schemaVersion: 'acx.cal/1', id: 'from-code', name: 'Generated loop from codebase', description: 'Auto-generated agent set + loop. Fill in actions/conditions, then export each agent and pin by romDigest.', participants, rac, start: 'start', nodes, edges }
+  return {
+    schemaVersion: 'acx.cal/1',
+    id: 'from-code',
+    version: '0.1.0',
+    name: 'Generated loop from codebase',
+    description: 'Auto-generated agent set and loop. Fill in actions and conditions, then export each agent and optionally pin it by ROM digest.',
+    license: 'Apache-2.0',
+    authors: [{ name: 'TODO workflow author' }],
+    tags: ['generated', 'agent-team'],
+    participants,
+    rac,
+    limits: { maxSteps: Math.max(8, nodes.length * 3), maxParallel: 1 },
+    start: 'start',
+    nodes,
+    edges,
+  }
 }
 
 /** Generate a whole agent set + CAL + RAC from a codebase into outDir. */

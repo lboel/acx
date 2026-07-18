@@ -16,17 +16,36 @@ hide:
 <span class="acx-pill">OCI-distributable</span>
 <span class="acx-pill">zero-dependency ref impl</span>
 </div>
+
+<div class="acx-actions">
+<a class="acx-button acx-button--primary" href="share/">Share an agent</a>
+<a class="acx-button" href="concepts/overview/">See how ACX works</a>
+</div>
 </div>
 <div class="acx-cart">
 <img src="_assets/cartridge.svg" alt="An Agent Cartridge: a game cartridge with a signed ROM chip, a field-learned SAVE battery, a skill row, and a Lv.29 principal level badge.">
 </div>
 </div>
 
+<div class="acx-flow" aria-label="An ACX agent is packaged, signed, submitted through a pull request, verified, and reused">
+<div class="acx-flow__node"><span>01</span><strong>Package</strong><small>skills + memory + loop</small></div>
+<div class="acx-flow__arrow" aria-hidden="true">→</div>
+<div class="acx-flow__node"><span>02</span><strong>Sign</strong><small>content-addressed proof</small></div>
+<div class="acx-flow__arrow" aria-hidden="true">→</div>
+<div class="acx-flow__node"><span>03</span><strong>Share</strong><small>small, reviewable PR</small></div>
+<div class="acx-flow__arrow" aria-hidden="true">→</div>
+<div class="acx-flow__node"><span>04</span><strong>Verify</strong><small>reject any tampering</small></div>
+<div class="acx-flow__arrow" aria-hidden="true">→</div>
+<div class="acx-flow__node"><span>05</span><strong>Reuse</strong><small>load or staff a team</small></div>
+</div>
+
+<p class="acx-flow-caption">One signed artifact. A five-step trust loop. No platform lock-in.</p>
+
 ## Think of it like a game cartridge
 
 You already know this object. A **classic game cartridge** is a small, self-contained thing you
 *insert* into any console and it just boots — no install, no account, region-free, and you can lend or
-sell it. An **Agent Cartridge** is the same idea for a specialized coding agent.
+sell it. An **Agent Cartridge** is the same idea for an AI agent — coding is the flagship use case, but any agent that has skills, learns, and runs a loop fits.
 
 === "🎮 The cartridge"
 
@@ -53,6 +72,34 @@ sell it. An **Agent Cartridge** is the same idea for a specialized coding agent.
       together as declarative, signed data. See [bundled loops & the agent OS](concepts/agent-os.md).
     - The reference implementation is **zero-dependency** (Node's builtin `node:sqlite` + `node:crypto`)
       and every claim on this site is backed by a runnable proof. See [Proofs](proofs.md).
+
+## Four ideas
+
+Not just coding agents — any AI agent that has skills, accumulates knowledge, and runs a loop.
+
+<div class="acx-grid" markdown="1">
+
+<div class="acx-card" markdown="1">
+### 🧠 Learn
+Transferable expertise (ROM) travels everywhere; environment-specific memory (SAVE) accumulates on the job — packed as a real [LanceDB dataset](format/packages.md). Content stays out; only [descriptions](format/knowledge-okf.md) travel.
+</div>
+
+<div class="acx-card" markdown="1">
+### 📈 Self-improve
+Competence is [earned on real work](leveling/provable-level.md): a provable level minted only after an independent held-out re-run. Get better — and prove it.
+</div>
+
+<div class="acx-card" markdown="1">
+### 👥 Form teams
+Cartridges [reference each other by hash](concepts/studio.md) and are staffed onto a project by role, level, and capability — a portable roster.
+</div>
+
+<div class="acx-card" markdown="1">
+### 🔧 Build workflows
+Compose agents into [Conditional Agentic Loops](format/loops-cal.md) on the CLI or in a [visual builder](format/loops-cal.md) — who does what, when, under which conditions.
+</div>
+
+</div>
 
 ## What is inside a cartridge
 
@@ -98,7 +145,7 @@ studio — agents **emerge from real work**, get **hired**, are **dispatched int
 cartridge**: a signed employee file you can lend, sell, or send to another studio, where it is
 **re-hired already specialized**.
 
-<p style="text-align:center" markdown="1">
+<p class="acx-figure" markdown="1">
 ![A roster of three agent cartridges — Engineer (Lv.29), Architect (Lv.22), Reviewer (Lv.15) — on a shelf.](_assets/roster.svg){ width="620" }
 </p>
 
@@ -113,20 +160,24 @@ makes the studio smarter; every shared cartridge makes the whole ecosystem smart
 
 !!! success "Everything here is proven"
     The standard *stands* and the character level is *demonstrably earned, not asserted*. The
-    [Proofs](proofs.md) page shows the verbatim output of 69 passing tests, an export→verify→strip→tamper
+    [Proofs](proofs.md) page shows the verbatim output of 88 passing tests, an export→verify→strip→tamper
     round-trip, and a full level-issuance run — all reproducible with `node --experimental-sqlite`.
 
 ## Where to start
 
 - New here? Read the [Overview](concepts/overview.md), then the [cartridge model](concepts/cartridge-model.md).
 - Want to run it? Jump to the [CLI reference](reference/cli.md) and the [Proofs](proofs.md).
+- Want to share a team? Start with the signed [`ship-a-feature`](format/loops-cal.md) workflow, then run
+  `acx workflow lint`, `sign`, `verify`, and `ready`.
+- Want your agent to share itself? Open [Share ACX](share.md) and use the bundled
+  [`$acx-share-agent`](share.md#let-an-agent-prepare-its-own-share-pr) skill.
 - Building a host? Start with [Loading a cartridge](lifecycle/loading.md) and
   [Harness requirements](format/harness-requirements.md).
 - Want the whole normative spec? It lives in `SPEC.md` in the repository; the
-  [Conformance](reference/conformance.md) page summarizes the 14 MUST items.
+  [Conformance](reference/conformance.md) page summarizes the 15 MUST items.
 
 !!! note "Status"
-    **v0.1 draft.** The spec is complete and self-consistent; the reference implementation runs and
-    the provable level is demonstrated. Some normatively-specified pieces (OCI push, live namespace-proof
-    verification, the host handshake runtime) are intentionally host-side and not part of the reference
-    implementation — each is flagged where it appears.
+    **v0.1 public draft.** The normative core, strict schemas, signed workflow profile, registry gate,
+    examples, and zero-dependency reference implementation are publication-ready for review. Some
+    normatively specified pieces (OCI push, live namespace-proof verification, the host handshake and
+    execution runtimes) remain host-side by design and are flagged wherever they appear.

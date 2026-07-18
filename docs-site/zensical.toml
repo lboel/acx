@@ -1,13 +1,18 @@
 [project]
 site_name = "Agent Cartridge (.acx)"
-site_description = "An open standard for portable, signable, provably-leveled specialized coding agents."
+site_description = "An open standard for portable, signed AI agents, reusable workflows, bounded loops, and verifiable agent teams."
 site_author = "The Agent Cartridge authors"
+site_url = "https://acx.dev/"
+repo_url = "https://github.com/lboel/acx"
+repo_name = "lboel/acx"
+edit_uri = "edit/main/docs-site/docs/"
 copyright = """
-Apache-2.0 &middot; the open exchange format for specialized agents
+Apache-2.0 &middot; the open exchange format for portable agents and agent-team workflows
 """
 
 nav = [
   { "Home" = "index.md" },
+  { "Share ACX" = "share.md" },
   { "Concepts" = [
     "concepts/overview.md",
     "concepts/cartridge-model.md",
@@ -47,6 +52,7 @@ nav = [
 ]
 
 extra_css = ["stylesheets/extra.css"]
+extra_javascript = ["javascripts/share.js"]
 
 [project.theme]
 language = "en"

@@ -108,7 +108,7 @@ An agent's field-learned, repo-specific memory (`portable: false`) is quarantine
 
 ## The readiness checklist, live
 
-`acx cal` validates the structure, resolves participants, and prints the RAC checklist. Real output from the shipped sample:
+`acx workflow ready` validates the structure, resolves participants, and prints the RAC checklist. Real output from the shipped sample (`acx cal` is the compatibility alias):
 
 ```console
 $ node --experimental-sqlite src/cli.mjs cal registry/cals/ship-a-feature.cal.json --cartridges registry/cartridges
@@ -189,7 +189,7 @@ Suggested `kind` → `okf.type` mapping:
 | `runbook` | `Runbook` |
 
 !!! warning "Scope honesty"
-    Today `okf` is validated only as *an object* — the shapes above are a documented convention, not schema-enforced. No OKF import/export command exists in the reference implementation. What **is** implemented and tested: the descriptions-only invariant (schema + linter), the `acx cal` readiness checklist, and the `--from-code` generator below.
+    Today `okf` is validated only as *an object* — the shapes above are a documented convention, not schema-enforced. No OKF import/export command exists in the reference implementation. What **is** implemented and tested: the descriptions-only invariant (schema + linter), the `acx workflow ready` readiness checklist, and the `--from-code` generator below.
 
 ### Where OKF meets `acx init --from-code`
 
@@ -215,13 +215,13 @@ flowchart LR
     OW["OpenWiki (LangChain)<br/>generates the knowledge<br/>as an OKF bundle"] --> B["OKF bundle<br/>(markdown + frontmatter<br/>+ index.md)"]
     AI["acx init --from-code<br/>declares the knowledge<br/>as a RAC item"] --> RI["rac: code-wiki<br/>description + check"]
     RI -. "check confirms" .-> B
-    RI --> CAL["CAL readiness verdict<br/>(acx cal)"]
+    RI --> CAL["CAL readiness verdict<br/>(acx workflow ready)"]
 ```
 
 One tool *produces* codebase knowledge in an open format; the other *declares and verifies* that such knowledge is required and present. Neither ships the knowledge inside the process definition — both formats forbid it by design.
 
 !!! example "Honest scope of the generator"
-    `--from-code` is a scaffold: the role detection is heuristic, the generated task actions read `TODO: <role> step`, and the README it writes tells you to fill in each package, export it to a signed cartridge, and re-run `acx cal` for the readiness verdict. It gets the *structure* right so you only fill in the specifics — it does not pretend to understand your codebase.
+    `--from-code` is a scaffold: the role detection is heuristic, the generated task actions read `TODO: <role> step`, and the README it writes tells you to fill in each package, export it to a signed cartridge, and re-run `acx workflow ready` for the readiness verdict. It gets the *structure* right so you only fill in the specifics — it does not pretend to understand your codebase.
 
 ### Cartridge knowledge as an OKF bundle
 

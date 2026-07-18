@@ -5,7 +5,7 @@
 import { randomBytes } from 'node:crypto'
 import { copyFileSync, writeFileSync, existsSync } from 'node:fs'
 import { Cartridge } from './container.mjs'
-import { generateSigningKey } from './sign.mjs'
+import { generateSigningKey, signingKeyFromPrivatePem } from './sign.mjs'
 import { exportPackageToCartridge } from './export.mjs'
 import { evaluateTrust, emptyTrustRegistry, loadTrustRegistry } from './trust.mjs'
 import { buildCapability } from './builders.mjs'
@@ -16,10 +16,12 @@ import { verifyLevelCredential } from './level/credential.mjs'
 import { validatePackageSpec } from './packagespec.mjs'
 import { loadCartridge, renderCard, readCard, DEFAULT_SKILLS_DIR } from './load.mjs'
 import { harnessCheck, resolveHost, HOSTS, listDir } from './hostcheck.mjs'
-import { lintCal } from './cal.mjs'
+import { lintCal, validatePublishableWorkflow } from './cal.mjs'
+import { signWorkflow, verifyWorkflow, workflowCard, workflowDigest } from './workflow.mjs'
 import { scaffoldPackage, initFromCode } from './init.mjs'
 import { startBuilder } from './builder.mjs'
 import { materializeLance } from '../tools/materialize-lance.mjs'
+import { prepareAgentShare, prepareWorkflowShare, sharePullRequestBody } from './share.mjs'
 import { REPO_ROOT } from './paths.mjs'
 import { join } from 'node:path'
 import { readFileSync as _readFileSync, readdirSync } from 'node:fs'
@@ -36,9 +38,16 @@ Usage:
   acx load    <file.acx> [--host claude|codex|cursor] [--skills-dir <dir>] [--print-only]
   acx check   <file.acx> [--tools <role,role>] [--all-tools]   harness preflight
   acx init    [dir] [--role <role>] | --from-code <dir> --out <dir>   scaffold an agent / agent set
-  acx cal     <cal.json> [--cartridges <dir>]   resolve a conditional agentic loop
+  acx workflow lint    <workflow.cal.json> [--publish]
+  acx workflow ready   <workflow.cal.json> [--cartridges <dir>]
+  acx workflow sign    <workflow.cal.json> --publisher <reverse-dns> [--key <pem>] [--out <file>]
+  acx workflow verify  <workflow.cal.json> [--registry <trust.json>]
+  acx workflow inspect <workflow.cal.json>
+  acx cal     <cal.json> [--cartridges <dir>]   alias for "workflow ready"
   acx lance   <file.acx> [--python <py>]        materialize a real LanceDB memory dataset
   acx builder [--port 8799]                     visual CAL/RAC loop builder in the browser
+  acx share agent    <file.acx> --slug <slug> [--publisher <id>] [--registry <dir>] [--dry-run] [--force]
+  acx share workflow <file.cal.json> [--publisher <id>] [--registry <dir>] [--dry-run] [--force]
   acx level   <file.acx>
 
 Commands:
@@ -58,7 +67,7 @@ Flags:
   --registry <trust.json>     Public-keys-only trust registry for verify.
 `
 
-const BOOL_FLAGS = new Set(['include-field-learned', 'print-only', 'card', 'no-install', 'json', 'quiet', 'all-tools', 'no-standalone'])
+const BOOL_FLAGS = new Set(['include-field-learned', 'print-only', 'card', 'no-install', 'json', 'quiet', 'all-tools', 'no-standalone', 'publish', 'dry-run', 'force'])
 function parseArgs(argv) {
   const positional = []
   const flags = {}
@@ -282,7 +291,7 @@ function cmdInit(positional, flags) {
     for (const a of agentSet) console.log(`  • ${a.role.padEnd(16)} caps=${a.capabilities.join(',')}  (${a.reasons.join('; ')})`)
     console.log('Required Available Context (descriptions only):')
     for (const r of rac) console.log(`  □ ${r.id.padEnd(14)} [${r.kind}] ${r.description}`)
-    console.log(`\nNext: fill agents/<role>/, export each, then 'acx cal ${join(outDir, 'cal', 'from-code.cal.json')} --cartridges .'`)
+    console.log(`\nNext: fill agents/<role>/, export each, then 'acx workflow ready ${join(outDir, 'cal', 'from-code.cal.json')} --cartridges .'`)
     process.exit(0)
   }
   const dir = positional[0] || join(process.cwd(), 'new-agent-package')
@@ -309,18 +318,33 @@ function cmdLance(positional, flags) {
   }
 }
 
-// ---- cal (conditional agentic loop) ---------------------------------------
-function cmdCal(positional, flags) {
-  const [calFile] = positional
-  if (!calFile) die('cal requires <cal.json>')
-  const dir = flags.cartridges || join(REPO_ROOT, 'platform', 'catalog')
-  const cal = JSON.parse(_readFileSync(calFile, 'utf8'))
-  const cartridges = readdirSync(dir).filter((f) => f.endsWith('.acx')).map((f) => ({ path: join(dir, f), card: cardOf(join(dir, f)) }))
-  const { ok, issues, resolved } = lintCal(cal, cartridges)
+// ---- workflows / CAL (multi-agent loops) ---------------------------------
+function findCartridgeFiles(dir) {
+  if (!existsSync(dir)) return []
+  const files = []
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const path = join(dir, entry.name)
+    if (entry.isDirectory()) files.push(...findCartridgeFiles(path))
+    else if (entry.isFile() && entry.name.endsWith('.acx')) files.push(path)
+  }
+  return files
+}
 
-  console.log(`CAL: ${cal.name || cal.id}  (${(cal.nodes || []).length} nodes, ${(cal.participants || []).length} participants)`)
+function readWorkflow(file) {
+  const workflow = JSON.parse(_readFileSync(file, 'utf8'))
+  if (!workflow || typeof workflow !== 'object' || Array.isArray(workflow)) die(`${file} must contain a JSON object`)
+  return workflow
+}
+
+function renderWorkflowReadiness(cal, lint, { staffed }) {
+  const { ok, issues, warnings = [], resolved } = lint
+  console.log(`ACX Workflow: ${cal.name || cal.id} @ ${cal.version || 'unversioned'}  (${(cal.nodes || []).length} nodes, ${(cal.participants || []).length} participants)`)
   console.log('\nParticipants (agents, referenced by hash or staffed by slot):')
-  for (const r of resolved) console.log(`  ${r.bound ? '✓' : '✗'} ${r.alias.padEnd(14)} ${r.bind.padEnd(5)} ${r.bound ? r.bound.card.name + ' — ' + r.reason : r.reason}`)
+  for (const r of resolved) {
+    const marker = staffed ? (r.bound ? '✓' : '✗') : '·'
+    const detail = staffed ? (r.bound ? r.bound.card.name + ' — ' + r.reason : r.reason) : 'declared; staffing not requested'
+    console.log(`  ${marker} ${r.alias.padEnd(14)} ${r.bind.padEnd(5)} ${detail}`)
+  }
   console.log('\nRequired Available Context (RAC — descriptions only, confirm before running):')
   for (const rc of cal.rac || []) console.log(`  ${rc.required === false ? '·' : '□'} ${rc.id.padEnd(16)} [${rc.kind}] ${rc.description}${rc.check ? '  (check: ' + rc.check.type + ' ' + (rc.check.hint || '') + ')' : ''}`)
   console.log('\nFlow:')
@@ -334,9 +358,141 @@ function cmdCal(positional, flags) {
   }
   const conds = (cal.edges || []).filter((e) => e.when)
   if (conds.length) { console.log('\nConditional transitions:'); for (const e of conds) console.log(`  ${e.from} → ${e.to}  when ${JSON.stringify(e.when)}`) }
-  console.log('\nverdict: ' + (ok ? 'READY ✓ — all participants resolved, requirements covered' : 'NOT READY'))
+  console.log('\nverdict: ' + (ok ? (staffed ? 'READY ✓ — structure valid, team staffed, requirements covered' : 'VALID ✓ — structure and publish profile pass') : (staffed ? 'NOT READY' : 'INVALID')))
   for (const i of issues) console.log('  - ' + i)
-  process.exit(ok ? 0 : 1)
+  for (const warning of warnings) console.log('  ! ' + warning)
+}
+
+function cmdWorkflow(positional, flags) {
+  let [action, workflowFile] = positional
+  if (!['lint', 'ready', 'sign', 'verify', 'inspect', 'digest'].includes(action)) {
+    workflowFile = action
+    action = 'ready'
+  }
+  if (!workflowFile) die('workflow requires lint|ready|sign|verify|inspect|digest <workflow.cal.json>')
+  const cal = readWorkflow(workflowFile)
+
+  if (action === 'sign') {
+    if (!flags.publisher) die('workflow sign requires --publisher <reverse-dns>')
+    const issues = validatePublishableWorkflow(cal)
+    if (issues.length) {
+      console.error('workflow is not publishable:')
+      for (const issue of issues) console.error('  - ' + issue)
+      process.exit(1)
+    }
+    const generated = !flags.key
+    const key = generated
+      ? generateSigningKey()
+      : signingKeyFromPrivatePem(_readFileSync(flags.key, 'utf8'))
+    const signed = signWorkflow(cal, key, { publisherId: flags.publisher })
+    const out = flags.out || workflowFile.replace(/(?:\.signed)?\.cal\.json$/, '') + '.signed.cal.json'
+    writeFileSync(out, JSON.stringify(signed, null, 2) + '\n')
+    console.log('workflow:     ' + signed.id + '@' + signed.version)
+    console.log('digest:       ' + signed.integrity.digest)
+    console.log('publisher:    ' + signed.integrity.publisherId)
+    console.log('keyid:        ' + signed.integrity.keyid)
+    console.log('wrote:        ' + out)
+    if (generated) {
+      const keyPath = out + '.key.pem'
+      writeFileSync(keyPath, key.privateKeyPem, { mode: 0o600 })
+      console.log('signing key:  ' + keyPath + '  (private — keep secret, never publish)')
+    } else {
+      console.log('signing key:  reused ' + flags.key)
+    }
+    process.exit(0)
+  }
+
+  if (action === 'verify') {
+    const registry = flags.registry ? loadTrustRegistry(flags.registry) : emptyTrustRegistry()
+    const verification = verifyWorkflow(cal, { registry })
+    const structural = lintCal(cal, [], { resolve: false, publish: true })
+    const ok = verification.ok && verification.signed && structural.ok
+    if (flags.json) console.log(JSON.stringify({ ok, verification, structural }, null, 2))
+    else {
+      console.log('status:     ' + verification.status)
+      console.log('trust:      ' + verification.trust)
+      console.log('digest:     ' + verification.digest)
+      console.log('publisher:  ' + (verification.publisherId || '—'))
+      console.log('structure:  ' + (structural.ok ? 'publishable ✓' : 'invalid'))
+      for (const issue of [...verification.issues, ...structural.issues]) console.log('  - ' + issue)
+    }
+    process.exit(ok ? 0 : 1)
+  }
+
+  if (action === 'inspect') {
+    const registry = flags.registry ? loadTrustRegistry(flags.registry) : emptyTrustRegistry()
+    const verification = verifyWorkflow(cal, { registry })
+    const card = workflowCard(cal, verification)
+    if (flags.json) console.log(JSON.stringify(card, null, 2))
+    else {
+      console.log(`${card.name} @ ${card.version || 'unversioned'}`)
+      console.log(card.description || '(no description)')
+      console.log(`  id:            ${card.id}`)
+      console.log(`  team:          ${card.participantCount} participant(s)`)
+      for (const participant of card.participants) console.log(`    - ${participant.alias}: ${participant.bind}${participant.role ? ' role=' + participant.role : ''}${participant.romDigest ? ' ' + participant.romDigest : ''}`)
+      console.log(`  flow:          ${card.nodeCount} node(s)`)
+      console.log(`  capabilities:  ${card.capabilities.join(', ') || '—'}`)
+      console.log(`  license:       ${card.license || '—'}`)
+      console.log(`  tags:          ${card.tags.join(', ') || '—'}`)
+      console.log(`  digest:        ${card.digest}`)
+      console.log(`  signature:     ${card.signed ? card.trust + ' (' + card.status + ')' : 'unsigned'}`)
+      if (card.publisher) console.log(`  publisher:     ${card.publisher}`)
+    }
+    process.exit(0)
+  }
+
+  if (action === 'digest') {
+    console.log(workflowDigest(cal).digest)
+    process.exit(0)
+  }
+
+  const staffed = action === 'ready'
+  const dir = flags.cartridges || join(REPO_ROOT, 'platform', 'catalog')
+  const cartridges = staffed
+    ? findCartridgeFiles(dir).map((path) => ({ path, card: cardOf(path) }))
+    : []
+  const lint = lintCal(cal, cartridges, { resolve: staffed, publish: !!flags.publish })
+  if (flags.json) console.log(JSON.stringify(lint, null, 2))
+  else renderWorkflowReadiness(cal, lint, { staffed })
+  process.exit(lint.ok ? 0 : 1)
+}
+
+function cmdCal(positional, flags) {
+  return cmdWorkflow(['ready', ...positional], flags)
+}
+
+// ---- share (prepare a verified registry PR) -------------------------------
+function cmdShare(positional, flags) {
+  const [type, file] = positional
+  if (!['agent', 'workflow'].includes(type) || !file) {
+    die('share requires agent <file.acx> or workflow <file.cal.json>')
+  }
+  const options = {
+    registryRoot: flags.registry || join(REPO_ROOT, 'registry'),
+    publisherId: flags.publisher || null,
+    dryRun: !!flags['dry-run'],
+    force: !!flags.force,
+  }
+  if (type === 'agent') {
+    if (!flags.slug) die('share agent requires --slug <safe-agent-slug>')
+    options.slug = flags.slug
+  }
+  const plan = type === 'agent'
+    ? prepareAgentShare(file, options)
+    : prepareWorkflowShare(file, options)
+  console.log(`${plan.dryRun ? 'share plan' : 'share prepared'}: ${plan.type} ${plan.slug}`)
+  console.log('publisher:  ' + plan.publisher)
+  console.log('artifact:   ' + plan.destination)
+  if (plan.readme) console.log('card:       ' + plan.readme)
+  console.log('changed:    ' + (plan.changed ? 'yes' : 'no (already current)'))
+  console.log('\nSuggested pull-request body:\n')
+  console.log(sharePullRequestBody(plan))
+  console.log('Next:')
+  console.log('  node --experimental-sqlite tools/build-registry-index.mjs')
+  console.log('  npm test')
+  console.log('  git diff -- registry/')
+  console.log('Review and stage only the intended registry artifact, generated card, and registry/index.json.')
+  process.exit(0)
 }
 
 // ---- spec -----------------------------------------------------------------
@@ -430,10 +586,12 @@ function main() {
     case 'load': case 'install': case 'activate': return cmdLoad(positional, flags)
     case 'check': case 'doctor': return cmdCheck(positional, flags)
     case 'ls': case 'list': return cmdLs(positional)
+    case 'workflow': case 'flow': return cmdWorkflow(positional, flags)
     case 'cal': return cmdCal(positional, flags)
     case 'lance': return cmdLance(positional, flags)
     case 'init': return cmdInit(positional, flags)
     case 'builder': return void startBuilder(Number(flags.port) || 8799)
+    case 'share': return cmdShare(positional, flags)
     case 'level': return cmdLevel(positional)
     case 'help': case '--help': case '-h': case undefined:
       console.log(USAGE); return

@@ -1,16 +1,16 @@
 {
   "name": "agent-cartridge",
   "version": "0.1.0",
-  "description": "ACX (Agent Cartridge eXchange) — the open standard + zero-dependency reference implementation for portable, signable, provably-leveled specialized coding agents.",
+  "description": "ACX (Agent Cartridge eXchange) — the open standard + zero-dependency reference implementation for portable, self-improving AI agents that learn, level up, form teams, and run workflows.",
   "license": "Apache-2.0",
   "type": "module",
-  "homepage": "https://github.com/OWNER/agent-cartridge#readme",
+  "homepage": "https://acx.dev/",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/OWNER/agent-cartridge.git"
+    "url": "git+https://github.com/lboel/acx.git"
   },
   "bugs": {
-    "url": "https://github.com/OWNER/agent-cartridge/issues"
+    "url": "https://github.com/lboel/acx/issues"
   },
   "author": "The Agent Cartridge authors",
   "bin": {
@@ -22,16 +22,28 @@
   "files": [
     "src/",
     "schemas/",
+    "skills/",
     "examples/sample-agent-package/",
+    "platform/builder/app.html",
+    "registry/cals/",
+    "tools/build-registry-index.mjs",
     "SPEC.md",
     "AGENTS.md",
     "README.md",
+    "CONTRIBUTING.md",
+    "SECURITY.md",
     "LICENSE",
     "NOTICE"
   ],
   "scripts": {
     "test": "node --experimental-sqlite --test 'test/*.test.mjs'",
+    "test:workflow": "node --experimental-sqlite --test test/workflow.test.mjs",
+    "smoke": "node --experimental-sqlite scripts/smoke.mjs",
     "acx": "node --experimental-sqlite src/cli.mjs"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   },
   "keywords": [
     "agent",
@@ -39,6 +51,10 @@
     "acx",
     "ai-agent",
     "portable-agent",
+    "agent-workflow",
+    "agent-team",
+    "multi-agent",
+    "agent-orchestration",
     "agent-skills",
     "mcp",
     "sqlite",

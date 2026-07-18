@@ -1,6 +1,6 @@
 {
   "schemaVersion": "acx.registry-index/1",
-  "generatedAt": "2026-07-17T05:39:33.000Z",
+  "generatedAt": "2026-07-18T15:27:30.680Z",
   "count": 2,
   "cartridges": [
     {
@@ -84,6 +84,103 @@
         "careerTier": "senior",
         "boundToRom": true
       }
+    }
+  ],
+  "workflowCount": 2,
+  "workflows": [
+    {
+      "path": "cals/research-council.cal.json",
+      "id": "research-council",
+      "version": "1.0.0",
+      "name": "Research council",
+      "description": "A reusable agent-team workflow that researches a question in parallel, challenges the evidence, and synthesizes a decision-ready brief.",
+      "license": "Apache-2.0",
+      "tags": [
+        "research",
+        "fact-checking",
+        "synthesis",
+        "agent-team"
+      ],
+      "publisher": "io.github.lboel",
+      "trust": "portable",
+      "trustStatus": "verified",
+      "digest": "sha256:3300ea74052dc7f76aa81f79cd37b269267b2f06b4ae4710480dc73d62102ed8",
+      "participants": [
+        {
+          "alias": "scout",
+          "bind": "slot",
+          "role": "ux_researcher",
+          "romDigest": null
+        },
+        {
+          "alias": "skeptic",
+          "bind": "slot",
+          "role": "business_analyst",
+          "romDigest": null
+        },
+        {
+          "alias": "editor",
+          "bind": "slot",
+          "role": "content_creator",
+          "romDigest": null
+        }
+      ],
+      "participantCount": 3,
+      "nodeCount": 7,
+      "capabilities": [
+        "fact-check",
+        "research",
+        "synthesize"
+      ],
+      "publishable": true,
+      "signed": true
+    },
+    {
+      "path": "cals/ship-a-feature.cal.json",
+      "id": "ship-a-feature",
+      "version": "1.0.0",
+      "name": "Ship a data-pipeline feature",
+      "description": "A conditional agentic loop: an architect designs, a pipeline engineer builds a DAG, a security sentinel reviews; loops back until the review passes. Agents are referenced by role slot (staffed from any matching cartridge) — swap in a specific cartridge by romDigest to pin it.",
+      "license": "Apache-2.0",
+      "tags": [
+        "coding",
+        "data-pipeline",
+        "security-review",
+        "agent-team"
+      ],
+      "publisher": "io.github.lboel",
+      "trust": "portable",
+      "trustStatus": "verified",
+      "digest": "sha256:588424a9ec12483ce13f28e81e9d0833777676bbd2c0c0686bbc27bb58f93dee",
+      "participants": [
+        {
+          "alias": "architect",
+          "bind": "slot",
+          "role": "architect",
+          "romDigest": null
+        },
+        {
+          "alias": "builder",
+          "bind": "slot",
+          "role": "devops_engineer",
+          "romDigest": null
+        },
+        {
+          "alias": "reviewer",
+          "bind": "slot",
+          "role": "security_expert",
+          "romDigest": null
+        }
+      ],
+      "participantCount": 3,
+      "nodeCount": 5,
+      "capabilities": [
+        "build-dag",
+        "design-api",
+        "harden-security"
+      ],
+      "publishable": true,
+      "signed": true
     }
   ]
 }

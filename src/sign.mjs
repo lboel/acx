@@ -1,5 +1,5 @@
 // ROM integrity manifest + DSSE/in-toto signing (SPEC §3.3, §4).
-import { generateKeyPairSync, sign as edSign, verify as edVerify, createPublicKey, createHash } from 'node:crypto'
+import { generateKeyPairSync, sign as edSign, verify as edVerify, createPrivateKey, createPublicKey, createHash } from 'node:crypto'
 import { jcs, sha256Hex, oidRaw } from './canonical.mjs'
 import { SPEC_VERSION } from './container.mjs'
 
@@ -67,6 +67,20 @@ export function keyIdFromPublicKey(publicKey) {
 
 export function generateSigningKey() {
   const { publicKey, privateKey } = generateKeyPairSync('ed25519')
+  return {
+    publicKey,
+    privateKey,
+    keyid: keyIdFromPublicKey(publicKey),
+    publicKeyPem: publicKey.export({ type: 'spki', format: 'pem' }).toString(),
+    privateKeyPem: privateKey.export({ type: 'pkcs8', format: 'pem' }).toString(),
+  }
+}
+
+/** Rehydrate an Ed25519 signing key from a PKCS#8 PEM without changing its keyid. */
+export function signingKeyFromPrivatePem(privateKeyPem) {
+  const privateKey = createPrivateKey(privateKeyPem)
+  if (privateKey.asymmetricKeyType !== 'ed25519') throw new Error('signing key must be Ed25519')
+  const publicKey = createPublicKey(privateKey)
   return {
     publicKey,
     privateKey,
@@ -145,5 +159,6 @@ export function verifyEnvelope(envelope, publicKeyPemOrObj) {
 /** keyid for a PEM public key, for trust-registry lookup. */
 export function keyIdFromPem(pem) {
   const pub = createPublicKey(pem)
+  if (pub.asymmetricKeyType !== 'ed25519') throw new Error('public key must be Ed25519')
   return keyIdFromPublicKey(pub)
 }

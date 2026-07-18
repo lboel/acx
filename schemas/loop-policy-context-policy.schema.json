@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://agentcartridge.dev/schemas/loop-context-policy/1",
+  "$id": "https://acx.dev/schemas/loop-context-policy/1",
   "title": "ACX Loop + Context Policy",
   "type": "object",
   "required": [

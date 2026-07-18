@@ -7,6 +7,7 @@ docs-site/site/
 # generated cartridges & keys (regenerate with the scripts / platform/seed.mjs)
 examples/*.acx
 examples/*.key.pem
+*.key.pem
 platform/catalog/*.acx
 platform/catalog/trust-registry.json
 platform/.seed-src/

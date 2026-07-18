@@ -2,10 +2,10 @@
 
 The consolidated index of every normative JSON Schema in the Agent Cartridge standard (SPEC §13) and the RFC 6838 vendor-tree media types that name each artifact on the wire.
 
-Every schema is [JSON Schema **draft 2020-12**](https://json-schema.org/draft/2020-12/schema). The `$id` is the stable, canonical identifier a validator resolves — it is a URL *namespace*, not a fetch target. The physical files ship in the repo under `schemas/` and there is exactly one per format block.
+All 12 schemas use [JSON Schema **draft 2020-12**](https://json-schema.org/draft/2020-12/schema). The `$id` is the stable, canonical identifier a validator resolves — it is a URL *namespace*, not a fetch target. The physical files ship in the repo under `schemas/`.
 
 !!! note "`$id` vs. file path"
-    The `$id` (e.g. `https://acx.dev/schema/rom-manifest.v1.json`) is what an in-toto predicate or a `$ref` points at. The file on disk (`schemas/container-amp-integrity.schema.json`) is what you validate against. Two `$id` hosts appear by design — `acx.dev` for the container/identity/skill/capability/memory/harness/level blocks and `agentcartridge.dev` for the loop + context policy — both are reserved for the standard.
+    The `$id` (e.g. `https://acx.dev/schema/rom-manifest.v1.json`) is what an in-toto predicate or a `$ref` points at. The file on disk (`schemas/container-amp-integrity.schema.json`) is what you validate against. Every normative schema now uses the single `https://acx.dev/` namespace.
 
 ## Schema index
 
@@ -18,8 +18,12 @@ Each row maps a **format block** to its schema **title**, canonical **`$id`**, a
 | [Skill Bundle](../format/skills.md) | ACX Skill Index Descriptor (`acx_skill` row) | `https://acx.dev/schemas/skill-descriptor/1` | `skill-bundle.schema.json` |
 | [Capability & Sellable-Claim](../format/capabilities.md) | CapabilityRecord | `https://acx.dev/schema/capability/1` | `capability-sellable-claim.schema.json` |
 | [Memory Partition](../format/memory.md) | AcxMemoryRecord | `https://acx.dev/schema/memory-record.v1.json` | `memory-partition.schema.json` |
+| [Package Spec](../format/packages.md) | ACX Package Spec (`acx.package-spec/1`) | `https://acx.dev/schema/package-spec.v1.json` | `package-spec.schema.json` |
+| [LanceDB Memory](../format/packages.md) | ACX LanceDB Memory Schema (`acx.lance-memory/1`) | `https://acx.dev/schema/lance-memory.v1.json` | `lance-memory.schema.json` |
 | [Harness Requirements](../format/harness-requirements.md) | AcxHarnessRequirements | `https://acx.dev/schemas/harness-requirements.v1.json` | `harness-requirements.schema.json` |
-| [Loop + Context Policy](../format/loop-context.md) | ACX Loop + Context Policy | `https://agentcartridge.dev/schemas/loop-context-policy/1` | `loop-policy-context-policy.schema.json` |
+| [Loop + Context Policy](../format/loop-context.md) | ACX Loop + Context Policy | `https://acx.dev/schemas/loop-context-policy/1` | `loop-policy-context-policy.schema.json` |
+| [ACX Workflow](../format/loops-cal.md) | ACX Workflow — Conditional Agentic Loop (`acx.cal/1`) | `https://acx.dev/schema/cal.v1.json` | `cal.schema.json` |
+| [Workflow participation](../format/loops-cal.md) | ACX CAL Skill Set (`acx.cal-skillset/1`) | `https://acx.dev/schema/cal-skillset.v1.json` | `cal-skillset.schema.json` |
 | [Provable Character Level](../leveling/provable-level.md) | AcxLevelCredential | `https://acx.dev/schema/level-credential.v1.json` | `provable-character-level.schema.json` |
 
 ### Top-level `required` and `$defs`
@@ -33,8 +37,12 @@ The nested `$defs` are the reusable sub-schemas the standard reuses across the e
 | Skill Index Descriptor | `name`, `description`, `sqlar_path`, `content_sha256`, `resources`, `schema_version` | — |
 | CapabilityRecord | `schemaVersion`, `id`, `taskType`, `stack`, `domain`, `proficiency`, `evidenceRefs`, `sampleCount`, `lastDemonstratedAt`, `createdAt`, `updatedAt` | — |
 | AcxMemoryRecord | `id`, `title`, `summary`, `sourceType`, `portable`, `codebaseFingerprint`, `repoId`, `repoLabel`, `projectLabel`, `timestamp`, `impact`, `xpAwarded`, `tags`, `artifactFingerprint`, `zone` | — |
+| ACX Package Spec | `schemaVersion`, `artifacts` | — |
+| ACX LanceDB Memory Schema | `schemaVersion`, `format`, `table`, `embeddingEngine`, `distanceMetric`, `columns` | — |
 | AcxHarnessRequirements | `schemaVersion`, `mcp`, `model`, `requiredTools` | `harnessCompliance`, `toolRoleContract`, `capabilityScope`, `fsScopes`, `netScopes` |
 | Loop + Context Policy | `schemaVersion`, `loop`, `context` | `MissionRule`, `ResourceLimits`, `RetrievalStrategy`, `ContextCategory` |
+| ACX Workflow | `schemaVersion`, `id`, `participants`, `start`, `nodes`, `edges` | `cartridgeRef`, `slot`, `racItem`, `variable`, `limits`, `task`, `gateway`, `event`, `completion`, `condition`, `edge`, `integrity` |
+| ACX CAL Skill Set | `schemaVersion`, `plays` | `play`, `reference` |
 | AcxLevelCredential | `@context`, `type`, `issuer`, `validFrom`, `credentialSubject`, `credentialStatus`, `proof` | — |
 
 !!! tip "Validate locally"
@@ -56,6 +64,7 @@ Media types live in the RFC 6838 vendor tree (`application/vnd.acx.*`) plus thre
 | `application/vnd.acx.harness-requirements.v1+json` | The host handshake requirements manifest | [Harness Requirements](../format/harness-requirements.md) |
 | `application/vnd.acx.harness-compliance.v1+json` | The host's compliance response | [Harness Requirements](../format/harness-requirements.md) |
 | `application/vnd.acx.loop-context-policy.v1+json` | The loop + context policy document | [Loop + Context](../format/loop-context.md) |
+| `application/vnd.acx.workflow.v1+json` | A signed, shareable `acx.cal/1` agent-team workflow | [Loop engineering](../format/loops-cal.md) |
 | `application/vnd.acx.level-attestation.v1` | An independent verifier's level attestation | [Provable Level](../leveling/provable-level.md) |
 | `application/vnd.acx.benchmark.v1` | A sealed benchmark with held-out slice | [Provable Level](../leveling/provable-level.md) |
 | `application/vc` | The W3C VC 2.0 / Open Badges 3.0 level credential | [Provable Level](../leveling/provable-level.md) |
@@ -65,7 +74,10 @@ Media types live in the RFC 6838 vendor tree (`application/vnd.acx.*`) plus thre
 
 ## How the signing types compose
 
-The ROM manifest, the in-toto Statement, and the DSSE envelope nest — the DSSE `payloadType` is `application/vnd.in-toto+json`, and the in-toto `predicate` carries the ROM manifest. The subject digest is the ROM `manifest_hash` (which this format also calls `packageHash`).
+Both cartridges and workflows use the same standards-shaped stack: a JCS-addressed subject, an in-toto
+Statement, and a DSSE envelope with `payloadType = application/vnd.in-toto+json`. For a cartridge, the
+predicate carries the ROM manifest and the subject digest is `manifest_hash`; for a workflow, the predicate
+binds its canonical digest, id, version, publisher, and signing time.
 
 ```mermaid
 flowchart TD
@@ -73,6 +85,14 @@ flowchart TD
   B -->|"predicate"| C["in-toto Statement v1<br/>subject.digest = manifest_hash"]
   C -->|"payload, payloadType = application/vnd.in-toto+json"| D["DSSE envelope<br/>{payloadType, payload, signatures}"]
   D -->|"ed25519, keyid = ed25519:hex(sha256(DER SPKI))"| E["signature"]
+```
+
+```mermaid
+flowchart TD
+  W["Workflow JSON without integrity"] -->|"RFC 8785 / JCS + sha256"| H["workflow digest"]
+  H --> S["in-toto Statement<br/>id · version · publisher · signedAt"]
+  S --> D["DSSE envelope + Ed25519 signature"]
+  D --> I["integrity block<br/>acx.workflow-signature/1"]
 ```
 
 The manifest hash is recomputed from live bytes, never self-declared. From the proof transcript:

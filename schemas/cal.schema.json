@@ -1,100 +1,424 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://acx.dev/schema/cal.v1.json",
-  "title": "ACX Conditional Agentic Loop (acx.cal/1)",
-  "description": "A BPMN-like process connecting MULTIPLE cartridges (referenced by content hash or by role slot) under conditions: who may do what, when, how, and what counts as completion. Carries RAC (required available context) as descriptions only — never content.",
+  "title": "ACX Workflow — Conditional Agentic Loop (acx.cal/1)",
+  "description": "A portable, optionally signed workflow connecting an agent team by immutable ROM digest or portable role slots. Conditions are data, never executable expressions; RAC carries context descriptions, never private content.",
   "type": "object",
   "additionalProperties": false,
   "required": ["schemaVersion", "id", "participants", "start", "nodes", "edges"],
   "properties": {
     "schemaVersion": { "const": "acx.cal/1" },
-    "id": { "type": "string" },
-    "name": { "type": "string" },
-    "description": { "type": "string" },
-    "participants": { "type": "array", "items": { "$ref": "#/$defs/cartridgeRef" } },
-    "rac": { "type": "array", "items": { "$ref": "#/$defs/racItem" } },
-    "variables": { "type": "array", "items": { "type": "object", "required": ["name", "type"], "properties": { "name": { "type": "string" }, "type": { "type": "string" }, "init": {} } } },
-    "start": { "type": "string" },
-    "nodes": { "type": "array", "items": { "$ref": "#/$defs/node" } },
-    "edges": { "type": "array", "items": { "$ref": "#/$defs/edge" } }
+    "id": { "$ref": "#/$defs/id" },
+    "version": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$"
+    },
+    "name": { "type": "string", "minLength": 3, "maxLength": 120 },
+    "description": { "type": "string", "minLength": 20, "maxLength": 2000 },
+    "license": { "type": "string", "minLength": 1, "maxLength": 100, "description": "SPDX license expression." },
+    "authors": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1, "maxLength": 120 },
+          "url": { "type": "string", "format": "uri" }
+        }
+      }
+    },
+    "tags": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 20,
+      "uniqueItems": true,
+      "items": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$" }
+    },
+    "homepage": { "type": "string", "format": "uri" },
+    "participants": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/cartridgeRef" }
+    },
+    "rac": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/racItem" }
+    },
+    "variables": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/variable" }
+    },
+    "limits": { "$ref": "#/$defs/limits" },
+    "start": { "$ref": "#/$defs/id" },
+    "nodes": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/node" }
+    },
+    "edges": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/edge" }
+    },
+    "extensions": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9][a-z0-9-]*$"
+      },
+      "additionalProperties": true
+    },
+    "integrity": { "$ref": "#/$defs/integrity" }
   },
   "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9._-]{0,127}$"
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
     "cartridgeRef": {
-      "type": "object",
-      "required": ["alias", "bind"],
-      "properties": {
-        "alias": { "type": "string" },
-        "bind": { "enum": ["hash", "slot"] },
-        "romDigest": { "type": "string", "description": "when bind=hash: the exact signed ROM manifest hash (sha256:...)" },
-        "cartridgeId": { "type": "string" },
-        "required": { "type": "boolean", "default": true },
-        "slot": {
+      "oneOf": [
+        {
           "type": "object",
-          "description": "when bind=slot: any cartridge matching these constraints may fill the alias (staffing)",
+          "additionalProperties": false,
+          "required": ["alias", "bind", "romDigest"],
           "properties": {
-            "role": { "type": "string" },
-            "minLevel": { "type": "object", "properties": { "careerTier": { "type": "string" }, "acxLevel": { "type": "integer" } } },
-            "capabilities": { "type": "array", "items": { "type": "object", "properties": { "taskType": { "type": "string" }, "stack": { "type": "array" } } } }
+            "alias": { "$ref": "#/$defs/id" },
+            "bind": { "const": "hash" },
+            "romDigest": { "$ref": "#/$defs/digest" },
+            "cartridgeId": { "type": "string", "minLength": 1 },
+            "required": { "type": "boolean", "default": true }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["alias", "bind", "slot"],
+          "properties": {
+            "alias": { "$ref": "#/$defs/id" },
+            "bind": { "const": "slot" },
+            "slot": { "$ref": "#/$defs/slot" },
+            "required": { "type": "boolean", "default": true }
+          }
+        }
+      ]
+    },
+    "slot": {
+      "type": "object",
+      "additionalProperties": false,
+      "anyOf": [
+        { "required": ["role"] },
+        { "required": ["minLevel"] },
+        { "required": ["capabilities"] }
+      ],
+      "properties": {
+        "role": { "type": "string", "minLength": 1 },
+        "minLevel": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "careerTier": {
+              "enum": ["intern", "junior", "mid", "senior", "staff", "principal", "distinguished", "legend"]
+            },
+            "acxLevel": { "type": "integer", "minimum": 0 }
+          },
+          "minProperties": 1
+        },
+        "capabilities": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["taskType"],
+            "properties": {
+              "taskType": { "type": "string", "minLength": 1 },
+              "stack": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": { "type": "string", "minLength": 1 }
+              }
+            }
           }
         }
       }
     },
     "racItem": {
       "type": "object",
-      "required": ["id", "kind", "description"],
       "additionalProperties": false,
-      "description": "Required Available Context: a DESCRIPTION of knowledge that must be present. MUST NOT carry the content itself.",
+      "required": ["id", "kind", "description"],
+      "description": "Required Available Context: metadata describing knowledge that must be present. Content is deliberately not a valid property.",
       "properties": {
-        "id": { "type": "string" },
+        "id": { "$ref": "#/$defs/id" },
         "kind": { "enum": ["wiki", "code-map", "infra", "terraform", "api-spec", "dataset", "runbook", "custom"] },
-        "description": { "type": "string" },
+        "description": { "type": "string", "minLength": 1, "maxLength": 2000 },
         "required": { "type": "boolean", "default": true },
-        "check": { "type": "object", "properties": { "type": { "enum": ["file-glob", "url", "mcp-resource", "manual"] }, "hint": { "type": "string" } } },
-        "okf": { "type": "object", "description": "optional Open Knowledge Format descriptor of the required knowledge artifact (metadata only)" }
+        "check": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type"],
+          "properties": {
+            "type": { "enum": ["file-glob", "url", "mcp-resource", "manual"] },
+            "hint": { "type": "string", "maxLength": 1000 }
+          }
+        },
+        "okf": {
+          "type": "object",
+          "description": "Optional Open Knowledge Format descriptor. Metadata only."
+        }
+      }
+    },
+    "variable": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "type"],
+      "properties": {
+        "name": { "$ref": "#/$defs/id" },
+        "type": { "enum": ["string", "number", "integer", "boolean", "object", "array"] },
+        "init": true
+      }
+    },
+    "limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "maxSteps": { "type": "integer", "minimum": 1 },
+        "maxDurationMs": { "type": "integer", "minimum": 1 },
+        "maxParallel": { "type": "integer", "minimum": 1 }
       },
-      "not": { "required": ["content"] }
+      "minProperties": 1
+    },
+    "requirements": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "skills": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "capabilities": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "rac": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/id" }
+        }
+      }
+    },
+    "task": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "agent", "completion"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "type": { "const": "task" },
+        "agent": { "$ref": "#/$defs/id" },
+        "action": { "type": "string", "maxLength": 4000 },
+        "requires": { "$ref": "#/$defs/requirements" },
+        "completion": { "$ref": "#/$defs/completion" },
+        "sideEffects": { "enum": ["none", "workspace", "external"], "default": "workspace" },
+        "approval": { "enum": ["never", "on-request", "always"], "default": "on-request" },
+        "budget": { "type": "object" },
+        "guardrails": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "gateway": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "gateway"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "type": { "const": "gateway" },
+        "gateway": { "enum": ["exclusive", "parallel", "inclusive"] }
+      }
+    },
+    "event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "event"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "type": { "const": "event" },
+        "event": { "enum": ["start", "end", "stop", "handoff", "timer"] },
+        "afterMs": { "type": "integer", "minimum": 1 }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "event": { "const": "timer" } }, "required": ["event"] },
+          "then": { "required": ["afterMs"] }
+        }
+      ]
     },
     "node": {
       "oneOf": [
-        {
-          "type": "object", "required": ["id", "type", "agent", "completion"], "additionalProperties": false,
-          "properties": {
-            "id": { "type": "string" }, "type": { "const": "task" }, "agent": { "type": "string" }, "action": { "type": "string" },
-            "requires": { "type": "object", "properties": { "skills": { "type": "array", "items": { "type": "string" } }, "capabilities": { "type": "array", "items": { "type": "string" } }, "rac": { "type": "array", "items": { "type": "string" } } } },
-            "completion": { "$ref": "#/$defs/completion" },
-            "budget": { "type": "object" }, "guardrails": { "type": "array" }
-          }
-        },
-        { "type": "object", "required": ["id", "type"], "properties": { "id": { "type": "string" }, "type": { "const": "gateway" }, "gateway": { "enum": ["exclusive", "parallel", "inclusive"] } } },
-        { "type": "object", "required": ["id", "type", "event"], "properties": { "id": { "type": "string" }, "type": { "const": "event" }, "event": { "enum": ["start", "end", "stop", "handoff", "timer"] } } }
+        { "$ref": "#/$defs/task" },
+        { "$ref": "#/$defs/gateway" },
+        { "$ref": "#/$defs/event" }
       ]
     },
     "completion": {
-      "type": "object", "required": ["type"],
-      "description": "what counts as done for a task — completion of skill scripts, a verification pass, a guardrail, or an artifact",
-      "properties": {
-        "type": { "enum": ["skill-scripts", "verification", "guardrail", "artifact"] },
-        "scripts": { "type": "array", "items": { "type": "string" } },
-        "commands": { "type": "array", "items": { "type": "string" } },
-        "passIntent": { "type": "string" },
-        "kind": { "type": "string" },
-        "produces": { "type": "string" }
-      }
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "scripts"],
+          "properties": {
+            "type": { "const": "skill-scripts" },
+            "scripts": {
+              "type": "array",
+              "minItems": 1,
+              "items": { "type": "string", "minLength": 1 }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "commands", "passIntent"],
+          "properties": {
+            "type": { "const": "verification" },
+            "commands": {
+              "type": "array",
+              "minItems": 1,
+              "items": { "type": "string", "minLength": 1 }
+            },
+            "passIntent": { "type": "string", "minLength": 1 }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "kind"],
+          "properties": {
+            "type": { "const": "guardrail" },
+            "kind": { "type": "string", "minLength": 1 }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "produces"],
+          "properties": {
+            "type": { "const": "artifact" },
+            "produces": { "type": "string", "minLength": 1 }
+          }
+        }
+      ]
     },
     "edge": {
-      "type": "object", "required": ["from", "to"], "additionalProperties": false,
-      "properties": { "from": { "type": "string" }, "to": { "type": "string" }, "when": { "$ref": "#/$defs/condition" } }
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from", "to"],
+      "properties": {
+        "from": { "$ref": "#/$defs/id" },
+        "to": { "$ref": "#/$defs/id" },
+        "when": { "$ref": "#/$defs/condition" }
+      }
     },
     "condition": {
+      "description": "Closed, structured condition grammar. Hosts MUST NOT evaluate expression strings.",
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["always"],
+          "properties": { "always": { "const": true } }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["var", "op", "value"],
+          "properties": {
+            "var": { "type": "string", "pattern": "^[a-z][a-z0-9._-]{0,255}$" },
+            "op": { "enum": ["eq", "ne", "lt", "gt", "le", "ge", "in"] },
+            "value": true
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["all"],
+          "properties": {
+            "all": {
+              "type": "array",
+              "minItems": 1,
+              "items": { "$ref": "#/$defs/condition" }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["any"],
+          "properties": {
+            "any": {
+              "type": "array",
+              "minItems": 1,
+              "items": { "$ref": "#/$defs/condition" }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["not"],
+          "properties": { "not": { "$ref": "#/$defs/condition" } }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["racAvailable"],
+          "properties": { "racAvailable": { "$ref": "#/$defs/id" } }
+        }
+      ]
+    },
+    "integrity": {
       "type": "object",
-      "description": "structured, safe condition (no expression eval)",
+      "additionalProperties": false,
+      "required": ["schemaVersion", "digest", "publisherId", "keyid", "publicKeyPem", "signedAt", "envelope"],
       "properties": {
-        "always": { "type": "boolean" },
-        "var": { "type": "string" }, "op": { "enum": ["eq", "ne", "lt", "gt", "le", "ge", "in"] }, "value": {},
-        "all": { "type": "array", "items": { "$ref": "#/$defs/condition" } },
-        "any": { "type": "array", "items": { "$ref": "#/$defs/condition" } },
-        "not": { "$ref": "#/$defs/condition" },
-        "racAvailable": { "type": "string" }
+        "schemaVersion": { "const": "acx.workflow-signature/1" },
+        "digest": { "$ref": "#/$defs/digest" },
+        "publisherId": {
+          "type": "string",
+          "pattern": "^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9][a-z0-9-]*(?:[./][a-z0-9][a-z0-9._-]*)*$"
+        },
+        "keyid": { "type": "string", "pattern": "^ed25519:[0-9a-f]{64}$" },
+        "publicKeyPem": { "type": "string", "pattern": "^-----BEGIN PUBLIC KEY-----" },
+        "signedAt": { "type": "string", "format": "date-time" },
+        "envelope": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["payloadType", "payload", "signatures"],
+          "properties": {
+            "payloadType": { "const": "application/vnd.in-toto+json" },
+            "payload": { "type": "string", "minLength": 1 },
+            "signatures": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 1,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["keyid", "sig"],
+                "properties": {
+                  "keyid": { "type": "string", "pattern": "^ed25519:[0-9a-f]{64}$" },
+                  "sig": { "type": "string", "minLength": 1 }
+                }
+              }
+            }
+          }
+        }
       }
     }
   }

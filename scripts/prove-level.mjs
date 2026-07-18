@@ -1,5 +1,6 @@
 // Phase 3 proof: earn a PROVABLE character level for a cartridge and verify it.
-import { writeFileSync } from 'node:fs'
+import { mkdtempSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import { Cartridge } from '../src/container.mjs'
 import { generateSigningKey } from '../src/sign.mjs'
 import { oidJcs } from '../src/canonical.mjs'
@@ -35,7 +36,10 @@ const vc = strong.vc
 // ---- 3. Attach the attestation to the cartridge + write an OCI referrer -----
 cart.db.prepare('INSERT INTO attestations(att_id,type,subject_oid,media_type,document,status_url,created_at) VALUES(?,?,?,?,?,?,?) ON CONFLICT(att_id) DO UPDATE SET document=excluded.document')
   .run('level-' + benchmark.id, 'vc-2.0', romDigest, 'application/vc', JSON.stringify(vc), vc.credentialStatus?.statusListCredential ?? null, vc.validFrom)
-writeFileSync(OUT.replace('.acx', '.level-attestation.json'), JSON.stringify(vc, null, 2))
+const proofDirectory = mkdtempSync(join(tmpdir(), 'acx-prove-level-'))
+const attestationPath = join(proofDirectory, 'level-attestation.json')
+writeFileSync(attestationPath, JSON.stringify(vc, null, 2))
+console.log('standalone VC:', attestationPath)
 
 // ---- 4. Independent verification of the credential --------------------------
 const check = verifyLevelCredential(vc, { issuerPublicKeyPem: verifierKey.publicKeyPem, expectedRomDigest: romDigest })

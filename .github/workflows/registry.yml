@@ -1,8 +1,8 @@
 # Registry verification gate + index regeneration.
 #
 # tools/build-registry-index.mjs opens and cryptographically verifies EVERY
-# cartridge under registry/cartridges/** (Ed25519 signature, tamper check,
-# package-spec validation) and only then writes registry/index.json
+# cartridge under registry/cartridges/** and workflow under registry/cals/**
+# (Ed25519 signature, tamper check, artifact-profile validation), then writes registry/index.json
 # (schemaVersion acx.registry-index/1). It exits non-zero on any tampered,
 # invalid, or unclean cartridge — so this job IS the gate: a bad push or PR
 # fails CI and can never be indexed.
@@ -20,12 +20,22 @@ on:
     paths:
       - "registry/**"
       - "tools/**"
+      - "src/cal.mjs"
+      - "src/workflow.mjs"
+      - "src/sign.mjs"
+      - "src/trust.mjs"
+      - "schemas/cal*.json"
       - ".github/workflows/registry.yml"
   pull_request:
     branches: [main]
     paths:
       - "registry/**"
       - "tools/**"
+      - "src/cal.mjs"
+      - "src/workflow.mjs"
+      - "src/sign.mjs"
+      - "src/trust.mjs"
+      - "schemas/cal*.json"
       - ".github/workflows/registry.yml"
 
 # contents: write is needed only for the push-back of registry/index.json on
@@ -50,9 +60,9 @@ jobs:
         with:
           node-version: 22
 
-      # THE GATE: verifies every cartridge (signature + tamper + package-spec)
-      # and regenerates registry/index.json. Non-zero exit fails the job.
-      - name: Verify cartridges and build registry index
+      # THE GATE: verifies every cartridge and workflow, then regenerates the
+      # deterministic registry/index.json. Non-zero exit fails the job.
+      - name: Verify ACX artifacts and build registry index
         run: node --experimental-sqlite tools/build-registry-index.mjs
 
       # Push-to-main only: commit the regenerated index back if it changed.
