@@ -17,7 +17,7 @@ labels: bug
 
 **Expected vs actual**
 
-**Environment:** Node version, OS.
+**Environment:** output of `acx --version`, Node version, installation method, and OS.
 
 > For security issues (integrity bypass, trust confusion, level forgery), do NOT file a public issue —
 > see [SECURITY.md](../../SECURITY.md).

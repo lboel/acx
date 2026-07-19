@@ -142,7 +142,7 @@ And the test suite pins the invariant twice — once as a property and once on a
 ```
 
 !!! example "Reproduce it yourself"
-    The reference implementation is zero-dependency — Node ≥ 22 with the builtin `node:sqlite` and `node:crypto`. Run everything with `--experimental-sqlite`:
+    The reference implementation is zero-dependency — Node ≥ 22.5.0 with the builtin `node:sqlite` and `node:crypto`. Run everything with `--experimental-sqlite`:
 
     === "Strip a cartridge"
 

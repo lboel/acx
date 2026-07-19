@@ -18,7 +18,7 @@ literally to install and drive the tool. (Humans: the same content lives in `AGE
 
 ## Install
 
-- Requires **Node ≥ 22**. The bin runs through `node --experimental-sqlite`; you never pass that flag.
+- Requires **Node ≥ 22.5.0**. The bin runs through `node --experimental-sqlite`; you never pass that flag.
 - **Current source checkout:** `node --experimental-sqlite src/cli.mjs <command> [args]`
 - **After the npm release:** `npx agent-cartridge@latest <command> [args]`
 - **Global:** `npm i -g agent-cartridge` → `acx <command>`

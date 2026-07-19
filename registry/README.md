@@ -33,7 +33,7 @@ record lifecycle or successor information in `status.json`.
 `index.json` is the machine-readable catalog. Its `cartridges`, `workflows`, and `agentGraphs`
 collections contain safe discovery cards plus independent counts; no task or knowledge payload is copied
 into the index. Cartridge cards include name, publisher, role, trust status, ROM hash, capabilities, and
-(when present) the independently attested level. To inspect one locally (Node ≥ 22, zero dependencies):
+(when present) the independently attested level. To inspect one locally (Node ≥ 22.5.0, zero dependencies):
 
 ```bash
 node --experimental-sqlite src/cli.mjs inspect registry/cartridges/io.github.ridgeworks/ada-ridge/1.0.0/cartridge.acx

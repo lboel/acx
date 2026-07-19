@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title id="title">ACX</title>
+  <rect width="64" height="64" rx="16" fill="#071b18"/>
+  <path d="M16 43 26.4 18h5.2L42 43h-6l-2.2-5.8H24.1L22 43h-6Zm10-11h6l-3-8-3 8Z" fill="#f7f8f1"/>
+  <path d="m39 19 4.9 7.4L49 19h6l-8 11.8L55.5 43h-6.2l-5.4-7.9-5.2 7.9h-6.2L41 30.8 33 19h6Z" fill="#bff55a"/>
+</svg>

@@ -1,4 +1,4 @@
-import { verifyArtifact } from './verify.js'
+import { registryCoordinateIssues, verifyArtifact } from './verify.js'
 
 const TYPE_LABELS = {
   agent: 'Agent cartridge',
@@ -99,7 +99,11 @@ function normalizeAgent(entry, index) {
     downloadPath: exchangePath(entry, 'downloadPath') || sourceDownloadPath('agent', entry?.path),
     detailPath: exchangePath(entry, 'detailPath'),
     filename: `${id}-${version}.acx`,
-    verifyCommand: `acx verify ${id}-${version}.acx`,
+    verifyCommand: [
+      `acx verify ${id}-${version}.acx`,
+      `acx spec ${id}-${version}.acx`,
+      `acx load ${id}-${version}.acx --print-only`,
+    ].join('\n'),
     metric: effectiveLevel === null ? `${capabilityNames.length} moves` : `Proven Lv.${effectiveLevel}`,
     level: effectiveLevel ?? -1,
     facts: [
@@ -149,6 +153,7 @@ function normalizeWorkflow(entry, index) {
     lifecycleReason: text(entry?.registryStatus?.reason, ''),
     latest,
     signed: Boolean(entry?.signed),
+    digest: text(entry?.digest, null),
     path: safeRelativePath(entry?.path),
     downloadPath: exchangePath(entry, 'downloadPath') || sourceDownloadPath('workflow', entry?.path),
     detailPath: exchangePath(entry, 'detailPath'),
@@ -201,6 +206,7 @@ function normalizeGraph(entry, index) {
     lifecycleReason: text(entry?.registryStatus?.reason, ''),
     latest,
     signed: Boolean(entry?.signed),
+    digest: text(entry?.digest, null),
     path: safeRelativePath(entry?.path),
     downloadPath: exchangePath(entry, 'downloadPath') || sourceDownloadPath('agent-graph', entry?.path),
     detailPath: exchangePath(entry, 'detailPath'),
@@ -413,7 +419,7 @@ function detailTrustCopy(item) {
 }
 
 function verifyExplanation(item) {
-  if (item.type === 'agent') return `After download, run: ${item.verifyCommand}`
+  if (item.type === 'agent') return 'After download, verify the signature, validate PackageSpec, and inspect the load card before installing any skill.'
   if (item.type === 'template') return 'No code runs here. Open the JSON bundle and review every file before importing.'
   return 'Recompute the JCS digest, verify the Ed25519 DSSE signature, and compare every in-toto identity binding.'
 }
@@ -448,6 +454,7 @@ function openDetail(item, { updateHash = true } = {}) {
   const remixable = browserVerifiable
   byId('verify-action').hidden = !browserVerifiable
   byId('copy-action').hidden = !item.verifyCommand
+  byId('copy-action').textContent = item.type === 'agent' ? 'Copy safe receive steps' : 'Copy verify command'
   byId('remix-action').hidden = !remixable
   byId('remix-action').href = remixable
     ? `./studio/?source=${encodeURIComponent(new URL(item.downloadPath, document.baseURI).href)}`
@@ -535,10 +542,12 @@ async function verifySelected() {
     const response = await fetchArtifact(item)
     const artifact = await response.json()
     const result = await verifyArtifact(artifact)
-    output.dataset.state = result.ok && result.signed ? 'valid' : 'invalid'
-    output.textContent = result.ok && result.signed
-      ? `Valid portable signature · ${result.digest.slice(0, 23)}… · namespace not proven`
-      : result.issues.join(' ')
+    const coordinateIssues = registryCoordinateIssues(artifact, result, item)
+    const valid = result.ok && result.signed && coordinateIssues.length === 0
+    output.dataset.state = valid ? 'valid' : 'invalid'
+    output.textContent = valid
+      ? `Valid portable signature · ${item.type}:${item.publisher}/${item.id}@${item.version} · ${result.digest} · namespace not proven`
+      : [...result.issues, ...coordinateIssues].join(' ')
   } catch (error) {
     output.dataset.state = 'invalid'
     output.textContent = error.message
@@ -551,7 +560,7 @@ async function copyCommand() {
   if (!state.selected?.verifyCommand) return
   try {
     await copyText(state.selected.verifyCommand)
-    toast('Verify command copied')
+    toast(state.selected.type === 'agent' ? 'Safe receive steps copied' : 'Verify command copied')
   } catch (error) {
     toast(error.message)
   }

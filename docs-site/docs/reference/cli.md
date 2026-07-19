@@ -8,7 +8,7 @@ staffing, and submitting reusable ACX Workflows and Agent Graphs.
 
 The reference implementation is pure ESM with no third-party dependencies: it uses only Node's built-in `node:sqlite` and `node:crypto`. Because `node:sqlite` is still gated behind a flag, every invocation must run under `node --experimental-sqlite`.
 
-!!! warning "Node ≥ 22 and `--experimental-sqlite` are required"
+!!! warning "Node ≥ 22.5.0 and `--experimental-sqlite` are required"
     `acx` opens the cartridge with the built-in `node:sqlite` module. Without the flag the process aborts before any command runs.
 
     ```bash
@@ -23,6 +23,7 @@ Running `acx` with no command (or `help`, `-h`, `--help`) prints usage:
 acx — Agent Cartridge (.acx) command-line tool
 
 Usage:
+  acx --version
   acx export <agent-package-dir> <out.acx> --publisher <reverse-dns> [--include-field-learned]
   acx inspect <file.acx>
   acx verify  <file.acx> [--registry <trust.json>]
@@ -40,9 +41,9 @@ Usage:
   acx graph verify  <graph.agent-graph.json> [--registry <trust.json>]
   acx graph inspect <graph.agent-graph.json>
   acx graph digest  <graph.agent-graph.json>
-  acx share agent      <file.acx> --slug <slug> [--dry-run]
-  acx share workflow   <workflow.cal.json> [--dry-run]
-  acx share graph      <graph.agent-graph.json> [--dry-run]
+  acx share agent      <file.acx> --slug <slug> [--registry <dir>] [--dry-run]
+  acx share workflow   <workflow.cal.json> [--registry <dir>] [--dry-run]
+  acx share graph      <graph.agent-graph.json> [--registry <dir>] [--dry-run]
   acx level   <file.acx>
 ```
 
@@ -81,7 +82,7 @@ acx share graph product-delivery.agent-graph.json
 
 | Flag | Meaning |
 | --- | --- |
-| `--registry <dir>` | Registry root; defaults to this checkout's `registry/` |
+| `--registry <dir>` | Registry root; defaults to `./registry` only when the current directory is a verified ACX checkout root. Required elsewhere, including npm-cache/global installs. |
 | `--publisher <id>` | Require an exact match with the publisher bound into the signature |
 | `--slug <slug>` | Required safe destination slug for an agent |
 | `--dry-run` | Verify and print the planned paths/PR body without writing |

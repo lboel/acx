@@ -20,6 +20,14 @@ test('registry immutability recognizes only canonical signed artifact coordinate
     true,
   )
   assert.equal(
+    isImmutableRegistryPath('registry/cals/io.github.example/team/ship-it/1.2.3.cal.json'),
+    true,
+  )
+  assert.equal(
+    isImmutableRegistryPath('registry/graphs/io.github.example/product/product-delivery/1.2.3.agent-graph.json'),
+    true,
+  )
+  assert.equal(
     isImmutableRegistryPath('registry/cartridges/io.github.example/reviewer/cartridge.acx'),
     false,
   )

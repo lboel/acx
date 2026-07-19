@@ -8,9 +8,9 @@ _form teams_, and _run workflows_, packed into one `.acx` file and exchangeable 
 `single-file SQLite + LanceDB` · `ed25519 / DSSE signed` · `provable level` ·
 `OCI-distributable` · `zero-dependency reference impl`
 
-[Explore Exchange](https://lboel.github.io/acx/exchange/) · [Remix in Studio](https://lboel.github.io/acx/exchange/studio/) · [Documentation](https://lboel.github.io/acx/) · [Spec](./SPEC.md) · [For AI agents](./AGENTS.md) · [Contributing](./CONTRIBUTING.md) · License: Apache-2.0
+[Explore Exchange](https://lboel.github.io/acx/exchange/) · [Remix in Studio](https://lboel.github.io/acx/exchange/studio/) · [Documentation](https://lboel.github.io/acx/) · [Spec](./SPEC.md) · [For AI agents](./AGENTS.md) · [Governance](./GOVERNANCE.md) · [Contributing](./CONTRIBUTING.md) · License: Apache-2.0
 
-<sub>The standard is **ACX** (Agent Cartridge eXchange): a cartridge file is `.acx`, the CLI is `acx`, media types are `application/vnd.acx.*`. It pairs with **AGENTIBUS**, the studio that produces and levels up ACX cartridges.</sub>
+<sub>The standard is **ACX** (Agent Cartridge eXchange): a cartridge file is `.acx`, the CLI is `acx`, and the public draft uses the provisional, currently unregistered `application/vnd.acx.*` media names. It pairs with **AGENTIBUS**, the studio that produces and levels up ACX cartridges.</sub>
 
 </div>
 
@@ -43,13 +43,13 @@ shared, verified, collected, and remixed.
 Signed artifacts distribute over git, an OCI registry, or the static Exchange — verifiable from the
 downloaded bytes and rejected if tampered.
 
-The container and schemas are 100% open; signed level attestations, verified capability evidence, and
+The container, schemas, and reference implementation are open under Apache-2.0; signed level attestations, verified capability evidence, and
 field-learned memory are identity-bound, revocable assets carried inside that open envelope. ACX itself
 defines no payments, entitlements, or licensing enforcement.
 
 > **Status: v0.1 public draft.** The normative spec ([`SPEC.md`](./SPEC.md)), schemas, reference
 > implementation, signed workflow and Agent Graph examples, and conformance suite are ready for public review. The
-> zero-dependency implementation in `src/` runs today on **Node ≥ 22**. The benchmark's *solver* is
+> zero-dependency implementation in `src/` runs today on **Node ≥ 22.5.0**. The benchmark's *solver* is
 > deterministic and pluggable; a production verifier substitutes a real sandboxed agent run without
 > changing the protocol.
 
@@ -277,7 +277,7 @@ Agents drive it from [`AGENTS.md`](./AGENTS.md), the
 
 ```bash
 git clone https://github.com/lboel/acx.git
-cd acx                                           # Node ≥ 22, zero dependencies
+cd acx                                           # Node ≥ 22.5.0, zero dependencies
 
 npm test                                          # conformance, graph, workflow, registry, and sharing tests
 node --experimental-sqlite scripts/smoke.mjs      # export → verify → strip → tamper
@@ -323,8 +323,10 @@ Build the deployable docs plus Exchange:
 
 ```bash
 cd docs-site && .venv/bin/zensical build && cd ..
+npm run build:docs-social
 node --experimental-sqlite tools/build-registry-index.mjs
 node --experimental-sqlite tools/build-static-exchange.mjs --out docs-site/site/exchange
+npm run check:site
 ```
 
 The combined output hosts statically (GitHub Pages workflow included). Start with **Explore Exchange**,
@@ -333,7 +335,9 @@ Graph)**.
 
 ## Contributing & license
 
-Contributions welcome — the format is meant to be an open, vendor-neutral standard. Keep the core
+Contributions welcome — the format is meant to be an open, vendor-neutral standard. Normative changes use
+the public process in [`GOVERNANCE.md`](./GOVERNANCE.md); release history is in
+[`CHANGELOG.md`](./CHANGELOG.md). Keep the core
 dependency-free, keep the spec, schemas, and code consistent, and everything English and legally neutral.
 
 Apache-2.0. See [`LICENSE`](./LICENSE).
@@ -350,11 +354,14 @@ npm run smoke
 node --experimental-sqlite scripts/prove-level.mjs
 node --experimental-sqlite tools/build-registry-index.mjs
 node --experimental-sqlite tools/build-static-exchange.mjs
-npm pack --dry-run
-cd docs-site && .venv/bin/zensical build
+npm run smoke:package                              # pack → install → execute the real tarball
+cd docs-site && .venv/bin/zensical build && cd ..
+npm run build:docs-social
+npm run check:site
 ```
 
 The repository-root ACX workflow runs the suite/proofs, verifies every published cartridge, workflow, and
-Agent Graph, rebuilds the registry index, builds the static Exchange, checks the npm package, and builds
+Agent Graph, rebuilds the registry index, builds the static Exchange, installs and executes the packed npm
+CLI, and builds
 the documentation. Confirm npm name ownership immediately before release; publishing and production docs
 deployment require the maintainer's registry/hosting credentials.

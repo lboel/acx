@@ -684,8 +684,8 @@ async function copyText(text) {
 function updateHandoff() {
   const file = filename()
   const command = mode === 'agent-graph'
-    ? `acx graph lint ${file} --publish\nacx graph sign ${file} --publisher io.github.you --out ${slug(draft.id)}.signed.agent-graph.json\nacx graph verify ${slug(draft.id)}.signed.agent-graph.json`
-    : `acx workflow lint ${file} --publish\nacx workflow sign ${file} --publisher io.github.you --out ${slug(draft.id)}.signed.cal.json\nacx workflow verify ${slug(draft.id)}.signed.cal.json`
+    ? `acx graph lint ${file} --publish\nacx graph sign ${file} --publisher io.github.you --out ${slug(draft.id)}.signed.agent-graph.json\nacx graph verify ${slug(draft.id)}.signed.agent-graph.json\nacx share graph ${slug(draft.id)}.signed.agent-graph.json --registry ./registry --dry-run\nacx share graph ${slug(draft.id)}.signed.agent-graph.json --registry ./registry`
+    : `acx workflow lint ${file} --publish\nacx workflow sign ${file} --publisher io.github.you --out ${slug(draft.id)}.signed.cal.json\nacx workflow verify ${slug(draft.id)}.signed.cal.json\nacx share workflow ${slug(draft.id)}.signed.cal.json --registry ./registry --dry-run\nacx share workflow ${slug(draft.id)}.signed.cal.json --registry ./registry`
   $('[data-sign-command]').textContent = command
 }
 

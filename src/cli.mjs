@@ -4,7 +4,7 @@
 // this file only parses argv and wires the pipeline together (SPEC §12 conformance).
 import { randomBytes } from 'node:crypto'
 import { copyFileSync, writeFileSync, existsSync } from 'node:fs'
-import { Cartridge } from './container.mjs'
+import { Cartridge, SPEC_VERSION, USER_VERSION } from './container.mjs'
 import { generateSigningKey, signingKeyFromPrivatePem } from './sign.mjs'
 import { exportPackageToCartridge } from './export.mjs'
 import { evaluateTrust, emptyTrustRegistry, loadTrustRegistry } from './trust.mjs'
@@ -37,6 +37,7 @@ import { readFileSync as _readFileSync, readdirSync } from 'node:fs'
 const USAGE = `acx — Agent Cartridge (.acx) command-line tool
 
 Usage:
+  acx --version
   acx export <agent-package-dir> <out.acx> --publisher <reverse-dns> [--include-field-learned]
   acx inspect <file.acx>
   acx verify  <file.acx> [--registry <trust.json>]
@@ -101,6 +102,15 @@ function parseArgs(argv) {
 function die(msg) {
   console.error('acx: ' + msg)
   process.exit(2)
+}
+
+function cmdVersion() {
+  const packageMetadata = JSON.parse(_readFileSync(join(REPO_ROOT, 'package.json'), 'utf8'))
+  const containerMajor = (USER_VERSION >>> 24) & 0xff
+  const containerMinor = (USER_VERSION >>> 16) & 0xff
+  console.log(`acx ${packageMetadata.version}`)
+  console.log(`spec document ${SPEC_VERSION} (public draft)`)
+  console.log(`container wire format ${containerMajor}.${containerMinor}`)
 }
 
 function romDigestOf(cart) {
@@ -588,8 +598,18 @@ function cmdShare(positional, flags) {
   if (!['agent', 'workflow', 'graph'].includes(type) || !file) {
     die('share requires agent <file.acx>, workflow <file.cal.json>, or graph <file.agent-graph.json>')
   }
+  const defaultRegistry = join(process.cwd(), 'registry')
+  const registryRoot = flags.registry || (
+    existsSync(join(defaultRegistry, 'index.json'))
+    && existsSync(join(defaultRegistry, 'status.json'))
+      ? defaultRegistry
+      : null
+  )
+  if (!registryRoot) {
+    die('share requires --registry <dir> unless the current directory is an ACX checkout root containing registry/index.json and registry/status.json')
+  }
   const options = {
-    registryRoot: flags.registry || join(REPO_ROOT, 'registry'),
+    registryRoot,
     publisherId: flags.publisher || null,
     dryRun: !!flags['dry-run'],
     force: !!flags.force,
@@ -613,7 +633,11 @@ function cmdShare(positional, flags) {
   console.log('  node --experimental-sqlite tools/build-registry-index.mjs')
   console.log('  npm test')
   console.log('  git diff -- registry/')
-  console.log('Review and stage only the intended registry artifact, generated card, and registry/index.json.')
+  console.log(
+    plan.readme
+      ? 'Review and stage only the intended registry artifact, generated agent card, and registry/index.json.'
+      : 'Review and stage only the intended registry artifact and registry/index.json.',
+  )
   process.exit(0)
 }
 
@@ -700,6 +724,7 @@ function main() {
   const cmd = argv[0]
   const { positional, flags } = parseArgs(argv.slice(1))
   switch (cmd) {
+    case 'version': case '--version': case '-v': return cmdVersion()
     case 'export': return cmdExport(positional, flags)
     case 'inspect': return cmdInspect(positional)
     case 'verify': return cmdVerify(positional, flags)

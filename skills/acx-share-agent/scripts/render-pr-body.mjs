@@ -1,5 +1,6 @@
 #!/usr/bin/env -S node --experimental-sqlite
 import { createHash } from 'node:crypto'
+import { spawnSync } from 'node:child_process'
 import { join, relative } from 'node:path'
 import {
   prepareAgentGraphShare,
@@ -57,6 +58,23 @@ function publicShareUrl(sharePlan) {
   return `https://lboel.github.io/acx/exchange/artifacts/${artifactType}/${safeSlug(id)}-${suffix}/`
 }
 
+function publicationDisposition(sharePlan) {
+  const registryPath = relative(REPO_ROOT, sharePlan.destination).replaceAll('\\', '/')
+  const prefixResult = spawnSync('git', ['rev-parse', '--show-prefix'], {
+    cwd: REPO_ROOT,
+    encoding: 'utf8',
+  })
+  const repositoryPath = `${prefixResult.status === 0 ? prefixResult.stdout.trim() : ''}${registryPath}`
+  const tracked = spawnSync('git', ['cat-file', '-e', `HEAD:${repositoryPath}`], {
+    cwd: REPO_ROOT,
+    encoding: 'utf8',
+  }).status === 0
+  if (tracked) return 'existing in current HEAD; do not open an empty PR for this coordinate'
+  if (sharePlan.changed) return 'new registry content would be prepared by the non-dry share command'
+  return 'new registry content is already present in the worktree and is not yet in current HEAD'
+}
+
+plan.publicationDisposition = publicationDisposition(plan)
 const body = sharePullRequestBody(plan).trimEnd()
 const shareUrl = publicShareUrl(plan)
 process.stdout.write(`${body}

@@ -9,6 +9,10 @@
   <meta property="og:description" content="A private, browser-local composer for portable ACX workflows and Agent Graphs.">
   <meta property="og:type" content="website">
   <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="ACX Studio — build and remix agent teams">
+  <meta name="twitter:description" content="A private, browser-local composer for portable ACX workflows and Agent Graphs.">
+  <!-- ACX_STUDIO_META -->
+  <link rel="icon" href="../assets/icon.svg" type="image/svg+xml">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
   <title>ACX Studio — build and remix agent teams</title>
   <link rel="stylesheet" href="../assets/app.css?v=20260719">
@@ -225,9 +229,9 @@
     <section class="publish-handoff" aria-labelledby="handoff-heading">
       <div>
         <p class="eyebrow">VERIFIED HANDOFF</p>
-        <h2 id="handoff-heading">Sign only after the draft is clean.</h2>
+        <h2 id="handoff-heading">Sign, verify, then prepare the PR.</h2>
         <p>Browser export deliberately stops before signing. Keep the generated private key outside git,
-          then let the registry CI recompute every binding.</p>
+          preview the immutable registry diff, then let CI recompute every binding.</p>
       </div>
       <div>
         <pre><code data-sign-command>acx graph lint my-team.agent-graph.json --publish</code></pre>

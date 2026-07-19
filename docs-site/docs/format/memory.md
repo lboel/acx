@@ -242,7 +242,7 @@ Memory travels as **canonical JSON first, vectors never**.
 - On import a consumer **MUST re-index every record from the JSON baseline using its own engine** and **MUST discard foreign vectors**.
 
 !!! note "vec0 is specified; the reference impl uses a plain table"
-    The spec normatively describes SAVE-zone `vec0` virtual tables, but the zero-dependency reference implementation (Node ≥ 22 `node:sqlite`, run with `node --experimental-sqlite`) stores vectors in a **plain table** — the `vec0` extension itself is host-side and scoped out of the reference build. The re-index-from-JSON contract holds either way: foreign vectors are always thrown away and rebuilt locally.
+    The spec normatively describes SAVE-zone `vec0` virtual tables, but the zero-dependency reference implementation (Node ≥ 22.5.0 `node:sqlite`, run with `node --experimental-sqlite`) stores vectors in a **plain table** — the `vec0` extension itself is host-side and scoped out of the reference build. The re-index-from-JSON contract holds either way: foreign vectors are always thrown away and rebuilt locally.
 
 This is the memory-side echo of the harness principle that "many harness improvements will be internalized into core model behavior, but the interface with external context and tools should remain" — the *records* are the durable, portable interface; the vector index is a disposable, engine-local acceleration.
 

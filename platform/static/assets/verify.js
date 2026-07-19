@@ -326,3 +326,34 @@ export async function verifyArtifact(document) {
     ],
   })
 }
+
+/**
+ * Bind a successful portable verification to the exact registry card the user
+ * selected. Signature validity alone is insufficient: a different, validly
+ * signed artifact must never be presented as the selected coordinate.
+ */
+export function registryCoordinateIssues(document, result, expected) {
+  if (!record(expected)) return ['selected registry coordinate is missing']
+  const issues = []
+  if (!['workflow', 'agent-graph'].includes(expected.type)) {
+    issues.push(`selected registry artifact type '${String(expected.type)}' is not browser-verifiable`)
+  }
+  if (result?.type !== expected.type) {
+    issues.push(`artifact type mismatch: selected ${expected.type}, received ${String(result?.type)}`)
+  }
+  if (document?.id !== expected.id) {
+    issues.push(`artifact id mismatch: selected ${expected.id}, received ${String(document?.id)}`)
+  }
+  if ((document?.version ?? null) !== (expected.version ?? null)) {
+    issues.push(`artifact version mismatch: selected ${String(expected.version)}, received ${String(document?.version)}`)
+  }
+  if (result?.publisherId !== expected.publisher) {
+    issues.push(`publisher mismatch: selected ${expected.publisher}, received ${String(result?.publisherId)}`)
+  }
+  if (!DIGEST_RE.test(expected.digest || '')) {
+    issues.push('selected registry coordinate has no canonical sha256 digest')
+  } else if (result?.digest !== expected.digest) {
+    issues.push(`digest mismatch: selected ${expected.digest}, received ${String(result?.digest)}`)
+  }
+  return issues
+}

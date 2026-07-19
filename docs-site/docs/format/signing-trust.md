@@ -250,7 +250,7 @@ acx verify <file.acx> [--registry <trust.json>]   # SPEC §4.5 taxonomy
 
 ## Implementation notes
 
-- **Zero-dependency.** Signing and verification use only Node ≥ 22 builtins (`node:crypto`, `node:sqlite`). Run everything with `node --experimental-sqlite` — see the [CLI reference](../reference/cli.md).
+- **Zero-dependency.** Signing and verification use only Node ≥ 22.5.0 builtins (`node:crypto`, `node:sqlite`). Run everything with `node --experimental-sqlite` — see the [CLI reference](../reference/cli.md).
 - **Reproducible manifest.** Test §12.3: *"ROM manifest hash is reproducible from the same ROM objects"* and *"rebuilding the ROM manifest from the stored objects reproduces the signed hash."* JCS canonicalization is key-insertion-order independent.
 - **Round-trip + negatives.** The suite covers sign+verify round-trip (`subject.digest = manifest_hash`), payload tamper, and wrong-key rejection (proof 1, §12.3).
 

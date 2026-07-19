@@ -212,6 +212,12 @@ function htmlEscape(value) {
   })[character])
 }
 
+function breakableHtml(value) {
+  return htmlEscape(value)
+    .replace(/([/:@._-])/g, '$1<wbr>')
+    .replace(/([0-9a-f]{16})(?=[0-9a-f])/gi, '$1<wbr>')
+}
+
 function meta(name, value, content) {
   return content ? `<meta ${name}="${htmlEscape(value)}" content="${htmlEscape(content)}">\n` : ''
 }
@@ -262,6 +268,73 @@ function cardForDetail(type, entry) {
   }
 }
 
+function compactDetailPreview(type, entry, artifact = null) {
+  if (type === 'agent') {
+    const capabilities = Array.isArray(entry.capabilities)
+      ? entry.capabilities.map((item) => text(item?.taskType)).filter(Boolean)
+      : []
+    const role = text(entry.role, 'portable agent')
+    const model = text(entry.model)
+    return {
+      title: 'Agent profile at a glance',
+      copy: `${role}${model ? ` on ${model}` : ''} with ${capabilities.length} declared capability${capabilities.length === 1 ? '' : 'ies'}.`,
+      items: capabilities.map((capability) => `Capability: ${capability}`),
+    }
+  }
+
+  if (type === 'workflow') {
+    const participants = Array.isArray(artifact?.participants) ? artifact.participants : []
+    const tasks = Array.isArray(artifact?.nodes)
+      ? artifact.nodes.filter((node) => node?.type === 'task')
+      : []
+    return {
+      title: 'Team workflow at a glance',
+      copy: `${participants.length} portable team slot${participants.length === 1 ? '' : 's'} coordinate ${tasks.length} outcome task${tasks.length === 1 ? '' : 's'} across ${Number(entry.nodeCount) || artifact?.nodes?.length || 0} bounded nodes.`,
+      items: participants.map((participant) => {
+        const role = text(participant?.slot?.role, text(participant?.cartridge?.role, 'host-selected role'))
+        return `${text(participant?.alias, 'slot')} · ${role}`
+      }),
+    }
+  }
+
+  if (type === 'agent-graph') {
+    const actors = Array.isArray(artifact?.actors) ? artifact.actors : []
+    const actorNames = new Map(actors.map((actor) => [actor?.id, text(actor?.name, actor?.id)]))
+    const routes = Array.isArray(artifact?.routes) ? artifact.routes : []
+    const loops = Array.isArray(artifact?.loops) ? artifact.loops : []
+    const routeCopy = routes.slice(0, 4).map((route) => {
+      const from = actorNames.get(route?.from) || text(route?.from, 'Unknown source')
+      const targets = (Array.isArray(route?.to) ? route.to : [])
+        .map((target) => actorNames.get(target) || text(target))
+        .filter(Boolean)
+        .join(', ')
+      return `${from} → ${targets || 'Unknown target'} · ${text(route?.intent, 'inform')}`
+    })
+    if (routes.length > routeCopy.length) routeCopy.push(`+ ${routes.length - routeCopy.length} more route${routes.length - routeCopy.length === 1 ? '' : 's'}`)
+    const loopItems = loops.map((loop) => {
+      const reference = loop?.workflowRef
+      return reference?.id
+        ? `Loop: ${reference.id}${reference.version ? `@${reference.version}` : ''}`
+        : `Loop: ${text(loop?.id, 'host-defined')}`
+    })
+    return {
+      title: 'Information flow at a glance',
+      copy: routeCopy.join('. '),
+      items: [
+        ...actors.map((actor) => `Seat: ${text(actor?.name, actor?.id)} · ${text(actor?.kind, 'agent')}`),
+        ...loopItems,
+      ],
+    }
+  }
+
+  const files = Array.isArray(entry.files) ? entry.files : []
+  return {
+    title: 'Editable starter at a glance',
+    copy: `${Number(entry.fileCount) || files.length} inspectable source file${(Number(entry.fileCount) || files.length) === 1 ? '' : 's'} travel in this unsigned template bundle.`,
+    items: files.map((file) => `File: ${text(file)}`),
+  }
+}
+
 function normalizeSiteUrl(siteUrl) {
   if (!siteUrl) return null
   let url
@@ -294,11 +367,33 @@ function injectRootSiteMetadata(outputRoot, siteUrl) {
   <link rel="canonical" href="${htmlEscape(siteUrl)}">`
     : ''
   writeFileSync(indexPath, source.replace(marker, metadata))
+
+  const studioPath = join(outputRoot, 'studio', 'index.html')
+  const studioSource = readFileSync(studioPath, 'utf8')
+  const studioMarker = '<!-- ACX_STUDIO_META -->'
+  if (!studioSource.includes(studioMarker)) {
+    fail('static Studio index.html is missing the ACX_STUDIO_META build marker')
+  }
+  const studioUrl = siteUrl ? new URL('studio/', siteUrl).href : null
+  const shareImage = siteUrl ? new URL('assets/share-card.png', siteUrl).href : null
+  const studioMetadata = studioUrl
+    ? `<meta property="og:url" content="${htmlEscape(studioUrl)}">
+  <meta property="og:image" content="${htmlEscape(shareImage)}">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="ACX Studio — build and remix portable agent teams locally">
+  <meta name="twitter:image" content="${htmlEscape(shareImage)}">
+  <meta name="twitter:image:alt" content="ACX Studio — build and remix portable agent teams locally">
+  <link rel="canonical" href="${htmlEscape(studioUrl)}">`
+    : ''
+  writeFileSync(studioPath, studioSource.replace(studioMarker, studioMetadata))
 }
 
-function renderDetailPage({ type, entry, siteUrl }) {
+function renderDetailPage({ type, entry, siteUrl, artifact = null }) {
   const card = cardForDetail(type, entry)
   const lifecycle = text(entry?.registryStatus?.status, 'active')
+  const lifecycleReason = text(entry?.registryStatus?.reason)
   if (lifecycle !== 'active') {
     card.trust = `Registry lifecycle: ${lifecycle}. ${text(entry?.registryStatus?.reason, 'Treat as historical and inspect its successor or advisory before use.')}`
   }
@@ -307,8 +402,14 @@ function renderDetailPage({ type, entry, siteUrl }) {
   const downloadPath = entry.exchange.downloadPath
   const canonicalUrl = siteUrl ? new URL(detailPath, siteUrl).href : null
   const shareImage = siteUrl ? new URL('assets/share-card.png', siteUrl).href : null
-  const downloadUrl = siteUrl ? new URL(downloadPath, siteUrl).href : `../../../${downloadPath}`
+  const downloadHref = `../../../${downloadPath}`
+  const canonicalDownloadUrl = siteUrl ? new URL(downloadPath, siteUrl).href : downloadHref
   const appUrl = `../../../index.html#${new URLSearchParams({ artifact: key })}`
+  const remixable = type === 'workflow' || type === 'agent-graph'
+  const remixUrl = remixable
+    ? `../../../studio/?source=${encodeURIComponent(`../${downloadPath}`)}`
+    : null
+  const shareGuideUrl = 'https://lboel.github.io/acx/share/'
   const typeLabel = {
     agent: 'Agent cartridge',
     workflow: 'Agent workflow',
@@ -317,9 +418,26 @@ function renderDetailPage({ type, entry, siteUrl }) {
   }[type]
   const title = `${card.name} · ACX Exchange`
   const description = cleanDescription(card.description)
+  const artifactId = text(entry.id, type)
+  const coordinate = type === 'template'
+    ? `template:${artifactId}`
+    : `${type}:${card.publisher}/${artifactId}@${card.version || 'unversioned'}`
+  const digest = text(entry.digest, text(entry.romHash, entry.exchange?.sha256 ? `sha256:${entry.exchange.sha256}` : 'Not indexed'))
+  const digestLabel = type === 'agent'
+    ? 'ROM digest'
+    : type === 'template'
+      ? 'Bundle digest'
+      : 'Signed JCS digest'
+  const preview = compactDetailPreview(type, entry, artifact)
+  const previewItems = preview.items
+    .filter(Boolean)
+    .slice(0, 8)
+    .map((item) => `<span class="tag" title="${htmlEscape(item)}">${htmlEscape(item)}</span>`)
+    .join('')
   const jsonLd = JSON.stringify({
     '@context': 'https://schema.org',
     '@type': 'CreativeWork',
+    identifier: coordinate,
     name: card.name,
     description,
     version: card.version,
@@ -328,7 +446,7 @@ function renderDetailPage({ type, entry, siteUrl }) {
     encoding: {
       '@type': 'MediaObject',
       encodingFormat: card.mediaType,
-      contentUrl: downloadUrl,
+      contentUrl: canonicalDownloadUrl,
     },
     url: canonicalUrl,
     keywords: card.tags,
@@ -358,7 +476,8 @@ function renderDetailPage({ type, entry, siteUrl }) {
   <meta name="twitter:description" content="${htmlEscape(description)}">
   ${meta('name', 'twitter:image', shareImage)}
   ${meta('name', 'twitter:image:alt', shareImage ? 'ACX Exchange — discover, verify, remix, and share portable agent teams' : null)}
-  <link rel="alternate" type="${htmlEscape(card.mediaType)}" href="${htmlEscape(downloadUrl)}">
+  <link rel="icon" href="../../../assets/icon.svg" type="image/svg+xml">
+  <link rel="alternate" type="${htmlEscape(card.mediaType)}" href="${htmlEscape(downloadHref)}">
   <link rel="stylesheet" href="../../../assets/app.css?v=20260719">
   <script type="application/ld+json">${jsonLd}</script>
 </head>
@@ -373,14 +492,35 @@ function renderDetailPage({ type, entry, siteUrl }) {
       <p class="pre-render-description">${htmlEscape(description)}</p>
       <p class="detail-trust">${htmlEscape(card.trust)}</p>
       <div class="tag-list">${tags}</div>
+      <section class="verify-panel" aria-labelledby="identity-heading">
+        <div>
+          <h3 id="identity-heading">Immutable registry identity</h3>
+          <p><strong>Coordinate</strong><br><code data-coordinate="${htmlEscape(coordinate)}">${breakableHtml(coordinate)}</code></p>
+        </div>
+        <div class="verify-result">
+          <strong>${htmlEscape(digestLabel)}</strong><br>
+          <code data-digest="${htmlEscape(digest)}">${breakableHtml(digest)}</code>
+        </div>
+      </section>
       <dl class="fact-grid">
         <div><dt>Publisher</dt><dd>${htmlEscape(card.publisher)}</dd></div>
+        <div><dt>Artifact id</dt><dd>${htmlEscape(artifactId)}</dd></div>
         <div><dt>Version</dt><dd>${htmlEscape(card.version || 'Not versioned')}</dd></div>
+        <div><dt>Lifecycle</dt><dd${lifecycleReason ? ` title="${htmlEscape(lifecycleReason)}"` : ''}>${htmlEscape(lifecycle)}</dd></div>
         <div><dt>License</dt><dd>${htmlEscape(card.license || 'Not declared')}</dd></div>
       </dl>
+      <section class="verify-panel" aria-labelledby="preview-heading">
+        <div>
+          <h3 id="preview-heading">${htmlEscape(preview.title)}</h3>
+          <p>${htmlEscape(preview.copy)}</p>
+        </div>
+        ${previewItems ? `<div class="tag-list">${previewItems}</div>` : ''}
+      </section>
       <div class="detail-actions">
-        <a class="button button-primary" href="${htmlEscape(downloadUrl)}" download>Download artifact</a>
-        <a class="button button-secondary" href="${htmlEscape(appUrl)}">Open in Exchange</a>
+        <a class="button button-primary" href="${htmlEscape(appUrl)}">Inspect &amp; verify</a>
+        <a class="button button-secondary" href="${htmlEscape(downloadHref)}" download>Download artifact</a>
+        ${remixUrl ? `<a class="button button-secondary" href="${htmlEscape(remixUrl)}">Remix in Studio</a>` : ''}
+        <a class="button button-quiet" href="${htmlEscape(shareGuideUrl)}">Share or publish via PR</a>
       </div>
     </article>
   </main>
@@ -394,6 +534,9 @@ function decorateEntry(type, rawEntry, outputRoot, registryRoot, siteUrl) {
   const entry = structuredClone(rawEntry)
   const path = boundRegistryPath(entry, type)
   const source = assertNoSymlinkPath(registryRoot, path)
+  const artifact = type === 'workflow' || type === 'agent-graph'
+    ? readJsonFile(source, path)
+    : null
   const outputPath = join(outputRoot, 'data', 'artifacts', ...path.split('/'))
   const copied = copyFileChecked(source, outputPath)
   const id = text(entry.id, type)
@@ -405,7 +548,7 @@ function decorateEntry(type, rawEntry, outputRoot, registryRoot, siteUrl) {
     bytes: copied.bytes,
     sha256: copied.sha256,
   }
-  const page = renderDetailPage({ type, entry, siteUrl })
+  const page = renderDetailPage({ type, entry, siteUrl, artifact })
   writeBytes(join(outputRoot, 'artifacts', type, slug, 'index.html'), Buffer.from(page))
   return entry
 }

@@ -1,17 +1,20 @@
 ---
-name: Feature request / spec proposal
-about: Propose a change to the standard, a new capability, or tooling
+name: Tooling or UX feature request
+about: Improve the CLI, Exchange, Studio, documentation, or contributor experience
 title: ""
 labels: enhancement
 ---
+
+> For a normative spec, schema, trust, wire-format, or registry-policy change, use the
+> **ACX standard proposal** issue form instead.
 
 **Problem / use case**
 <!-- what should be possible that isn't -->
 
 **Proposal**
-<!-- for spec changes: which section/schema; keep it additive + versioned where possible -->
+<!-- what should the implementation or user experience do? -->
 
 **Compatibility**
-<!-- effect on existing cartridges, signatures, and conformance -->
+<!-- effect on existing commands, artifacts, links, and contributor workflows -->
 
 **Alternatives considered**

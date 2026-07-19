@@ -6,7 +6,7 @@
 > staffed later by role, proven level, capability, and stack. An ACX Agent Graph is a signed
 > `acx.agent-graph/1` information architecture that declares context ownership, direction, reporting,
 > and convergence across loops without embedding knowledge content or granting runtime authority.
-> Requires Node >= 22.
+> Requires Node >= 22.5.0.
 
 ## Install & use (for agents)
 - Current source checkout: `node --experimental-sqlite src/cli.mjs <cmd>`.

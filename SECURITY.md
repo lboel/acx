@@ -9,7 +9,18 @@ Use GitHub's **private vulnerability reporting** (Security → *Report a vulnera
 or open a minimal private report. Please do **not** file a public issue for a security problem.
 
 Include: the affected component (spec, `src/`, `platform/`, `tools/`, `registry/`), a reproduction, and the
-impact. We aim to acknowledge within a few days.
+impact. We aim to acknowledge a private report within **five business days**.
+
+If GitHub's private reporting form is unavailable, open a public issue containing only the sentence that
+you need a private security contact; include no vulnerability detail, exploit, affected path, or secret.
+A maintainer will establish a private channel.
+
+## Supported versions
+
+| Version | Security support |
+| --- | --- |
+| Latest `0.1.x` release | Supported |
+| Older public-draft snapshots and untagged builds | Best effort; reproduce against the latest release |
 
 ## Scope — what we care about most
 

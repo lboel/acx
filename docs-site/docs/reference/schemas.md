@@ -1,6 +1,12 @@
 # JSON schemas & media types
 
-The consolidated index of every normative JSON Schema in the Agent Cartridge standard (SPEC §13) and the RFC 6838 vendor-tree media types that name each artifact on the wire.
+The consolidated index of every normative JSON Schema in the Agent Cartridge standard (SPEC §13) and the
+provisional RFC 6838 vendor-tree media names used for each artifact on the wire.
+
+!!! warning "Provisional media names"
+    The `application/vnd.acx.*` names are part of the interoperable ACX public draft but are not yet
+    IANA-registered. Registration or migration follows the public
+    [governance process](governance.md); the project does not imply registry status.
 
 All schemas use [JSON Schema **draft 2020-12**](https://json-schema.org/draft/2020-12/schema). The `$id`
 is the stable, canonical identifier a validator resolves — it is a URL *namespace*, not a fetch target.
@@ -54,7 +60,7 @@ The nested `$defs` are the reusable sub-schemas the standard reuses across the e
 | ACX Registry Status Ledger | `schemaVersion`, `updatedAt`, `entries` | `identity`, `statusEntry` |
 
 !!! tip "Validate locally"
-    The schemas are plain files — point any draft-2020-12 validator at them. The reference implementation is zero-dependency (Node ≥ 22 `node:sqlite` + `node:crypto`); the test suite asserts real artifacts against these schemas, e.g. *"§8 harness-requirements manifest matches its schema (requiredTools, no forbidden keys)"* and *"§7.6 stored memory payload carries schema-required zone + artifactFingerprint"* (see [Proofs](../proofs.md)).
+    The schemas are plain files — point any draft-2020-12 validator at them. The reference implementation is zero-dependency (Node ≥ 22.5.0 `node:sqlite` + `node:crypto`); the test suite asserts real artifacts against these schemas, e.g. *"§8 harness-requirements manifest matches its schema (requiredTools, no forbidden keys)"* and *"§7.6 stored memory payload carries schema-required zone + artifactFingerprint"* (see [Proofs](../proofs.md)).
 
 ## Media-type registry
 

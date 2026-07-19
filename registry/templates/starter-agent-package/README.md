@@ -64,7 +64,7 @@ default.
 
 ## Export
 
-From the repository root (Node >= 22):
+From the repository root (Node >= 22.5.0):
 
 ```bash
 node --experimental-sqlite src/cli.mjs export registry/templates/starter-agent-package my-agent.acx --publisher io.github.you

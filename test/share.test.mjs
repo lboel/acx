@@ -164,6 +164,12 @@ test('share agent graph preserves signed bytes and explains its non-executing sc
   const body = sharePullRequestBody(plan)
   assert.match(body, /\[ \] No task payloads or private knowledge contents are embedded/)
   assert.match(body, /No secret-like metadata or local home path was detected/)
+  assert.match(body, /### Lineage/)
+  assert.match(body, /No signed parents are declared/)
+  assert.match(body, /### Exact workflow dependencies/)
+  assert.match(body, /io\.github\.lboel\/research-council@1\.0\.0/)
+  assert.match(body, /sha256:[0-9a-f]{64}/)
+  assert.match(body, /Share disposition: registry content would change/)
   assert.match(body, /grants no tools or runtime permissions/)
 })
 
@@ -247,6 +253,7 @@ test('share preparation is idempotent and registry policy rejects private keys',
   const second = prepareWorkflowShare(WORKFLOW, { registryRoot: root })
   assert.equal(first.changed, true)
   assert.equal(second.changed, false)
+  assert.match(sharePullRequestBody(second), /no filesystem change; compare the coordinate with the git base/)
 
   const safe = join(root, 'notes.md')
   writeFileSync(safe, 'Public key material is allowed when it is explicitly public.')

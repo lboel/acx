@@ -1,0 +1,54 @@
+# Trusted-base registry gate.
+#
+# pull_request jobs execute workflow and verifier code from the proposal. This
+# companion pull_request_target job instead checks out the exact base commit,
+# fetches the PR tree as inert data, and runs only the already-reviewed base
+# checker/verifier against it. It never executes a file from the PR and has a
+# read-only token.
+name: Trusted Registry
+
+on:
+  pull_request_target:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  trusted-registry:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout trusted base verifier
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Node 22
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: "22"
+
+      - name: Fetch the inert pull-request tree
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          git fetch --no-tags --depth=1 origin "pull/${PR_NUMBER}/head"
+          test "$(git rev-parse FETCH_HEAD)" = "${EXPECTED_HEAD}"
+          git worktree add --detach "${RUNNER_TEMP}/acx-pr" "${EXPECTED_HEAD}"
+
+      - name: Enforce immutable accepted coordinates with trusted code
+        run: |
+          node tools/check-registry-immutability.mjs \
+            --base "${{ github.event.pull_request.base.sha }}" \
+            --head "${{ github.event.pull_request.head.sha }}"
+
+      - name: Verify proposed registry bytes with trusted code
+        run: |
+          node --experimental-sqlite tools/build-registry-index.mjs \
+            --registry "${RUNNER_TEMP}/acx-pr/registry" \
+            --quiet
+          git -C "${RUNNER_TEMP}/acx-pr" diff --exit-code -- registry/index.json

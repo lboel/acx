@@ -48,6 +48,7 @@ nav = [
     "reference/cli.md",
     "reference/conformance.md",
     "reference/schemas.md",
+    "reference/governance.md",
   ] },
   { "Proofs" = "proofs.md" },
 ]

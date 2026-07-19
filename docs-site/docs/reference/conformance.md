@@ -57,7 +57,7 @@ assert.
 
 ## The five host-side clauses, stated plainly
 
-These are **normative** requirements a conformant *host* must satisfy. The reference implementation stops at the seam by design — it is a zero-dependency producer/verifier (Node ≥ 22 `node:sqlite` + `node:crypto`), not a running harness or a registry client.
+These are **normative** requirements a conformant *host* must satisfy. The reference implementation stops at the seam by design — it is a zero-dependency producer/verifier (Node ≥ 22.5.0 `node:sqlite` + `node:crypto`), not a running harness or a registry client.
 
 === "OCI push (item 14)"
 

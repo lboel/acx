@@ -17,13 +17,16 @@
     "acx": "src/cli.mjs"
   },
   "engines": {
-    "node": ">=22"
+    "node": ">=22.5.0"
   },
   "files": [
     "src/",
     "schemas/",
     "skills/",
-    "examples/sample-agent-package/",
+    "examples/sample-agent-package/*.md",
+    "examples/sample-agent-package/*.json",
+    "examples/sample-agent-package/*.yaml",
+    "examples/sample-agent-package/checksum.sha256",
     "examples/product-delivery.agent-graph.json",
     "platform/README.md",
     "platform/static/",
@@ -35,13 +38,21 @@
     "registry/graphs/",
     "registry/templates/",
     "tools/check-registry-immutability.mjs",
+    "tools/check-static-site.mjs",
     "tools/build-registry-index.mjs",
     "tools/build-static-exchange.mjs",
+    "tools/materialize-lance.mjs",
+    "tools/lance/README.md",
+    "tools/lance/materialize.py",
     "SPEC.md",
     "AGENTS.md",
     "README.md",
+    "CHANGELOG.md",
+    "GOVERNANCE.md",
     "CONTRIBUTING.md",
     "SECURITY.md",
+    "CODE_OF_CONDUCT.md",
+    "CITATION.cff",
     "LICENSE",
     "NOTICE"
   ],
@@ -49,9 +60,12 @@
     "test": "node --experimental-sqlite --test 'test/*.test.mjs'",
     "test:workflow": "node --experimental-sqlite --test test/workflow.test.mjs",
     "smoke": "node --experimental-sqlite scripts/smoke.mjs",
+    "smoke:package": "node scripts/smoke-package.mjs",
     "acx": "node --experimental-sqlite src/cli.mjs",
     "build:registry": "node --experimental-sqlite tools/build-registry-index.mjs",
     "build:exchange": "npm run build:registry && node --experimental-sqlite tools/build-static-exchange.mjs",
+    "build:docs-social": "node tools/inject-docs-social.mjs --site docs-site/site --site-url https://lboel.github.io/acx/",
+    "check:site": "node tools/check-static-site.mjs --site docs-site/site --base-path /acx/",
     "build": "npm run build:exchange"
   },
   "publishConfig": {

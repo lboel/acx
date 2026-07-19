@@ -386,12 +386,29 @@ The signed \`.acx\` artifact is authoritative; generated discovery metadata is r
   }
   if (plan.type === 'agent-graph') {
     const card = plan.card
+    const lineage = card.lineage.length
+      ? card.lineage.map((parent) => {
+          const coordinate = `${cleanInline(parent.artifactType)}:${cleanInline(parent.publisherId)}/${cleanInline(parent.id)}@${cleanInline(parent.version)}`
+          return `- \`${cleanInline(parent.relation)}\` from \`${coordinate}\` — \`${cleanInline(parent.digest)}\`${parent.source ? ` — source \`${cleanInline(parent.source)}\`` : ''}`
+        }).join('\n')
+      : 'No signed parents are declared; this artifact is not marked as a remix.'
+    const dependencies = card.loops
+      .filter((loop) => loop.kind === 'acx-workflow')
+      .map((loop) => `- \`${cleanInline(loop.id)}\`: \`${cleanInline(loop.workflowPublisherId)}/${cleanInline(loop.workflowId)}@${cleanInline(loop.workflowVersion)}\` — \`${cleanInline(loop.digest)}\``)
+      .join('\n') || 'No ACX workflow dependencies are declared.'
+    const disposition = cleanInline(
+      plan.publicationDisposition
+      || (plan.changed
+        ? 'registry content would change'
+        : 'no filesystem change; compare the coordinate with the git base before opening a PR'),
+    )
     return `## Share ACX Agent Graph: ${cleanInline(card.name)}
 
 - Graph id: \`${cleanInline(card.id)}\`
 - Publisher: \`${cleanInline(plan.publisher)}\`
 - Version: \`${cleanInline(card.version)}\`
 - Graph digest: \`${cleanInline(card.digest)}\`
+- Share disposition: ${disposition}
 - Actors: ${card.actorCount}
 - Knowledge modules: ${card.knowledgeCount}
 - Communication routes: ${card.routeCount}
@@ -410,16 +427,37 @@ The signed \`.acx\` artifact is authoritative; generated discovery metadata is r
 - [ ] Registry index regenerated
 - [ ] Conformance suite passes
 
+### Lineage
+
+${lineage}
+
+### Exact workflow dependencies
+
+${dependencies}
+
 The signed \`.agent-graph.json\` artifact is authoritative. It describes communication, reporting, knowledge stewardship, and loop convergence; it grants no tools or runtime permissions.
 `
   }
   const card = plan.card
+  const lineage = card.lineage.length
+    ? card.lineage.map((parent) => {
+        const coordinate = `${cleanInline(parent.artifactType)}:${cleanInline(parent.publisherId)}/${cleanInline(parent.id)}@${cleanInline(parent.version)}`
+        return `- \`${cleanInline(parent.relation)}\` from \`${coordinate}\` — \`${cleanInline(parent.digest)}\`${parent.source ? ` — source \`${cleanInline(parent.source)}\`` : ''}`
+      }).join('\n')
+    : 'No signed parents are declared; this artifact is not marked as a remix.'
+  const disposition = cleanInline(
+    plan.publicationDisposition
+    || (plan.changed
+      ? 'registry content would change'
+      : 'no filesystem change; compare the coordinate with the git base before opening a PR'),
+  )
   return `## Share ACX workflow: ${cleanInline(card.name)}
 
 - Workflow id: \`${cleanInline(card.id)}\`
 - Publisher: \`${cleanInline(plan.publisher)}\`
 - Version: \`${cleanInline(card.version)}\`
 - Workflow digest: \`${cleanInline(card.digest)}\`
+- Share disposition: ${disposition}
 - Team slots: ${card.participantCount}
 - Nodes: ${card.nodeCount}
 - Tags: ${card.tags.map((tag) => `\`${cleanInline(tag)}\``).join(', ') || 'none'}
@@ -432,6 +470,10 @@ The signed \`.agent-graph.json\` artifact is authoritative. It describes communi
 - [x] Private key is not included
 - [ ] Registry index regenerated
 - [ ] Conformance suite passes
+
+### Lineage
+
+${lineage}
 
 The signed \`.cal.json\` artifact is authoritative; registry metadata is review convenience only.
 `

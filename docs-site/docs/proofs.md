@@ -2,7 +2,7 @@
 
 Every headline claim on this site is backed by a runnable proof. The assertions below are representative;
 the suite grows with the standard, so the command output is the source for the current count. Reproduce it
-yourself — the whole thing is zero-dependency and runs on Node ≥ 22.
+yourself — the whole thing is zero-dependency and runs on Node ≥ 22.5.0.
 
 !!! tip "Reproduce it"
     ```bash

@@ -17,66 +17,40 @@ name: Registry
 on:
   push:
     branches: [main]
-    paths:
-      - "registry/**"
-      - "tools/**"
-      - "src/cal.mjs"
-      - "src/workflow.mjs"
-      - "src/agent-graph.mjs"
-      - "src/level/resolution.mjs"
-      - "src/packagespec.mjs"
-      - "src/registry-status.mjs"
-      - "src/share.mjs"
-      - "src/sign.mjs"
-      - "src/trust.mjs"
-      - "schemas/cal*.json"
-      - "schemas/agent-graph.schema.json"
-      - "schemas/registry-*.json"
-      - ".github/workflows/registry.yml"
   pull_request:
     branches: [main]
-    paths:
-      - "registry/**"
-      - "tools/**"
-      - "src/cal.mjs"
-      - "src/workflow.mjs"
-      - "src/agent-graph.mjs"
-      - "src/level/resolution.mjs"
-      - "src/packagespec.mjs"
-      - "src/registry-status.mjs"
-      - "src/share.mjs"
-      - "src/sign.mjs"
-      - "src/trust.mjs"
-      - "schemas/cal*.json"
-      - "schemas/agent-graph.schema.json"
-      - "schemas/registry-*.json"
-      - ".github/workflows/registry.yml"
+
+# This workflow intentionally has no path filter. `verify-and-index` is a
+# required main-branch check, and GitHub leaves required checks pending when a
+# whole workflow is skipped by path filtering. Running the small deterministic
+# gate for every PR keeps both branch protection and registry immutability
+# fail-closed.
 
 permissions:
   contents: read
 
-# Keep registry verification runs serialized for an easy-to-audit gate history.
-concurrency:
-  group: registry-index
-  cancel-in-progress: false
-
 jobs:
   verify-and-index:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
         with:
           fetch-depth: 0
 
       - name: Set up Node 22
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: 22
 
       - name: Require append-only immutable artifact coordinates
         if: github.event_name == 'pull_request'
         run: node tools/check-registry-immutability.mjs --base "${{ github.event.pull_request.base.sha }}"
+
+      - name: Defend append-only history on direct main pushes
+        if: github.event_name == 'push' && github.event.before != '0000000000000000000000000000000000000000'
+        run: node tools/check-registry-immutability.mjs --base "${{ github.event.before }}"
 
       # THE GATE: verifies every cartridge, workflow, and Agent Graph, then
       # regenerates deterministic registry/index.json. Non-zero exits fail.

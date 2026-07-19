@@ -4,6 +4,10 @@ Thanks for helping build an open, vendor-neutral standard. Contributions of all 
 spec clarifications, reference-implementation fixes, new conformance tests, docs, and cartridges/templates
 for the registry.
 
+Normative changes follow the public proposal and decision process in
+[`GOVERNANCE.md`](./GOVERNANCE.md). Use the dedicated **ACX standard proposal** issue form for changes to
+wire behavior, schemas, trust semantics, or registry policy.
+
 ## Ground rules
 
 - **Keep the core dependency-free.** `src/` runs on Node's builtin `node:sqlite` + `node:crypto` only.
@@ -14,10 +18,12 @@ for the registry.
   trademarked franchise. Use cartridge / exchange / roster / share / remix.
 - **Never commit private keys.** `acx export` writes signing keys *outside* the cartridge; they are
   git-ignored.
+- **Contribute only work you can license.** By contributing, you confirm that you have the right to
+  submit the work under this repository's Apache-2.0 license.
 
 ## Develop
 
-Requires **Node ≥ 22**. Everything runs through `node --experimental-sqlite`.
+Requires **Node ≥ 22.5.0**. Everything runs through `node --experimental-sqlite`.
 
 ```bash
 npm test                                              # conformance suite

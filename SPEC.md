@@ -2,7 +2,8 @@
 
 **Version 0.1 (public draft) — Editor's canonical assembly**
 **Status:** Public Draft. Normative where marked with RFC 2119 keywords.
-**Media type family:** `application/vnd.acx.*` (RFC 6838 vendor tree)
+**Provisional media type family:** `application/vnd.acx.*` (RFC 6838 vendor-tree names; not yet
+IANA-registered)
 
 ---
 
@@ -16,7 +17,10 @@ The standard is governed by five design goals:
 2. **Codebase-agnostic base, but field-learning.** Every memory artifact is partitioned into a **TRANSFERABLE** tier (generalizable expertise, signed, shareable) and a **FIELD-LEARNED** tier (codebase-specific, pseudonymously namespaced, quarantined). An agent keeps learning in the field without contaminating or invalidating its shareable core.
 3. **Shareable and remixable.** The immutable **ROM zone** is the shareable core; the mutable **SAVE zone** holds local learning. A `strip-to-ROM` re-export proves, by hash equality, that field learning never mutated the core.
 4. **Provable level.** An agent's level is never self-asserted. It is a W3C Verifiable Credential 2.0 embedding an Open Badges 3.0 achievement, issued by an independent verifier only after held-out re-execution, TrueSkill σ-gated, revocable, and bound to the ROM digest.
-5. **Open envelope, valuable contents.** The container format, schemas, and descriptive layer are 100% open and unencumbered. Signed level attestations, verified capability evidence, and field-learned memory remain revocable, identity-bound assets inside that open envelope. Commercial terms, payments, licensing enforcement, and entitlements are deliberately outside the ACX core.
+5. **Open envelope, valuable contents.** The container format, schemas, descriptive layer, and reference
+   implementation are published under Apache-2.0. Signed level attestations, verified capability evidence,
+   and field-learned memory remain revocable, identity-bound assets inside that open envelope. Commercial
+   terms, payments, licensing enforcement, and entitlements are deliberately outside the ACX core.
 
 The cartridge deliberately reuses AGENTIBUS' proven hash-of-hashes signing discipline, two-key idempotent memory merge, `MissionRule`/`OperatorCommandReport` contracts, `ResourceLimits`, `SkillDomain`/`CareerTier` enums, and the self-describing embedding-engine tag, wrapping them in open standards (SQLite, sqlar, sqlite-vec, OCI, DSSE, in-toto, VC 2.0, Open Badges 3.0, A2A, purl, agentskills.io, MCP) rather than reinventing them.
 
@@ -618,7 +622,16 @@ A conformant Agent Cartridge and its tooling **MUST**:
 | Registry Discovery | ACX Registry Index | `https://acx.dev/schema/registry-index.v1.json` |
 | Registry Lifecycle | ACX Registry Status Ledger | `https://acx.dev/schema/registry-status.v1.json` |
 
-All schemas are JSON Schema draft 2020-12. Media-type registry (RFC 6838 vendor tree): `application/vnd.acx.cartridge`, `application/vnd.acx.cartridge.v1`, `application/vnd.acx.cartridge.layer.v1+sqlite`, `application/vnd.acx.rom-manifest.v1+json`, `application/vnd.acx.workflow.v1+json`, `application/vnd.acx.agent-graph.v1+json`, `application/vnd.acx.registry-index.v1+json`, `application/vnd.acx.registry-status.v1+json`, `application/vnd.in-toto+json`, `application/vnd.dsse.envelope.v1+json`, `application/vnd.acx.trust-registry.v1`, `application/vnd.acx.harness-requirements.v1+json`, `application/vnd.acx.harness-compliance.v1+json`, `application/vnd.acx.loop-context-policy.v1+json`, `application/vnd.acx.level-attestation.v1`, `application/vnd.acx.benchmark.v1`, `application/vc`.
+All schemas are JSON Schema draft 2020-12. Provisional media-type catalog (RFC 6838 vendor-tree names;
+the `application/vnd.acx.*` entries are not yet IANA-registered):
+`application/vnd.acx.cartridge`, `application/vnd.acx.cartridge.v1`,
+`application/vnd.acx.cartridge.layer.v1+sqlite`, `application/vnd.acx.rom-manifest.v1+json`,
+`application/vnd.acx.workflow.v1+json`, `application/vnd.acx.agent-graph.v1+json`,
+`application/vnd.acx.registry-index.v1+json`, `application/vnd.acx.registry-status.v1+json`,
+`application/vnd.in-toto+json`, `application/vnd.dsse.envelope.v1+json`,
+`application/vnd.acx.trust-registry.v1`, `application/vnd.acx.harness-requirements.v1+json`,
+`application/vnd.acx.harness-compliance.v1+json`, `application/vnd.acx.loop-context-policy.v1+json`,
+`application/vnd.acx.level-attestation.v1`, `application/vnd.acx.benchmark.v1`, `application/vc`.
 
 ### Resolved contradictions (summary)
 

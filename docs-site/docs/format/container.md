@@ -298,7 +298,7 @@ The CLI reads the same tables described here. Proof 5's `inspect` on a freshly e
     );
     ```
 
-    The zero-dependency reference implementation (Node ≥ 22 builtin `node:sqlite`) **cannot load the sqlite-vec extension**, so it uses a plain, derived `vectors` table instead (see the constant comment in `src/container.mjs`).
+    The zero-dependency reference implementation (Node ≥ 22.5.0 builtin `node:sqlite`) **cannot load the sqlite-vec extension**, so it uses a plain, derived `vectors` table instead (see the constant comment in `src/container.mjs`).
 
 This is safe *by construction*, not by luck: the spec (§3.5, §7.6) declares `vectors` **derived, never signed, and always re-indexed on import**, so the concrete storage engine is a local materialization detail that cannot affect ROM integrity. The `embedding float[384]` dimension is likewise a **template** — the real dimension comes from `acx.embedding_engine.dim` (here `128`, engine `local-hash-128`), not the literal in the DDL.
 

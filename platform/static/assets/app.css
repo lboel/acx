@@ -576,6 +576,7 @@ h1 {
 .detail-dialog {
   width: min(760px, calc(100% - 1.5rem));
   max-height: min(860px, calc(100dvh - 1.5rem));
+  overflow-x: hidden;
   padding: 0;
   color: var(--ink);
   border: 0;
@@ -590,6 +591,7 @@ h1 {
 }
 
 .dialog-shell {
+  max-width: 100%;
   min-height: 300px;
   position: relative;
 }
@@ -616,7 +618,11 @@ h1 {
   background: var(--accent, var(--teal));
 }
 
-.detail-content { padding: clamp(1.5rem, 5vw, 3.25rem); }
+.detail-content {
+  min-width: 0;
+  max-width: 100%;
+  padding: clamp(1.5rem, 5vw, 3.25rem);
+}
 
 .detail-content h2 {
   max-width: 18ch;
@@ -669,11 +675,10 @@ h1 {
 
 .fact-grid dd {
   margin: 0;
-  overflow: hidden;
   font-size: .78rem;
   font-weight: 700;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .tag-list {
@@ -686,13 +691,14 @@ h1 {
   margin: 1.5rem 0;
   padding: 1rem;
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 22rem);
   gap: 1rem;
   border: 1px solid var(--line);
   border-radius: 12px;
   background: var(--surface-2);
 }
 
+.verify-panel > * { min-width: 0; }
 .verify-panel h3 { margin: 0 0 .35rem; font-size: .88rem; }
 .verify-panel p { margin: 0; color: var(--ink-soft); font-size: .76rem; line-height: 1.5; }
 
@@ -701,7 +707,9 @@ h1 {
   align-self: center;
   color: var(--ink-soft);
   font-size: .73rem;
-  text-align: right;
+  overflow-wrap: anywhere;
+  text-align: left;
+  word-break: break-word;
 }
 
 .verify-result[data-state="valid"] { color: var(--teal-dark); }
@@ -824,7 +832,7 @@ footer strong { color: white; }
   .artifact-card { min-height: 280px; }
   .fact-grid { grid-template-columns: 1fr 1fr; }
   .verify-panel { grid-template-columns: 1fr; }
-  .verify-result { max-width: none; text-align: left; }
+  .verify-result { max-width: none; }
   .detail-actions .button { width: 100%; }
   footer { display: block; }
 }

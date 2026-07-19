@@ -1,0 +1,70 @@
+name: ACX standard proposal
+description: Propose an additive or breaking change to the normative ACX contract
+title: "[Spec]: "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form for normative changes to `SPEC.md`, a schema, wire behavior, trust semantics, or registry policy. Tool and UX ideas belong in the feature-request template.
+  - type: dropdown
+    id: change-class
+    attributes:
+      label: Change class
+      options:
+        - Additive normative
+        - Breaking normative
+        - Editorial clarification with interoperability impact
+    validations:
+      required: true
+  - type: input
+    id: affected-contracts
+    attributes:
+      label: Affected contracts
+      description: Spec sections, schema identifiers, media profiles, or wire versions.
+      placeholder: "SPEC §16; acx.agent-graph/1"
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Interoperability problem
+      description: Describe the concrete producer/consumer or verification problem.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed contract
+      description: State the smallest machine-checkable behavior you want ACX to standardize.
+    validations:
+      required: true
+  - type: textarea
+    id: compatibility
+    attributes:
+      label: Compatibility and migration
+      description: Explain old-reader/new-reader behavior, version changes, and migration.
+    validations:
+      required: true
+  - type: textarea
+    id: security
+    attributes:
+      label: Security, privacy, and trust impact
+      description: Include signing, authority, namespace, private-knowledge, and execution implications.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives and prior art
+      description: Include the option of leaving the behavior host-specific.
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Proposal checklist
+      options:
+        - label: I can update or help update the spec, schemas, conformance tests, examples, and docs together.
+          required: true
+        - label: This issue contains no credential, private key, private knowledge, or embargoed vulnerability detail.
+          required: true

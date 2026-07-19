@@ -11,7 +11,7 @@ information architecture in `.agent-graph.json`.
 
 ## Install
 
-- Requires **Node ≥ 22**. Every command runs through the bin shebang `node --experimental-sqlite`, so you
+- Requires **Node ≥ 22.5.0**. Every command runs through the bin shebang `node --experimental-sqlite`, so you
   do not pass that flag yourself.
 - From this source checkout: `node --experimental-sqlite src/cli.mjs <command> [args]`
 - After the npm release: `npx agent-cartridge@latest <command> [args]`
@@ -22,6 +22,7 @@ information architecture in `.agent-graph.json`.
 
 | Command | Purpose | Exit |
 |---|---|---|
+| `acx --version` | Print the CLI release, public-draft spec revision, and container wire version. | 0 |
 | `acx ls [dir]` | Roster overview of cartridges in a directory (default `platform/catalog`). | 0 |
 | `acx inspect <file.acx>` | Print meta, skills, capabilities, memory, attestations. | 0 |
 | `acx verify <file.acx> [--registry <trust.json>]` | Trust taxonomy (`local/trusted/portable/legacy/tampered`). | non-0 if tampered/invalid |
@@ -46,9 +47,9 @@ information architecture in `.agent-graph.json`.
 | `acx strip <file.acx> <out.acx>` | Remove SAVE zone; print the ROM hash-equality proof. | non-0 if mismatch |
 | `acx level <file.acx>` | Run the demo benchmark with an independent verifier and issue a level credential. | 0 |
 | `acx builder [--port 8799]` | Serve the same static Studio shipped with the Exchange. It has no server-side writes; exports are unsigned local downloads. | (serves) |
-| `acx share agent <file.acx> [--slug <slug>] [--dry-run]` | Verify and prepare a versioned agent plus discovery card under `registry/`. | non-0 if unsafe |
-| `acx share workflow <file.cal.json> [--dry-run]` | Verify and prepare a signed workflow under `registry/cals/`. | non-0 if unsafe |
-| `acx share graph <file.agent-graph.json> [--dry-run]` | Verify and prepare a signed Agent Graph under `registry/graphs/`. | non-0 if unsafe |
+| `acx share agent <file.acx> [--slug <slug>] [--registry <dir>] [--dry-run]` | Verify and prepare a versioned agent plus discovery card under a checked-out registry. | non-0 if unsafe |
+| `acx share workflow <file.cal.json> [--registry <dir>] [--dry-run]` | Verify and prepare a signed workflow under a checked-out registry. | non-0 if unsafe |
+| `acx share graph <file.agent-graph.json> [--registry <dir>] [--dry-run]` | Verify and prepare a signed Agent Graph under a checked-out registry. | non-0 if unsafe |
 
 ## Decision tree
 
@@ -115,4 +116,4 @@ for a machine-readable index). Normative spec: `SPEC.md`.
 - Anything added to cartridge ROM must be written before `finalizeAndSign`; field-learned data stays in
   SAVE and is never signed.
 - Regenerate proofs/examples after format changes, and run `npm test`, the smoke proof, the level proof,
-  `node --experimental-sqlite tools/build-registry-index.mjs`, `npm pack --dry-run`, and the docs build.
+  `node --experimental-sqlite tools/build-registry-index.mjs`, `npm run smoke:package`, and the docs build.

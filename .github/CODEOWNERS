@@ -3,3 +3,9 @@
 /src/ @lboel
 /registry/ @lboel
 /skills/ @lboel
+/.github/workflows/ @lboel
+/package.json @lboel
+/GOVERNANCE.md @lboel
+/SECURITY.md @lboel
+/CITATION.cff @lboel
+/docs-site/ @lboel

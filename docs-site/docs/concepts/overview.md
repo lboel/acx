@@ -82,7 +82,7 @@ The standard is governed by five goals (SPEC §1):
 
 4. **Provable level.** An agent's level is a **W3C Verifiable Credential 2.0** embedding an **Open Badges 3.0** achievement, issued by an independent verifier only after held-out re-execution, TrueSkill σ-gated (`sigma < 1.5`, `gamesPlayed >= 30`, conservative rating `R = mu - 3*sigma`), bound to the ROM digest, and revocable.
 5. **Open envelope, valuable contents.** The container format, schemas, and descriptive layer are 100%
-   open and unencumbered. Signed level attestations, verified capability evidence, and field-learned
+   open under Apache-2.0. Signed level attestations, verified capability evidence, and field-learned
    memory remain revocable, identity-bound assets **inside a fully open envelope**. Payments,
    entitlements, and licensing enforcement are outside ACX.
 
@@ -125,7 +125,7 @@ And beyond one cartridge:
 - **[Distribution](../lifecycle/distribution.md)** — the `.acx` file as one layer in an OCI image manifest (`artifactType application/vnd.acx.cartridge.v1`), verifiable with stock cosign/oras (SPEC §11).
 
 !!! note "About the reference implementation"
-    The reference implementation is **zero-dependency** — Node ≥ 22's built-in `node:sqlite` and
+    The reference implementation is **zero-dependency** — Node ≥ 22.5.0's built-in `node:sqlite` and
     `node:crypto` — and runs with `node --experimental-sqlite`. Its cartridge crypto, Agent Graph and
     workflow signing, structural bounds, safe sharing path, σ-gating, and credential machinery are
     exercised by the current suite; see [Proofs](../proofs.md). The benchmark's reference solver is

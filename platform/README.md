@@ -14,7 +14,7 @@ The public sharing loop is:
 
 ## Build the static Exchange
 
-Requires Node 22 or newer.
+Requires Node 22.5.0 or newer.
 
 ```bash
 npm run build:registry

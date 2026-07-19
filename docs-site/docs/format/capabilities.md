@@ -210,7 +210,7 @@ Because the A2A `AgentSkill` type has no proficiency or evidence field, the **fu
 Extension-aware consumers read verified proficiency; plain A2A clients still get discoverable skills. `provider = {organization, url}` comes from the reverse-DNS identity, `version` is the cartridge semver, and `signatures` is a JWS over the card, emitted as camelCase JSON in the well-known `agent-card.json`.
 
 !!! note "Status: specified, host-side"
-    The record model, purl normalization, `taskType` gating, and the verified-via-attestation resolution are all implemented and tested in the zero-dependency reference (Node ≥ 22, `node --experimental-sqlite`). The A2A AgentCard **emission** is specified normatively in SPEC §6.3; it is a host-side integration and is not part of the reference CLI today.
+    The record model, purl normalization, `taskType` gating, and the verified-via-attestation resolution are all implemented and tested in the zero-dependency reference (Node ≥ 22.5.0, `node --experimental-sqlite`). The A2A AgentCard **emission** is specified normatively in SPEC §6.3; it is a host-side integration and is not part of the reference CLI today.
 
 ---
 

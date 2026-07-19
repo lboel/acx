@@ -6,56 +6,32 @@ name: Docs
 on:
   push:
     branches: [main]
-    paths:
-      - "README.md"
-      - "SPEC.md"
-      - "docs-site/**"
-      - "platform/static/**"
-      - "registry/**"
-      - "schemas/**"
-      - "src/**"
-      - "tools/build-registry-index.mjs"
-      - "tools/build-static-exchange.mjs"
-      - ".github/workflows/docs.yml"
   pull_request:
     branches: [main]
-    paths:
-      - "README.md"
-      - "SPEC.md"
-      - "docs-site/**"
-      - "platform/static/**"
-      - "registry/**"
-      - "schemas/**"
-      - "src/**"
-      - "tools/build-registry-index.mjs"
-      - "tools/build-static-exchange.mjs"
-      - ".github/workflows/docs.yml"
   workflow_dispatch:
 
 # Pull requests only build the static site. The deploy job receives its
 # additional Pages permissions only after a push to main or manual dispatch.
+# Building every main commit keeps the published standard synchronized with
+# release/governance/package changes that may not live under docs-site/.
 permissions:
   contents: read
-
-# Serialize deploys; never cancel an in-flight production deploy.
-concurrency:
-  group: pages
-  cancel-in-progress: false
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: "3.12"
 
       - name: Set up Node
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: "22"
 
@@ -63,12 +39,15 @@ jobs:
         run: python -m pip install zensical==0.0.50
 
       - name: Configure Pages
-        if: github.event_name != 'pull_request'
-        uses: actions/configure-pages@v6
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6
 
       - name: Build docs site
         working-directory: docs-site
         run: zensical build
+
+      - name: Add static social previews to documentation pages
+        run: npm run build:docs-social
 
       - name: Verify deterministic registry index
         run: |
@@ -81,16 +60,23 @@ jobs:
             --out docs-site/site/exchange \
             --site-url https://lboel.github.io/acx/exchange/
 
+      - name: Verify generated static links
+        run: npm run check:site
+
       - name: Upload Pages artifact
-        if: github.event_name != 'pull_request'
-        uses: actions/upload-pages-artifact@v5
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5
         with:
           path: docs-site/site
 
   deploy:
     needs: build
-    if: github.event_name != 'pull_request'
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    concurrency:
+      group: pages
+      cancel-in-progress: false
     permissions:
       pages: write
       id-token: write
@@ -100,4 +86,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v5
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5

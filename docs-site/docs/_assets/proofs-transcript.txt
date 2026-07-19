@@ -1,4 +1,8 @@
-########## PROOF 1: full test suite ##########
+PINNED PUBLIC-DRAFT PROOF SNAPSHOT
+This is verbatim output from a reproducible ACX proof run. The suite keeps growing; run `npm test`
+at the checked-out release for the complete live test list and total.
+
+########## PROOF 1: conformance suite snapshot ##########
 > agent-cartridge@0.1.0 test
 > node --experimental-sqlite --test 'test/*.test.mjs'
 

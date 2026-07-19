@@ -158,7 +158,7 @@ A binding counts only when the bound tool's advertised `inputSchema` is **struct
 ## What actually runs today
 
 !!! note "Honesty: the handshake is host-side and specified, not shipped in the reference impl"
-    The manifest is **real, built, signed, and schema-validated** in the zero-dependency reference implementation (Node ≥ 22, `node --experimental-sqlite`). The handshake **runtime** — the live MCP `initialize`, tool binding, and compliance-descriptor emission — is **specified normatively and is host-side**; it is not part of the reference build. Treat the negotiation as a contract every conforming host implements, not as code that executes in this repo.
+    The manifest is **real, built, signed, and schema-validated** in the zero-dependency reference implementation (Node ≥ 22.5.0, `node --experimental-sqlite`). The handshake **runtime** — the live MCP `initialize`, tool binding, and compliance-descriptor emission — is **specified normatively and is host-side**; it is not part of the reference build. Treat the negotiation as a contract every conforming host implements, not as code that executes in this repo.
 
 What the reference implementation does prove is that the manifest is well-formed and tamper-evident. From the proof suite (`docs-site/docs/_assets/proofs-transcript.txt`):
 
