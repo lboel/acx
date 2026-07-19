@@ -27,7 +27,7 @@ Run from the repository root:
 npm test
 npm run smoke
 npm run build:registry
-npm run build:exchange -- --site-url https://acx.dev/exchange/
+npm run build:exchange -- --site-url https://lboel.github.io/acx/exchange/
 git diff --check
 ```
 
@@ -63,7 +63,7 @@ never sufficient evidence.
 - Base: `lboel/acx:main`
 - Head: the submitter's focused share branch
 - Labels when available: `registry` plus `agent`, `workflow`, or `agent-graph`
-- Body: include the deterministic post-merge `https://acx.dev/exchange/artifacts/.../` URL emitted by
+- Body: include the deterministic post-merge `https://lboel.github.io/acx/exchange/artifacts/.../` URL emitted by
   `skills/acx-share-agent/scripts/render-pr-body.mjs`
 
 The registry is PR-only; the static Exchange never accepts uploads. Do not auto-merge submissions. The

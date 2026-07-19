@@ -2,7 +2,7 @@
 site_name = "Agent Cartridge (.acx)"
 site_description = "Explore, verify, remix, and publish portable signed AI agents, bounded workflows, and Agent Graphs on a fully static exchange."
 site_author = "The Agent Cartridge authors"
-site_url = "https://acx.dev/"
+site_url = "https://lboel.github.io/acx/"
 repo_url = "https://github.com/lboel/acx"
 repo_name = "lboel/acx"
 edit_uri = "edit/main/docs-site/docs/"

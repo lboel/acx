@@ -54,7 +54,7 @@ function publicShareUrl(sharePlan) {
     .update(`${artifactType}\0${registryPath}`)
     .digest('hex')
     .slice(0, 8)
-  return `https://acx.dev/exchange/artifacts/${artifactType}/${safeSlug(id)}-${suffix}/`
+  return `https://lboel.github.io/acx/exchange/artifacts/${artifactType}/${safeSlug(id)}-${suffix}/`
 }
 
 const body = sharePullRequestBody(plan).trimEnd()

@@ -8,7 +8,7 @@ _form teams_, and _run workflows_, packed into one `.acx` file and exchangeable 
 `single-file SQLite + LanceDB` · `ed25519 / DSSE signed` · `provable level` ·
 `OCI-distributable` · `zero-dependency reference impl`
 
-[Explore Exchange](https://acx.dev/exchange/) · [Remix in Studio](https://acx.dev/exchange/studio/) · [Documentation](./docs-site) · [Spec](./SPEC.md) · [For AI agents](./AGENTS.md) · [Contributing](./CONTRIBUTING.md) · License: Apache-2.0
+[Explore Exchange](https://lboel.github.io/acx/exchange/) · [Remix in Studio](https://lboel.github.io/acx/exchange/studio/) · [Documentation](https://lboel.github.io/acx/) · [Spec](./SPEC.md) · [For AI agents](./AGENTS.md) · [Contributing](./CONTRIBUTING.md) · License: Apache-2.0
 
 <sub>The standard is **ACX** (Agent Cartridge eXchange): a cartridge file is `.acx`, the CLI is `acx`, media types are `application/vnd.acx.*`. It pairs with **AGENTIBUS**, the studio that produces and levels up ACX cartridges.</sub>
 
@@ -240,8 +240,8 @@ integrity:
 - **Static Exchange** (`platform/static/`) — a dependency-free discover → inspect → verify → download →
   remix → export → PR surface, built entirely as HTML, CSS, JavaScript, JSON, and downloadable artifacts.
 
-[Explore the Exchange](https://acx.dev/exchange/), [remix locally in Studio](https://acx.dev/exchange/studio/),
-or follow the [Share ACX](https://acx.dev/share/) PR path. The static browser verifies signed workflow and
+[Explore the Exchange](https://lboel.github.io/acx/exchange/), [remix locally in Studio](https://lboel.github.io/acx/exchange/studio/),
+or follow the [Share ACX](https://lboel.github.io/acx/share/) PR path. The static browser verifies signed workflow and
 Agent Graph JSON; download a cartridge and run `acx verify` plus `acx spec` locally before loading it.
 
 Published agents, workflows, and Agent Graphs use the immutable identity

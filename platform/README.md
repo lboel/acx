@@ -18,7 +18,7 @@ Requires Node 22 or newer.
 
 ```bash
 npm run build:registry
-npm run build:exchange -- --site-url https://acx.dev/exchange/
+npm run build:exchange -- --site-url https://lboel.github.io/acx/exchange/
 ```
 
 The first command verifies every registry artifact and deterministically regenerates
@@ -118,7 +118,7 @@ node --experimental-sqlite skills/acx-share-agent/scripts/render-pr-body.mjs \
 ```
 
 The script emits a ready-to-paste PR body and the deterministic post-merge
-`https://acx.dev/exchange/artifacts/.../` URL. It does not commit, push, open, or merge a pull request.
+`https://lboel.github.io/acx/exchange/artifacts/.../` URL. It does not commit, push, open, or merge a pull request.
 
 ## Canonical immutable coordinates
 

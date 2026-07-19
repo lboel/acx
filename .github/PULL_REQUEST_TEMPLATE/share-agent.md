@@ -22,7 +22,7 @@
       `acx workflow lint --publish` for a workflow; or `acx graph verify` +
       `acx graph lint --publish` for an Agent Graph
 - [ ] `npm run build:registry` regenerated the index
-- [ ] `npm run build:exchange -- --site-url https://acx.dev/exchange/` built the static Exchange
+- [ ] `npm run build:exchange -- --site-url https://lboel.github.io/acx/exchange/` built the static Exchange
 - [ ] `npm test` passed
 - [ ] The diff contains only one logical registry artifact, its generated card, and `registry/index.json`
 - [ ] The agent, workflow, or Agent Graph uses its immutable publisher/id/version path; no existing

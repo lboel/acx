@@ -79,7 +79,7 @@ jobs:
         run: |
           node --experimental-sqlite tools/build-static-exchange.mjs \
             --out docs-site/site/exchange \
-            --site-url https://acx.dev/exchange/
+            --site-url https://lboel.github.io/acx/exchange/
 
       - name: Upload Pages artifact
         if: github.event_name != 'pull_request'

@@ -97,7 +97,7 @@ acx share workflow path/to/team.cal.json
 acx share graph path/to/team.agent-graph.json
 
 npm run build:registry
-npm run build:exchange -- --site-url https://acx.dev/exchange/
+npm run build:exchange -- --site-url https://lboel.github.io/acx/exchange/
 npm test
 npm run smoke
 git diff --check
@@ -154,7 +154,7 @@ In the PR, report:
 - verification commands and outcomes;
 - whether this is a new share or an update;
 - confirmation that no private key, SAVE state, or secret is included;
-- the expected `https://acx.dev/exchange/artifacts/.../` share URL from the render script.
+- the expected `https://lboel.github.io/acx/exchange/artifacts/.../` share URL from the render script.
 
 The artifact becomes public only after the PR passes CI, receives human review, merges, and the static
 Exchange deploys. Never publish through the legacy HTTP demo. Never push, open a PR, or merge without

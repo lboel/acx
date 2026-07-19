@@ -20,7 +20,7 @@ cd ..
 node --experimental-sqlite tools/build-registry-index.mjs
 node --experimental-sqlite tools/build-static-exchange.mjs \
   --out docs-site/site/exchange \
-  --site-url https://acx.dev/exchange/
+  --site-url https://lboel.github.io/acx/exchange/
 ```
 
 The combined output is entirely static. The Exchange uses relative runtime links and can be copied to a

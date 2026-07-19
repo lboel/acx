@@ -194,7 +194,7 @@ Choose any output directory and an optional public base URL for canonical/Open G
 ```bash
 node --experimental-sqlite tools/build-static-exchange.mjs \
   --out docs-site/site/exchange \
-  --site-url https://acx.dev/exchange/
+  --site-url https://lboel.github.io/acx/exchange/
 ```
 
 All runtime links are relative, so copying the output directory to another host or subpath does not

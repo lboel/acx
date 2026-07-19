@@ -174,7 +174,7 @@ A workflow or Agent Graph remix may carry a signed lineage block:
       "version": "1.0.0",
       "digest": "sha256:…",
       "relation": "remix",
-      "source": "https://acx.dev/exchange/"
+      "source": "https://lboel.github.io/acx/exchange/"
     }],
     "note": "Adapted for a research-first product team."
   }
@@ -257,7 +257,7 @@ For the docs deployment:
 ```bash
 node --experimental-sqlite tools/build-static-exchange.mjs \
   --out docs-site/site/exchange \
-  --site-url https://acx.dev/exchange/
+  --site-url https://lboel.github.io/acx/exchange/
 ```
 
 The result is backend-free and subpath-hostable. Browser verification is intentionally limited:
