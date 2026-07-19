@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { copyFileSync, existsSync } from 'node:fs'
 import { Cartridge } from '../src/container.mjs'
-import { generateSigningKey } from '../src/sign.mjs'
+import { generateSigningKey, liveOid } from '../src/sign.mjs'
 import { exportPackageToCartridge } from '../src/export.mjs'
 import { evaluateTrust, emptyTrustRegistry } from '../src/trust.mjs'
 import { mergeRecords, artifactFingerprint } from '../src/memory.mjs'
@@ -22,6 +22,46 @@ function freshCartridge() {
   exportPackageToCartridge({ packageDir: PKG, outPath: out, key, publisherId: 'io.github.test', installationSalt: randomBytes(32) })
   return { out, key }
 }
+
+test('Node 22.5 null-column sentinel is treated as a missing SQLite row', () => {
+  const db = {
+    prepare(sql) {
+      return {
+        get() {
+          if (sql.includes('FROM cartridge')) return { value: null }
+          if (sql.includes('FROM sqlar')) return { sz: null, data: null }
+          if (sql.includes('FROM signatures')) return { envelope: null }
+          if (sql.includes('FROM memory')) return { payload: null }
+          if (sql.includes('FROM capabilities')) return { json: null }
+          throw new Error(`unexpected SQL: ${sql}`)
+        },
+      }
+    },
+  }
+  const cart = new Cartridge(db, ':memory:')
+  assert.equal(cart.getMeta('missing'), null)
+  assert.equal(cart.getFile('rom/missing'), null)
+  assert.equal(evaluateTrust({ db, romObjects: () => [] }, { registry: emptyTrustRegistry() }).trust, 'legacy')
+  assert.equal(liveOid({ db }, { source_ref: 'memory:missing', canon: 'jcs' }), null)
+  assert.equal(liveOid({ db }, { source_ref: 'capability:missing', canon: 'jcs' }), null)
+})
+
+test('malformed DSSE envelope fails closed as tampered', () => {
+  const { out } = freshCartridge()
+  const cart = Cartridge.open(out)
+  cart.db.prepare("UPDATE signatures SET envelope='not-json' WHERE target='rom-manifest'").run()
+  const invalidJson = evaluateTrust(cart, { registry: emptyTrustRegistry() })
+  assert.equal(invalidJson.trust, 'tampered')
+  assert.equal(invalidJson.status, 'invalid')
+  assert.match(invalidJson.summary, /malformed/i)
+
+  cart.db.prepare("UPDATE signatures SET envelope='null' WHERE target='rom-manifest'").run()
+  const nullJson = evaluateTrust(cart, { registry: emptyTrustRegistry() })
+  assert.equal(nullJson.trust, 'tampered')
+  assert.equal(nullJson.status, 'invalid')
+  assert.match(nullJson.issues[0], /must be an object/)
+  cart.close()
+})
 
 test('C1: rewriting signed sqlar content with a stale objects.oid is detected as tampered', () => {
   const { out, key } = freshCartridge()

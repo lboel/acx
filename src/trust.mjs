@@ -179,11 +179,21 @@ export function evaluateTrust(cartridge, { registry = emptyTrustRegistry(), loca
 
   const base = { signerInstanceId: null, signerInstanceLabel: null, keyId: null, signedAt: null }
 
-  if (!sigRow) {
+  // Node 22.5's initial node:sqlite implementation returns an object whose
+  // projected columns are all null when StatementSync#get() finds no row.
+  if (!sigRow || sigRow.envelope == null) {
     return { status: 'warning', trust: 'legacy', summary: 'Unsigned cartridge (no DSSE envelope).', ...base, issues: ['Missing rom-manifest signature'] }
   }
 
-  const envelope = JSON.parse(sigRow.envelope)
+  let envelope
+  try {
+    envelope = JSON.parse(sigRow.envelope)
+  } catch (error) {
+    return { status: 'invalid', trust: 'tampered', summary: 'Malformed DSSE envelope.', ...base, issues: [error.message] }
+  }
+  if (!record(envelope)) {
+    return { status: 'invalid', trust: 'tampered', summary: 'Malformed DSSE envelope.', ...base, issues: ['DSSE envelope must be an object'] }
+  }
   const keyid = envelope.signatures?.[0]?.keyid ?? sigRow.keyid
   const registryEntry = registry.byKeyId.get(keyid)
 

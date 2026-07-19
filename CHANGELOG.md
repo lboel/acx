@@ -34,6 +34,8 @@ Initial public-draft release.
 - Published registry coordinates are append-only; lifecycle changes never rewrite signed bytes.
 - The npm release gate packs, installs, and executes the real bin shim and rejects generated/private
   files, missing imports, and writes into an installed npm cache.
+- SQLite reads normalize the original Node 22.5 `StatementSync#get()` null-row sentinel, so missing or
+  malformed package data fails closed consistently across the supported Node range.
 - `main` is designed for PR-only changes with required conformance and registry checks.
 
 ### Public-draft notes

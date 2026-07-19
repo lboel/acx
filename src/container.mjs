@@ -135,7 +135,7 @@ export class Cartridge {
 
   getMeta(key) {
     const row = this.db.prepare('SELECT value FROM cartridge WHERE key=?').get(key)
-    return row ? row.value : null
+    return row?.value ?? null
   }
 
   allMeta() {
@@ -168,7 +168,9 @@ export class Cartridge {
   /** Read a file's uncompressed bytes. */
   getFile(name) {
     const row = this.db.prepare('SELECT sz,data FROM sqlar WHERE name=?').get(name)
-    if (!row) return null
+    // Node 22.5's initial node:sqlite implementation represents a missing
+    // StatementSync#get() row as an object containing null column values.
+    if (!row || row.sz == null || row.data == null) return null
     const data = Buffer.from(row.data)
     if (row.sz === data.length) return data // stored uncompressed
     return inflateRawSync(data)

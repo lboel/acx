@@ -13,11 +13,11 @@ export function liveOid(cartridge, obj) {
   const { source_ref, canon } = obj
   if (source_ref.startsWith('memory:')) {
     const row = cartridge.db.prepare('SELECT payload FROM memory WHERE id=?').get(source_ref.slice('memory:'.length))
-    return row ? 'sha256:' + sha256Hex(Buffer.from(row.payload, 'utf8')) : null
+    return row?.payload == null ? null : 'sha256:' + sha256Hex(Buffer.from(row.payload, 'utf8'))
   }
   if (source_ref.startsWith('capability:')) {
     const row = cartridge.db.prepare('SELECT json FROM capabilities WHERE id=?').get(source_ref.slice('capability:'.length))
-    return row ? 'sha256:' + sha256Hex(Buffer.from(row.json, 'utf8')) : null
+    return row?.json == null ? null : 'sha256:' + sha256Hex(Buffer.from(row.json, 'utf8'))
   }
   if (source_ref.startsWith('cartridge:')) {
     const key = source_ref.slice('cartridge:'.length)
