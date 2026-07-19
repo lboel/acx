@@ -2,7 +2,7 @@
 
 An Agent Cartridge (`.acx`) is a **single SQLite database** that brands itself in two header words, carries files in a stock SQLite Archive, and stakes its integrity on a content-addressed object graph — never on the raw database bytes.
 
-This page covers the on-disk format normatively defined in **SPEC §3** and implemented in [`src/container.mjs`](https://github.com/agentibus/agent-cartridge). For how the manifest is signed and how trust is decided, see [signing & trust](signing-trust.md).
+This page covers the on-disk format normatively defined in **SPEC §3** and implemented in [`src/container.mjs`](https://github.com/lboel/acx/blob/main/src/container.mjs). For how the manifest is signed and how trust is decided, see [signing & trust](signing-trust.md).
 
 ## Why one SQLite file
 
@@ -15,7 +15,7 @@ SQLite gives that durable state a queryable, transactional, single-file home: sk
 
 ## File identity (§3.1)
 
-Two header words brand every `.acx` and **MUST** be set. Both are plain `PRAGMA`s in [`Cartridge.create`](https://github.com/agentibus/agent-cartridge); the constants live at the top of `src/container.mjs`.
+Two header words brand every `.acx` and **MUST** be set. Both are plain `PRAGMA`s in [`Cartridge.create`](https://github.com/lboel/acx/blob/main/src/container.mjs#L108-L114); the constants live at the top of `src/container.mjs`.
 
 | Header word | `PRAGMA` value | Hex | Header offset | Encoding | Meaning |
 |---|---|---|---|---|---|
@@ -156,7 +156,7 @@ CREATE TABLE capabilities (    -- SPEC §6.1 capability records (ROM zone)
 
 The `sqlar` table is the **exact stock SQLite Archive schema** — no zone column, no extra fields — so any
 SQLite binary can extract it. Zoning is carried entirely by the file-name prefix:
-[`zoneOf`](https://github.com/agentibus/agent-cartridge) classifies `rom/…` and `save/…` and rejects any
+[`zoneOf`](https://github.com/lboel/acx/blob/main/src/container.mjs#L210-L214) classifies `rom/…` and `save/…` and rejects any
 unprefixed name.
 
 Every stored name is also an extraction-safety boundary: it must be a relative path of at least two

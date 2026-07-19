@@ -2,10 +2,11 @@
 
 An **Agent Cartridge** (`.acx`) is a single SQLite database that packages an AI agent — its skills, capability claims, memory, runtime contract, loop/context policy, and a cryptographically provable competence level — into one portable, signable, distributable artifact. Software engineering is the flagship use case, but the format is task-general: any agent that has skills, **learns**, and runs a loop fits — and cartridges **level up**, **form teams**, and **run workflows** together.
 
-!!! tip "Where cartridges come from"
-    A cartridge is the portable *output* of a company of agents. In [the studio](studio.md) (AGENTIBUS),
-    agents emerge from real work, get staffed onto projects, and level up — then export as cartridges.
-    See the full [hire → cartridge → re-hire loop](../lifecycle/company-loop.md).
+!!! tip "Where cartridges can come from"
+    A cartridge can be assembled from a reviewed agent package or scaffolded directly with the ACX CLI.
+    [AGENTIBUS](studio.md) inspired the studio vocabulary and exports its own package directories; an
+    operator can explicitly pass a compatible directory to `acx export`. AGENTIBUS does not currently
+    emit or import `.acx` files. See the current [station outcome → cartridge boundary](../lifecycle/company-loop.md).
 
 ## What an Agent Cartridge is
 

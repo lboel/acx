@@ -459,7 +459,7 @@ function renderDetailPage({ type, entry, siteUrl, artifact = null }) {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#071b18">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-${jsonLdHash}'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-${jsonLdHash}'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'">
   <title>${htmlEscape(title)}</title>
   ${meta('name', 'description', description)}
   ${meta('property', 'og:title', title)}
@@ -480,6 +480,7 @@ function renderDetailPage({ type, entry, siteUrl, artifact = null }) {
   <link rel="alternate" type="${htmlEscape(card.mediaType)}" href="${htmlEscape(downloadHref)}">
   <link rel="stylesheet" href="../../../assets/app.css?v=20260719">
   <script type="application/ld+json">${jsonLd}</script>
+  <script type="module" src="../../../assets/detail.js?v=20260719"></script>
 </head>
 <body>
   <header class="site-header">
@@ -520,8 +521,10 @@ function renderDetailPage({ type, entry, siteUrl, artifact = null }) {
         <a class="button button-primary" href="${htmlEscape(appUrl)}">Inspect &amp; verify</a>
         <a class="button button-secondary" href="${htmlEscape(downloadHref)}" download>Download artifact</a>
         ${remixUrl ? `<a class="button button-secondary" href="${htmlEscape(remixUrl)}">Remix in Studio</a>` : ''}
+        <button class="button button-secondary" type="button" data-acx-copy-link="${htmlEscape(canonicalUrl || '')}" aria-describedby="copy-link-status">Copy share link</button>
         <a class="button button-quiet" href="${htmlEscape(shareGuideUrl)}">Share or publish via PR</a>
       </div>
+      <p id="copy-link-status" class="copy-link-status" role="status" aria-live="polite"></p>
     </article>
   </main>
   <noscript><p class="noscript">This artifact card and download work without JavaScript. Use the ACX CLI or Exchange browser verifier before running the artifact.</p></noscript>

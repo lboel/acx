@@ -95,4 +95,4 @@ This mirrors how OpenWiki generates an Open Knowledge Format wiki from a codebas
 
 - [Loop engineering (CAL)](../format/loops-cal.md) — the loop the generator produces.
 - [Required context & OKF](../format/knowledge-okf.md) — the RAC items it emits.
-- [From hire to cartridge and back](company-loop.md) — where a generated agent goes next.
+- [From station outcome to shareable cartridge](company-loop.md) — the explicit current handoff.

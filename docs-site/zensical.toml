@@ -12,7 +12,7 @@ Apache-2.0 &middot; the open exchange format for portable agents and agent-team 
 
 nav = [
   { "Home" = "index.md" },
-  { "Explore Exchange" = "lifecycle/exchange.md" },
+  { "How the Exchange works" = "lifecycle/exchange.md" },
   { "Share ACX" = "share.md" },
   { "Concepts" = [
     "concepts/overview.md",
