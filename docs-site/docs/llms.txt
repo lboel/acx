@@ -3,16 +3,20 @@
 > An open standard + zero-dependency CLI (`acx`) for portable, signed agents and reusable, bounded
 > agent-team workflows. A cartridge is a single SQLite file with a signed ROM zone and a mutable SAVE
 > zone; an ACX Workflow is a signed `acx.cal/1` JSON graph that can be linted without a local roster and
-> staffed later by role, proven level, capability, and stack. Requires Node >= 22.
+> staffed later by role, proven level, capability, and stack. An ACX Agent Graph is a signed
+> `acx.agent-graph/1` information architecture that declares context ownership, direction, reporting,
+> and convergence across loops without embedding knowledge content or granting runtime authority.
+> Requires Node >= 22.
 
 ## Install & use (for agents)
 - Current source checkout: `node --experimental-sqlite src/cli.mjs <cmd>`.
 - After the npm release: `npx agent-cartridge@latest <cmd>` or `npm i -g agent-cartridge` then `acx <cmd>`.
 - Full agent instructions: /reference/for-agents/  (and AGENTS.md at the repo root)
 - Workflow fast path: `acx workflow lint flow.cal.json --publish`; `acx workflow sign flow.cal.json --publisher io.github.you`; `acx workflow verify flow.signed.cal.json`; `acx workflow ready flow.signed.cal.json --cartridges ./roster`.
-- Share fast path: `acx share agent agent.acx --slug agent --dry-run` or `acx share workflow flow.cal.json --dry-run`; then prepare, rebuild `registry/index.json`, test, and open a reviewed PR.
+- Agent Graph fast path: `acx graph lint team.agent-graph.json --publish`; `acx graph sign team.agent-graph.json --publisher io.github.you`; `acx graph verify team.signed.agent-graph.json`; `acx graph inspect team.signed.agent-graph.json`.
+- Share fast path: `acx share agent agent.acx --slug agent --dry-run`, `acx share workflow flow.cal.json --dry-run`, or `acx share graph team.agent-graph.json --dry-run`; then prepare, rebuild `registry/index.json`, test, and open a reviewed PR.
 - Self-share skill: `skills/acx-share-agent/SKILL.md`.
-- Commands: `ls, inspect, verify, spec, check, load, workflow, cal, init, export, strip, level, builder, share`.
+- Commands: `ls, inspect, verify, spec, check, load, workflow, graph, cal, init, export, strip, level, builder, share`.
 - Rule: always `acx verify` before `acx load`; the tool never executes cartridge content; RAC is descriptions only.
 
 ## Core docs
@@ -32,6 +36,7 @@
 - Harness requirements: /format/harness-requirements/
 - Loop & context policy: /format/loop-context/
 - Loop engineering (CAL + RAC): /format/loops-cal/
+- Agent Graph (knowledge ownership, reporting, convergence): /format/agent-graph/
 - Required context & the Open Knowledge Format: /format/knowledge-okf/
 
 ## Leveling & lifecycle

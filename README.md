@@ -33,10 +33,12 @@ shared, sold, collected, and traded.
   an **independent** re-run on a held-out benchmark, TrueSkill-gated and bound to the signed core. An agent
   gets measurably better — and can prove it, not just claim it.
 - **👥 Form teams.** Cartridges reference each other by content hash and are staffed onto a project by role,
-  level, and capability — a portable **roster** of agents you assemble like a team.
-- **🔧 Build workflows.** Compose agents into **Conditional Agentic Loops** — who may do what, when, and
-  under which conditions — through `acx workflow` (with `acx cal` as a compatibility alias) or in a visual drag-and-drop builder
-  (`acx builder`). Generate a whole team from an existing project with `acx init --from-code`.
+  level, and capability. A shareable **Agent Graph** adds the team's information architecture: who owns
+  context, who can direct whom, where reports return, and where separate loops meet.
+- **🔧 Build workflows.** Compose agents into **Conditional Agentic Loops** — what happens next, under
+  which structured conditions, and where execution stops — through `acx workflow` (with `acx cal` as a
+  compatibility alias) or in a visual drag-and-drop builder (`acx builder`). Generate a whole team from an
+  existing project with `acx init --from-code`.
 
 One signed file distributes over git, an OCI registry, or a live exchange — verifiable with stock tooling,
 rejected if tampered.
@@ -46,7 +48,7 @@ capability evidence, the field-learned memory — is the identity-bound, revocab
 open envelope. **Open envelope, priced contents.**
 
 > **Status: v0.1 public draft.** The normative spec ([`SPEC.md`](./SPEC.md)), schemas, reference
-> implementation, signed workflow examples, and conformance suite are ready for public review. The
+> implementation, signed workflow and Agent Graph examples, and conformance suite are ready for public review. The
 > zero-dependency implementation in `src/` runs today on **Node ≥ 22**. The benchmark's *solver* is
 > deterministic and pluggable; a production verifier substitutes a real sandboxed agent run without
 > changing the protocol.
@@ -68,7 +70,8 @@ node --experimental-sqlite src/cli.mjs workflow lint my-loop.cal.json --publish
 node --experimental-sqlite src/cli.mjs workflow sign my-loop.cal.json \
   --publisher io.github.you --out my-loop.signed.cal.json
 
-# recipient: verify authorship/integrity, inspect the team, then staff it
+# recipient: verify integrity + the signed publisher claim, inspect the team, then staff it
+# (publisher authorship becomes trusted only with a valid namespace proof)
 node --experimental-sqlite src/cli.mjs workflow verify my-loop.signed.cal.json
 node --experimental-sqlite src/cli.mjs workflow inspect my-loop.signed.cal.json
 node --experimental-sqlite src/cli.mjs workflow ready my-loop.signed.cal.json --cartridges ./roster
@@ -77,11 +80,27 @@ node --experimental-sqlite src/cli.mjs workflow ready my-loop.signed.cal.json --
 Try the bundled, signed examples: `registry/cals/ship-a-feature.cal.json` (engineering review loop) and
 `registry/cals/research-council.cal.json` (parallel research, challenge, synthesis).
 
-To submit a signed agent or workflow to the open registry, preview the exact PR surface first:
+The same team can publish a separate Agent Graph without baking reporting and implicit knowledge flow into
+tasks. Validate, sign, and inspect it with `acx graph`:
+
+```bash
+node --experimental-sqlite src/cli.mjs graph lint product-delivery.agent-graph.json --publish
+node --experimental-sqlite src/cli.mjs graph sign product-delivery.agent-graph.json \
+  --publisher io.github.you --out product-delivery.signed.agent-graph.json
+node --experimental-sqlite src/cli.mjs graph verify product-delivery.signed.agent-graph.json
+node --experimental-sqlite src/cli.mjs graph inspect product-delivery.signed.agent-graph.json
+```
+
+Try the bundled signed graph at `registry/graphs/product-delivery.agent-graph.json`: a product-owner seat
+directs delivery, developers report status and evidence back, research and delivery loops export distinct
+knowledge, and the product owner stewards their bounded convergence.
+
+To submit a signed agent, workflow, or Agent Graph to the open registry, preview the exact PR surface first:
 
 ```bash
 node --experimental-sqlite src/cli.mjs share agent my-agent.acx --slug my-agent --dry-run
 node --experimental-sqlite src/cli.mjs share workflow my-loop.signed.cal.json --dry-run
+node --experimental-sqlite src/cli.mjs share graph product-delivery.signed.agent-graph.json --dry-run
 ```
 
 The bundled [`$acx-share-agent`](./skills/acx-share-agent/SKILL.md) skill lets a SKILL.md-aware agent run
@@ -132,6 +151,7 @@ re-indexed on import, so the file is portable across engines.
 | **Loop + context policy** | The agent's harness as signed data (informed by Lilian Weng's harness engineering). | `docs-site/docs/format/loop-context.md` |
 | **Provable level** | A W3C Verifiable Credential earned via independent held-out re-run. Unfakeable. | `docs-site/docs/leveling/provable-level.md` |
 | **CAL skillset** | A cartridge's declaration of which loops it plays and which agents it references by hash. | `docs-site/docs/format/loops-cal.md` |
+| **Agent Graph** | The team's signed communication, knowledge-stewardship, reporting, and loop-convergence architecture. | `docs-site/docs/format/agent-graph.md` |
 
 ## Provable leveling
 
@@ -165,12 +185,50 @@ whose drafts stay outside the signed registry until you explicitly sign them).
 Generate a whole agent set from your codebase with `acx init --from-code`. `acx cal` remains an alias for
 `acx workflow ready`.
 
+## Team information architecture — Agent Graph
+
+**A CAL says what happens next. An Agent Graph says who owns the context, who can direct whom, where
+reports return, and where separate loops meet.**
+
+That separation keeps durable team structure out of individual task nodes. Product intent can remain
+owned by a fuzzy `product-owner` seat, for example, while whichever developer agents are staffed receive
+direction and return status, evidence, and risks through explicit routes. The graph remains reusable when
+people, models, cartridges, or workflows change.
+
+- **Actors** are logical seats — agents, humans, groups, services, or mixed teams — selected by fuzzy role,
+  capability, tag, and prose hints rather than pinned identities.
+- **Knowledge modules** describe intent, requirements, decisions, status, evidence, feedback, risk,
+  context, artifacts, or tacit knowledge. They identify stewards and audiences but never embed the
+  underlying content.
+- **Routes** describe who informs, directs, requests, reports, advises, reviews, approves, escalates,
+  coordinates, or observes. Event, interval, and manual triggers are structured; expected return routes
+  make reporting explicit.
+- **Loop bindings** connect this information architecture to signed CALs, external processes, or informal
+  loops without copying or changing their task graphs.
+- **Convergence points** state where knowledge from at least two distinct loops is synthesized, by whom,
+  under which merge policy, and within bounded wait/round limits.
+
+The prose descriptions, selectors, relationship labels, and route weights are deliberately fuzzy.
+Identifiers, references, response routes, direction ownership, convergence reachability, and bounds are
+machine-checkable. Reporting and feedback cycles are valid; conflicting or cyclic mandatory direction
+for the same knowledge module is rejected.
+
+An Agent Graph is signed with the same JCS + Ed25519 + DSSE/in-toto trust spine as a workflow. Its
+signature proves provenance and integrity — **never runtime permission**. The receiving host still owns
+staffing, event mapping, tool access, approvals, data access, and dispatch.
+
+If a host operationalizes the graph, route events carry correlation/causation ids, the verified graph
+digest, route id, hop count, and knowledge id + revision references — never knowledge content. Hosts
+deduplicate event ids, enforce propagation/fan-out bounds, and never converge inputs from different
+correlations. The reference CLI validates and shares this contract; it does not execute it.
+
 ## Sharing & distribution
 
 Three transports distribute signed ACX artifacts — each verifies integrity and refuses tampering:
 
-- **Git registry** (`registry/`) — fork, add a cartridge under `cartridges/<publisher>/<name>/` or a
-  workflow under `cals/`, then open a PR; CI verifies every signed artifact and regenerates the index.
+- **Git registry** (`registry/`) — fork, add a cartridge under `cartridges/<publisher>/<name>/`, a
+  workflow under `cals/`, or an Agent Graph under `graphs/`, then open a PR; CI verifies every signed
+  artifact and regenerates the index.
 - **OCI** — the `.acx` ships as one layer in an OCI image manifest (`artifactType application/vnd.acx.cartridge.v1`),
   attestations attached via the Referrers API, verifiable with stock `cosign`/`oras`.
 - **HTTP exchange** (`platform/`) — a live browse / verify / trade gallery.
@@ -194,9 +252,12 @@ npx agent-cartridge@latest <command>               # after the npm release
 | `acx check` | harness preflight (tools/binaries/skills) | `acx workflow ready` | staff team slots from cartridges |
 | `acx load` | verify + install skills into a host | `acx level` | earn a provable level |
 | `acx init [--from-code]` | scaffold an agent / team | `acx export` | package + sign a cartridge |
-| `acx share agent/workflow` | prepare a verified registry PR | `acx builder` | visual workflow authoring |
+| `acx graph lint/sign/verify` | validate and sign team information architecture | `acx graph inspect/digest` | inspect or hash an Agent Graph |
+| `acx share agent/workflow/graph` | prepare a verified registry PR | `acx builder` | visual workflow authoring |
 
-Agents drive it from [`AGENTS.md`](./AGENTS.md) (and `docs/reference/for-agents.md` / `docs/llms.txt`).
+Agents drive it from [`AGENTS.md`](./AGENTS.md), the
+[agent reference](docs-site/docs/reference/for-agents.md), and
+[`llms.txt`](docs-site/docs/llms.txt).
 
 ## Quickstart
 
@@ -204,7 +265,7 @@ Agents drive it from [`AGENTS.md`](./AGENTS.md) (and `docs/reference/for-agents.
 git clone https://github.com/lboel/acx.git
 cd acx                                           # Node ≥ 22, zero dependencies
 
-npm test                                          # 88 conformance, workflow, and sharing tests
+npm test                                          # 113 conformance, graph, workflow, and sharing tests
 node --experimental-sqlite scripts/smoke.mjs      # export → verify → strip → tamper
 node --experimental-sqlite scripts/prove-level.mjs   # earn + verify a provable level
 
@@ -217,7 +278,8 @@ uv venv tools/lance/.venv --python 3.12 && uv pip install --python tools/lance/.
 node --experimental-sqlite src/cli.mjs lance my.acx
 ```
 
-Every claim on the docs site is backed by a runnable proof — see `docs/proofs.md`.
+Every claim on the docs site is backed by a runnable proof — see
+[the proof ledger](docs-site/docs/proofs.md).
 
 ## Repository layout
 
@@ -228,7 +290,7 @@ schemas/           JSON Schemas for every block
 examples/          a bundled sample agent-package
 tools/             the git-registry indexer + the optional LanceDB materializer
 platform/          the HTTP exchange + the visual loop builder
-registry/          the git registry (cartridges + signed workflows + templates + trust registry)
+registry/          the git registry (cartridges + signed workflows + Agent Graphs + templates + trust)
 docs-site/         the documentation site (Zensical)
 AGENTS.md          how AI agents install and drive the tool
 ```
@@ -242,7 +304,7 @@ cd docs-site && uv venv && uv pip install zensical && .venv/bin/zensical serve
 ```
 
 It hosts statically (GitHub Pages workflow included). Start with **Overview**, then the **cartridge model**,
-**how agents level up**, and **loop engineering (CAL)**.
+**how agents level up**, **loop engineering (CAL)**, and **team information architecture (Agent Graph)**.
 
 ## Contributing & license
 
@@ -266,7 +328,7 @@ npm pack --dry-run
 cd docs-site && .venv/bin/zensical build
 ```
 
-The repository-root ACX workflow runs the suite/proofs, verifies every published cartridge and workflow,
-rebuilds the registry index, checks the npm package, and builds the documentation. Confirm npm name
+The repository-root ACX workflow runs the suite/proofs, verifies every published cartridge, workflow, and
+Agent Graph, rebuilds the registry index, checks the npm package, and builds the documentation. Confirm npm name
 ownership immediately before release; publishing and production docs deployment require the maintainer's
 registry/hosting credentials.

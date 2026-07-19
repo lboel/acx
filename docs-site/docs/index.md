@@ -13,6 +13,7 @@ hide:
 <span class="acx-pill">single-file SQLite</span>
 <span class="acx-pill">ed25519 + DSSE signed</span>
 <span class="acx-pill">provable level</span>
+<span class="acx-pill">agent information graphs</span>
 <span class="acx-pill">OCI-distributable</span>
 <span class="acx-pill">zero-dependency ref impl</span>
 </div>
@@ -20,6 +21,7 @@ hide:
 <div class="acx-actions">
 <a class="acx-button acx-button--primary" href="share/">Share an agent</a>
 <a class="acx-button" href="concepts/overview/">See how ACX works</a>
+<a class="acx-button acx-button--quiet" href="format/agent-graph/">Map an agent team</a>
 </div>
 </div>
 <div class="acx-cart">
@@ -73,7 +75,7 @@ sell it. An **Agent Cartridge** is the same idea for an AI agent — coding is t
     - The reference implementation is **zero-dependency** (Node's builtin `node:sqlite` + `node:crypto`)
       and every claim on this site is backed by a runnable proof. See [Proofs](proofs.md).
 
-## Four ideas
+## Five ideas
 
 Not just coding agents — any AI agent that has skills, accumulates knowledge, and runs a loop.
 
@@ -97,6 +99,11 @@ Cartridges [reference each other by hash](concepts/studio.md) and are staffed on
 <div class="acx-card" markdown="1">
 ### 🔧 Build workflows
 Compose agents into [Conditional Agentic Loops](format/loops-cal.md) on the CLI or in a [visual builder](format/loops-cal.md) — who does what, when, under which conditions.
+</div>
+
+<div class="acx-card" markdown="1">
+### 🕸 Route knowledge
+Make the implicit team structure explicit with a signed [Agent Graph](format/agent-graph.md): who owns context, who directs or reports to whom, and where separate loops converge.
 </div>
 
 </div>
@@ -160,7 +167,7 @@ makes the studio smarter; every shared cartridge makes the whole ecosystem smart
 
 !!! success "Everything here is proven"
     The standard *stands* and the character level is *demonstrably earned, not asserted*. The
-    [Proofs](proofs.md) page shows the verbatim output of 88 passing tests, an export→verify→strip→tamper
+    [Proofs](proofs.md) page shows the verbatim output of 113 passing tests, an export→verify→strip→tamper
     round-trip, and a full level-issuance run — all reproducible with `node --experimental-sqlite`.
 
 ## Where to start
@@ -169,12 +176,14 @@ makes the studio smarter; every shared cartridge makes the whole ecosystem smart
 - Want to run it? Jump to the [CLI reference](reference/cli.md) and the [Proofs](proofs.md).
 - Want to share a team? Start with the signed [`ship-a-feature`](format/loops-cal.md) workflow, then run
   `acx workflow lint`, `sign`, `verify`, and `ready`.
+- Want to map how the team communicates? Open the visual [Agent Graph](format/agent-graph.md) guide and
+  describe context owners, direction, reporting returns, and loop convergence.
 - Want your agent to share itself? Open [Share ACX](share.md) and use the bundled
   [`$acx-share-agent`](share.md#let-an-agent-prepare-its-own-share-pr) skill.
 - Building a host? Start with [Loading a cartridge](lifecycle/loading.md) and
   [Harness requirements](format/harness-requirements.md).
 - Want the whole normative spec? It lives in `SPEC.md` in the repository; the
-  [Conformance](reference/conformance.md) page summarizes the 15 MUST items.
+  [Conformance](reference/conformance.md) page summarizes the 16 MUST items.
 
 !!! note "Status"
     **v0.1 public draft.** The normative core, strict schemas, signed workflow profile, registry gate,

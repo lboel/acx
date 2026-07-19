@@ -8,7 +8,7 @@
 
 ## 1. Abstract & Design Goals
 
-An **Agent Cartridge** (file extension `.acx`) is a single, self-describing SQLite database that packages an AI agent — its skills, capability claims, memory, runtime contract, loop/context policy, and cryptographically provable competence level — into one portable, signable, distributable artifact. Software engineering is the flagship use case, but the format is **task-general**: any agent that has skills, accumulates knowledge, and runs a loop is expressible. The format lets an agent that **learned and leveled up** in one environment be shared, sold, verified, and re-hosted in another with deterministic integrity guarantees and no host lock-in — and lets cartridges **reference each other to form teams and run multi-agent workflows** (§14). An **ACX Workflow** is the complementary, readable `.cal.json` exchange artifact: it carries a team contract, bounded graph, context requirements, safety declarations, discovery metadata, and an optional cryptographic signature. The four capabilities the standard is built around are: *learn* (the memory partition, §7), *self-improve / level up* (the provable level, §10), *form teams* (hash-referenced participants, §14), and *build workflows* (Conditional Agentic Loops, §14).
+An **Agent Cartridge** (file extension `.acx`) is a single, self-describing SQLite database that packages an AI agent — its skills, capability claims, memory, runtime contract, loop/context policy, and cryptographically provable competence level — into one portable, signable, distributable artifact. Software engineering is the flagship use case, but the format is **task-general**: any agent that has skills, accumulates knowledge, and runs a loop is expressible. The format lets an agent that **learned and leveled up** in one environment be shared, sold, verified, and re-hosted in another with deterministic integrity guarantees and no host lock-in — and lets cartridges **reference each other to form teams and run multi-agent workflows** (§14). An **ACX Workflow** is the complementary, readable `.cal.json` exchange artifact: it carries a team contract, bounded task graph, context requirements, safety declarations, discovery metadata, and an optional cryptographic signature. An **ACX Agent Graph** is a separate, readable `.agent-graph.json` exchange artifact for the team's information architecture (§16): who owns context, who may direct whom, where reports return, and where separate loops meet. The four capabilities the standard is built around are: *learn* (the memory partition, §7), *self-improve / level up* (the provable level, §10), *form teams* (hash-referenced participants, §14, and information architecture, §16), and *build workflows* (Conditional Agentic Loops, §14).
 
 The standard is governed by five design goals:
 
@@ -33,6 +33,11 @@ The key words **MUST**, **MUST NOT**, **REQUIRED**, **SHALL**, **SHOULD**, **SHO
 - **ROM integrity manifest** — the RFC 8785-canonicalized list of ROM objects that is hashed to `manifest_hash` and DSSE/Ed25519-signed. This is the single signed digest; it is **the** `packageHash` of this format (§4).
 - **Attestation** — a VC 2.0 / Open Badge 3.0 / in-toto credential attached via the OCI Referrers API, provenance- and level-bearing.
 - **Vectors** — derived sqlite-vec embeddings; never signed, re-indexed on import.
+- **ACX Workflow / CAL** — a signed or unsigned `.cal.json` task graph that answers **what happens next**:
+  participants, executable steps, structured conditions, required context, and termination bounds (§14).
+- **ACX Agent Graph** — a signed or unsigned `.agent-graph.json` information architecture that answers
+  **who owns context, who can direct whom, where reports return, and where separate loops meet** (§16).
+  It is declarative metadata, not an execution plan or permission grant.
 
 **Model.** A cartridge is authored against an exploded directory, materialized as one `.acx` file (working/runtime container), and distributed as one layer inside an OCI Image Manifest (distribution wrapper). ROM is signed once; SAVE mutates locally; vectors are always rebuilt by the consumer.
 
@@ -203,7 +208,7 @@ A verified `publisherId` supersedes `originInstanceId`/`signerInstanceId`/`signe
 
 ### 4.4 Standalone trust registry (public keys only)
 
-This fixes the git-tracked-plaintext-private-key defect: private key material **MUST NEVER** appear in a cartridge, a `signature.json`, or the registry, and **MUST NEVER** be git-tracked. The registry is a separate artifact, published at `https://<domain>/.well-known/acx-trust-registry.json` or as OCI `application/vnd.acx.trust-registry.v1`, carrying public keys only. Each entry carries `keyid`, `publisherId`, `algorithm`, `publicKeyPem` (SPKI), `status` (`active`|`revoked`|`expired`), `notBefore`/`notAfter` (RFC 3339), `namespaceProof`, optional `rotatedFrom`/`rotatedTo`, `revokedAt`/`revocationReason`.
+This fixes the git-tracked-plaintext-private-key defect: private key material **MUST NEVER** appear in a cartridge, a `signature.json`, or the registry, and **MUST NEVER** be git-tracked. The registry is a separate `schemaVersion:"acx.trust-registry/1"` artifact, published at `https://<domain>/.well-known/acx-trust-registry.json` or as OCI `application/vnd.acx.trust-registry.v1`, carrying public keys only. Each entry carries `keyid`, `publisherId`, `algorithm`, `publicKeyPem` (SPKI), `status` (`active`|`revoked`|`expired`), `notBefore`/`notAfter` (RFC 3339), `namespaceProof`, optional `rotatedFrom`/`rotatedTo`, `revokedAt`/`revocationReason`.
 
 - **Rotation:** a successor sets `rotatedFrom`; the predecessor overlaps until its `notAfter`. Cartridges whose `signedAt` falls within the predecessor's validity remain trusted after rotation.
 - **Expiry:** `now > notAfter` ⇒ `status=expired`; verification **MUST NOT** return `trusted`.
@@ -335,7 +340,7 @@ For **TRANSFERABLE** records (ROM): set `repoId = null`, `codebaseFingerprint = 
 
 ### 7.5 Scrub gate (fail-closed)
 
-A scrub gate **MUST** run on export before signing and **MUST** scan every string field of every record, every `sqlar` knowledge `.md`, and every skill body. Deny-patterns (case-insensitive) include: PEM private-key headers (`-----BEGIN … PRIVATE KEY-----`), AWS keys (`AKIA[0-9A-Z]{16}`), GitHub tokens (`gh[pousr]_[A-Za-z0-9]{36,}`), Slack tokens (`xox[baprs]-`), Google API keys (`AIza[0-9A-Za-z_-]{35}`), JWTs (`eyJ[…]\.[…]\.[…]`), URI credentials (`://[^/\s:@]+:[^/\s@]+@`), `.env`-style `SECRET|TOKEN|PASSWORD|API_KEY = …`, high-entropy blobs (≥ 4.0 bits/char over ≥ 20 chars), absolute home paths (`/Users/<name>`, `/home/<name>`). It **MUST** also verify no raw `repoId`/`repoLabel`/`projectLabel` literal survives §7.4. On any secret match the gate **MUST** block export (non-zero exit) with a `{file, byteOffset, ruleId}` report — secrets are never silently redacted. Home paths **MAY** be auto-namespaced to `~` and re-scanned.
+A scrub gate **MUST** run on export before signing and **MUST** scan every string field of every record, every `sqlar` knowledge `.md`, and every skill body. Deny-patterns (case-insensitive) include: PEM private-key headers (`-----BEGIN … PRIVATE KEY-----`), AWS keys (`AKIA[0-9A-Z]{16}`), GitHub tokens (`gh[pousr]_[A-Za-z0-9]{36,}`), Slack tokens (`xox[baprs]-`), Google API keys (`AIza[0-9A-Za-z_-]{35}`), JWTs (`eyJ[…]\.[…]\.[…]`), URI credentials (`://[^/\s:@]+:[^/\s@]+@`), `.env`-style `SECRET|TOKEN|PASSWORD|API_KEY = …`, high-entropy blobs (≥ 4.0 bits/char over ≥ 20 chars), and local home paths (`/Users/<name>`, `/home/<name>`, `C:\Users\<name>`, or `~/…`). It **MUST** also verify no raw `repoId`/`repoLabel`/`projectLabel` literal survives §7.4. On any secret match the gate **MUST** block export (non-zero exit) with a `{file, byteOffset, ruleId}` report — secrets are never silently redacted. Home paths **MAY** be replaced with an environment-independent relative locator and re-scanned.
 
 ### 7.6 Portable baseline + re-indexed vectors
 
@@ -551,8 +556,14 @@ A conformant Agent Cartridge and its tooling **MUST**:
 13. Represent any level as a revocable, evidence-linked VC 2.0 / Open Badge 3.0 issued only after independent held-out re-execution, TrueSkill σ-gated (`sigma < 1.5`, `gamesPlayed ≥ 30`, `R = mu − 3σ`), bound to the ROM digest.
 14. Distribute as one OCI image (§11) verifiable with stock cosign/oras and zero registry change.
 15. Validate ACX Workflows independently of staffing; require unique identifiers, closed structured conditions, valid completion contracts, a path from every reachable node to a terminal event, and `limits.maxSteps` for every cyclic graph; when signed, verify the RFC-8785/JCS digest and DSSE/in-toto publisher binding before resolving team slots (§14).
+16. Validate ACX Agent Graphs as reference-safe information architectures: require bounded propagation and
+    fan-out, structured route triggers, valid reverse response routes, unambiguous acyclic mandatory
+    direction per knowledge module, pinned published CAL references, bounded convergence of at least two
+    distinct loops, secret-scanned public metadata, and metadata-only knowledge declarations; when signed,
+    verify the RFC-8785/JCS digest and DSSE/in-toto publisher binding, and never interpret the graph or its
+    signature as a runtime permission grant (§16).
 
-**Versioning & extension policy.** Every stored artifact **MUST** be versioned: `schemaVersion` (`acx.skill/1`, `acx.capability/1`, `acx.harness.v1`, `acx.loop-context-policy/1`, `acx.cal/1`, `acx.workflow-signature/1`, memory-record v1), workflow SemVer `version`, `user_version`/`application_id` (SQLite), and `artifactType` vN (OCI). No unversioned published files. `spec_MAJOR` bumps break readers; `spec_MINOR` is additive. Extension points are namespaced: reverse-DNS keys in `acx_skill.ext` and `cal.extensions`, reverse-DNS-prefixed `taskType` tokens, `x-`-prefixed capability scopes, A2A `AgentExtension` for capability records, and `acx:` JSON-LD terms in credentials. Recognizing hosts consume their namespaces; all others **MUST** ignore unknown namespaces without error.
+**Versioning & extension policy.** Every stored artifact **MUST** be versioned: `schemaVersion` (`acx.skill/1`, `acx.capability/1`, `acx.harness.v1`, `acx.loop-context-policy/1`, `acx.cal/1`, `acx.workflow-signature/1`, `acx.agent-graph/1`, `acx.agent-graph-signature/1`, memory-record v1), workflow and Agent Graph SemVer `version`, `user_version`/`application_id` (SQLite), and `artifactType` vN (OCI). No unversioned published files. `spec_MAJOR` bumps break readers; `spec_MINOR` is additive. Extension points are namespaced: reverse-DNS keys in `acx_skill.ext`, `cal.extensions`, and Agent Graph `extensions`; reverse-DNS-prefixed `taskType` tokens; `x-`-prefixed capability scopes; A2A `AgentExtension` for capability records; and `acx:` JSON-LD terms in credentials. Recognizing hosts consume their namespaces; all others **MUST** ignore unknown namespaces without error.
 
 ---
 
@@ -572,8 +583,9 @@ A conformant Agent Cartridge and its tooling **MUST**:
 | LanceDB Memory Projection | ACX LanceDB Memory Schema | `https://acx.dev/schema/lance-memory.v1.json` |
 | Multi-agent Workflow | ACX Workflow / Conditional Agentic Loop | `https://acx.dev/schema/cal.v1.json` |
 | Cartridge Workflow Participation | ACX CAL Skill Set | `https://acx.dev/schema/cal-skillset.v1.json` |
+| Agent Information Architecture | ACX Agent Graph | `https://acx.dev/schema/agent-graph.v1.json` |
 
-All schemas are JSON Schema draft 2020-12. Media-type registry (RFC 6838 vendor tree): `application/vnd.acx.cartridge`, `application/vnd.acx.cartridge.v1`, `application/vnd.acx.cartridge.layer.v1+sqlite`, `application/vnd.acx.rom-manifest.v1+json`, `application/vnd.acx.workflow.v1+json`, `application/vnd.in-toto+json`, `application/vnd.dsse.envelope.v1+json`, `application/vnd.acx.trust-registry.v1`, `application/vnd.acx.harness-requirements.v1+json`, `application/vnd.acx.harness-compliance.v1+json`, `application/vnd.acx.loop-context-policy.v1+json`, `application/vnd.acx.level-attestation.v1`, `application/vnd.acx.benchmark.v1`, `application/vc`.
+All schemas are JSON Schema draft 2020-12. Media-type registry (RFC 6838 vendor tree): `application/vnd.acx.cartridge`, `application/vnd.acx.cartridge.v1`, `application/vnd.acx.cartridge.layer.v1+sqlite`, `application/vnd.acx.rom-manifest.v1+json`, `application/vnd.acx.workflow.v1+json`, `application/vnd.acx.agent-graph.v1+json`, `application/vnd.in-toto+json`, `application/vnd.dsse.envelope.v1+json`, `application/vnd.acx.trust-registry.v1`, `application/vnd.acx.harness-requirements.v1+json`, `application/vnd.acx.harness-compliance.v1+json`, `application/vnd.acx.loop-context-policy.v1+json`, `application/vnd.acx.level-attestation.v1`, `application/vnd.acx.benchmark.v1`, `application/vc`.
 
 ### Resolved contradictions (summary)
 
@@ -653,7 +665,8 @@ the latter.
 Each task **MAY** declare `sideEffects` (`none` | `workspace` | `external`) and `approval`
 (`never` | `on-request` | `always`). A host **MUST** pause for explicit approval when `approval:"always"`
 and **MUST NOT** grant permissions beyond its own policy merely because a signed workflow requests them.
-Signatures prove authorship and integrity, not safety.
+Signatures prove possession of the signing key and integrity, not namespace authorship or safety.
+Publisher authorship becomes trusted only through a valid §4.3 namespace proof.
 
 **RAC** (`RacItem`) declares **Required Available Context** as a description only. A RAC item **MUST NOT**
 carry the knowledge content itself; it contains `kind`, `description`, optional availability `check`, and
@@ -687,9 +700,9 @@ RAC description, limit, or metadata after signing therefore invalidates the arti
 
 ACX does not replace runtime protocols. A2A 1.0 supplies network agent discovery, signed Agent Cards, task
 lifecycles, messages, artifacts, and protocol extensions; MCP supplies host tools and resources. ACX
-supplies the portable, content-addressed agent artifact and the signed multi-agent graph that selects and
-coordinates those agents. An ACX host may dispatch a task through A2A and satisfy a RAC check through an
-MCP resource without changing the CAL document.
+supplies the portable, content-addressed agent artifact, the CAL task graph that selects and coordinates
+agents, and the separate Agent Graph information architecture (§16). An ACX host may dispatch a task
+through A2A and satisfy a RAC check through an MCP resource without changing either exchange artifact.
 
 ## 15. Open Knowledge Format alignment
 
@@ -703,3 +716,270 @@ reserved `index.md`/`log.md`) is a natural producer for the knowledge a CAL decl
 `description`, `tags`, `timestamp` mapped verbatim) — field-learned records stay excluded, so the memory
 quarantine (§7.4) and OKF's "metadata not raw data" rule compose. This makes generation (OpenWiki → OKF)
 and declaration/verification (RAC + `acx workflow ready`) two ends of the same interface.
+
+---
+
+## 16. ACX Agent Graph: Team Communication, Knowledge & Loop Convergence
+
+An **ACX Agent Graph** is a portable information architecture for an agent team. A CAL says **what happens
+next**. An Agent Graph says **who owns the context, who can direct whom, where reports return, and where
+separate loops meet**.
+
+The two artifacts deliberately model different concerns:
+
+- a CAL (`acx.cal/1`) is a bounded task-execution graph with participant slots, nodes, conditions, RAC,
+  side-effect declarations, and terminal events (§14);
+- an Agent Graph (`acx.agent-graph/1`) is a declarative responsibility and information-routing graph with
+  actors, knowledge modules, communication routes, loop bindings, and convergence points.
+
+An Agent Graph **MUST NOT** contain executable task payloads, **MUST NOT** embed the knowledge it
+describes, and **MUST NOT** grant tools, data access, network access, approval rights, or runtime
+permissions. Its media type is `application/vnd.acx.agent-graph.v1+json`, its portable file suffix is
+`.agent-graph.json`, and its normative schema is `schemas/agent-graph.schema.json`.
+
+### 16.1 Document, discovery & identity
+
+Every Agent Graph **MUST** carry:
+
+- `schemaVersion:"acx.agent-graph/1"`;
+- a stable lowercase `id`;
+- non-empty `actors`, `knowledge`, and `routes` arrays; and
+- `limits` with positive `maxPropagationHops` and `maxFanout`.
+
+`loops` and `convergence` are OPTIONAL. Actor ids, knowledge ids, route ids, loop ids, and convergence ids
+**MUST** each be unique within their respective collections. Every graph-local id reference **MUST**
+resolve; external CAL participant aliases are validated when a host resolves the pinned workflow.
+Every actor **MUST** participate in stewardship, an audience, a route, a loop binding, or convergence;
+every knowledge module **MUST** be routed, bound to a loop, or produced by convergence. Validators
+**MUST** reject isolated actors and unused knowledge declarations.
+
+A graph published to an exchange or registry **MUST** additionally carry a SemVer `version`, a
+human-readable `name`, a useful `description`, an SPDX `license`, at least one named `author`, at least one
+lowercase discovery `tag`, and a valid signature under §16.8. `homepage` is OPTIONAL and, when present,
+**MUST** be an absolute URI. `extensions` is an OPTIONAL reverse-DNS-keyed object; consumers **MUST**
+ignore namespaces they do not recognize. Before publication, all public metadata **MUST** pass a
+fail-closed secret scan. Credential-like values, private keys, tokens, and other secret-like metadata
+**MUST** be rejected; pinned sha256 workflow digests are identifiers and are excluded from that scan.
+
+The tuple `(id, version, digest)` is the immutable published graph identity. Human-readable names,
+descriptions, and fuzzy selectors are not identifiers.
+
+### 16.2 Actors: logical seats, not pinned identities
+
+An `Actor` represents a logical seat in the information architecture. It **MUST** carry an `id`, a `kind`
+(`agent` | `human` | `group` | `service` | `mixed`), and a description. It **MAY** carry:
+
+- a display `name`;
+- a fuzzy `selector` containing one or more role names, capabilities, tags, or a prose description;
+- `cardinality.min` and/or `cardinality.max`; and
+- prose `responsibilities`.
+
+When `cardinality` is present, it **MUST** contain at least `min` or `max`; an empty object is invalid.
+
+Selectors make graphs reusable across teams: “the agent capable of product ownership” can occupy a seat
+without hard-coding a person, cartridge, model, or vendor. They are matching hints, not authorization.
+A host **MAY** map several runtime participants to a group seat, but each participant alias in one loop
+binding maps to at most one graph seat. The host **MUST** expose that resolution and **MUST NOT** treat a
+selector match as a permission grant.
+
+### 16.3 Knowledge modules: stewardship metadata, never content
+
+A `KnowledgeModule` describes an information responsibility. It **MUST** carry an `id`, `kind`,
+description, and one or more actor ids in `stewards`. The closed v1 `kind` vocabulary is:
+`intent`, `requirement`, `decision`, `status`, `evidence`, `feedback`, `risk`, `context`, `artifact`,
+`tacit`, and `custom`.
+
+A module **MAY** declare a display name, intended `audience`, `durability` (`turn` | `session` |
+`workflow` | `project` | `organization` | `public`), `sensitivity` (`public` | `internal` |
+`restricted`), and a freshness policy. Freshness carries a mode (`event` | `continuous` | `periodic` |
+`on-demand` | `custom`), a prose description, and an optional positive `maxAgeMs`; periodic freshness
+**MUST** declare `maxAgeMs`.
+
+An optional `locator` is a metadata-only hint for resolving authoritative context in the receiving
+environment. Its type is `rac`, `okf`, `mcp-resource`, `artifact`, `manual`, or `custom`, and its
+description explains how a host can find or check that context. The module has deliberately **no**
+`content` property. Source code, requirements, credentials, conversation transcripts, private wikis, and
+other actual knowledge **MUST** stay in their authoritative environment. A conformant validator
+**MUST** reject embedded content and unknown properties.
+
+Stewardship means responsibility for keeping a knowledge module coherent and current. It does not by
+itself permit a steward to read, write, disclose, or approve the underlying information.
+
+### 16.4 Routes: direction, reporting & response contracts
+
+A `Route` describes a communication responsibility. It **MUST** carry:
+
+- a unique `id`, one `from` actor, and one or more `to` actors;
+- an `intent`: `inform`, `direct`, `request`, `report`, `advise`, `review`, `approve`, `escalate`,
+  `coordinate`, `observe`, or `custom`;
+- an `obligation`: `must`, `should`, or `may`;
+- a useful prose `purpose`;
+- one or more knowledge ids in `carries`; and
+- one or more structured `triggers`.
+
+`relationship` is an OPTIONAL open-world lowercase label such as `reports-to`, `consults`, or
+`hands-off-to`. `authority` is an OPTIONAL descriptive classification (`informational`, `advisory`,
+`delegated`, `approval`, or `escalation`). Neither field grants runtime authority.
+
+A trigger **MUST** be exactly one of:
+
+- `{type:"event", events:[…], description?}`, where every event is a dotted lowercase token such as
+  `work.requested` or `loop.completed`;
+- `{type:"interval", everyMs:<positive integer>, description?}`; or
+- `{type:"manual", description?}`.
+
+Structured triggers are portable matching data, not executable expressions. A host **MAY** map its local
+events and clocks to them; the graph does not dispatch a message by itself.
+
+A route **MAY** further declare a success description, `delivery` (`broadcast` | `one` | `owner` |
+`custom`), acknowledgement behavior (`required` | `optional` | `none`), a medium, or a cadence.
+`weight` is an OPTIONAL number from 0 through 1 for fuzzy importance or expected communication strength;
+it **MUST NOT** be interpreted as authority, confidence, or an access-control score.
+
+Responses are explicit. When a route declares returned knowledge in `returns`, it **MUST** declare
+`expects.via`, referencing a route from one of the original targets back to the original source. That
+return route **MUST** carry every declared returned knowledge module. `expects.withinMs` and a prose
+description are OPTIONAL. A present `returns` array **MUST** be non-empty. A route **MUST NOT** target its
+own `from` actor; intra-actor state belongs in the actor's own loop or memory policy, not a communication
+edge.
+
+Reporting, feedback, advice, review, and escalation cycles are valid and often desirable. Mandatory
+direction is intentionally stricter: a target actor **MUST NOT** receive routes with `intent:"direct"` and
+`obligation:"must"` for the same knowledge module from more than one source, and the mandatory-direction
+subgraph for each knowledge module **MUST** be acyclic. A validator **MUST** reject conflicting owners or
+mandatory command cycles while preserving ordinary communication/reporting cycles.
+
+No route may address more actors than `limits.maxFanout`.
+
+### 16.5 Loop bindings: join workflows without remodeling their tasks
+
+A `LoopBinding` identifies one loop whose information crosses the team graph. It **MUST** carry an `id`,
+a `kind` (`acx-workflow` | `external` | `informal`), a description, and at least one knowledge id in
+`imports` or `exports`.
+
+An `acx-workflow` binding **MUST** carry a `workflowRef` with a CAL id. In a structural draft, its SemVer
+version and sha256 digest are OPTIONAL; a published Agent Graph **MUST** include both. Other loop kinds
+**MUST NOT** carry `workflowRef`.
+
+Optional `actorBindings` map an Agent Graph actor id to one or more CAL participant aliases. These
+bindings connect the responsibility graph to a workflow without copying its nodes, conditions, RAC,
+permissions, or task payloads. Within one loop binding, a participant alias **MUST NOT** be bound to more
+than one Agent Graph actor. An Agent Graph **MUST NOT** redefine CAL execution semantics.
+
+An unpinned moving workflow reference is not publishable.
+
+### 16.6 Convergence: where separate loops meet
+
+A `ConvergencePoint` makes the synthesis of several loops explicit. It **MUST** carry:
+
+- a unique `id` and description;
+- at least two `inputs` from at least two distinct loop ids, each naming knowledge exported by that loop;
+- one `steward` and optional contributors;
+- a merge `policy`;
+- one or more output knowledge ids;
+- a prose `trigger`; and
+- positive `limits.maxWaitMs` and `limits.maxRounds`.
+
+For every input knowledge module, a route carrying it **MUST** reach the convergence steward. Outputs
+**MUST** be synthesized knowledge rather than unchanged input ids, and the convergence steward **MUST**
+also steward every output module. These invariants prevent a convergence point from claiming to combine
+information that can never reach its owner.
+
+The policy mode is `steward-synthesis`, `consensus`, `vote`, `priority`, `latest`, or `custom`, accompanied
+by a prose description. `failureMode` is OPTIONAL and describes what should happen when inputs do not
+arrive or agreement fails. The convergence trigger and policy remain descriptive; a CAL or host runtime
+defines any executable synthesis steps. A host that operationalizes convergence **MUST** stop waiting or
+iterating at the declared bounds.
+
+### 16.7 Global bounds & runtime interpretation
+
+`limits.maxPropagationHops` bounds any host-implemented cascade through communication routes;
+`limits.maxFanout` bounds the number of targets on each route. Both **MUST** be positive integers. The
+reference validator enforces structural fan-out; a host that propagates messages or context through the
+graph **MUST** additionally stop before exceeding `maxPropagationHops`.
+
+Agent Graph validation proves that ids and references are coherent, communication expectations are
+paired, mandatory direction is unambiguous, and loop convergence is reachable and bounded. It does not
+prove that a described team is staffed, a communication occurred, knowledge is correct or available, or
+a policy is safe. Hosts remain authoritative for actor resolution, event mapping, task dispatch,
+permission checks, approvals, resource limits, and data access.
+
+#### 16.7.1 Host-side route event envelope
+
+The Agent Graph file remains non-executing. A host that operationalizes routes or convergence **MUST**
+carry an ephemeral event envelope containing at least:
+
+- a globally unique `eventId` and a stable `correlationId` for one related information exchange;
+- an OPTIONAL `causationId` naming the event that caused this event;
+- the verified `graphDigest` and selected `routeId`;
+- a non-negative `hopCount`; and
+- one or more knowledge references containing a knowledge-module `id` and an opaque revision, version, or
+  digest — never the knowledge content.
+
+The first routed event starts at `hopCount:0`; every forwarding hop **MUST** increment it. A host **MUST**
+stop before a forwarding action would exceed `limits.maxPropagationHops`, and **MUST** apply
+`limits.maxFanout` at every route.
+
+A host **MUST** deduplicate repeated delivery by `eventId` within the correlation. Convergence inputs
+**MUST** retain their originating correlation, and a host **MUST NOT** merge inputs from different
+`correlationId` values merely because their knowledge ids or loop bindings match. `causationId` SHOULD
+preserve the event chain across reports, expected return routes, and synthesized convergence output.
+
+This event envelope is runtime state, not a new property of `acx.agent-graph/1`, and **MUST NOT** be
+written into the signed graph. The zero-dependency reference implementation validates, signs, verifies,
+inspects, and shares graphs; it does not dispatch route events, resolve knowledge references, or execute
+convergence.
+
+### 16.8 Canonical digest, signature & trust
+
+Agent Graph signing follows the same self-contained trust spine as workflows:
+
+1. Remove only the top-level `integrity` property.
+2. Canonicalize the remaining JSON with RFC 8785/JCS.
+3. Compute `digest = "sha256:" || hex(sha256(canonical_bytes))`.
+4. Build an in-toto Statement v1 whose sole subject is
+   `urn:acx:agent-graph:<id>@<version>` with the sha256 digest and whose
+   `predicateType` is `https://acx.dev/attestation/agent-graph/v1`.
+5. Bind `acxSchemaVersion`, graph id/version, publisher id, digest, signing time, and the counts of actors,
+   knowledge modules, routes, loops, and convergence points in the predicate.
+6. Wrap the statement in a DSSE envelope with `payloadType:"application/vnd.in-toto+json"` and sign it
+   with Ed25519.
+
+The top-level `integrity` object **MUST** use
+`schemaVersion:"acx.agent-graph-signature/1"` and carry exactly the digest, reverse-DNS `publisherId`,
+content-addressed `keyid`, SPKI `publicKeyPem`, RFC 3339 `signedAt`, and clean DSSE `envelope`. The private
+key **MUST NOT** appear in the graph, registry, or git.
+
+A verifier **MUST** recompute the digest from live graph content; validate the publishable structure;
+verify the public-key/keyid match, DSSE signature, in-toto subject, predicate type, graph id/version,
+publisher id, signing time, and bound counts; and then apply the trust-registry lifecycle rules of §4.4.
+Any mismatch is `tampered`. A valid unknown signer is `portable`; a namespace-proven registry signer is
+`trusted`. Editing a selector, responsibility, knowledge declaration, route, trigger, expectation, loop,
+convergence policy, limit, or discovery field after signing therefore invalidates the artifact.
+
+A valid signature proves possession of the signing key and integrity only. It cryptographically binds
+`publisherId` as the signer's claim; publisher authorship is trusted only after a valid §4.3 namespace
+proof. Neither state **MUST** be treated as evidence that the publisher controls the named actors, that
+the described authority exists in the receiving organization, or that execution is safe.
+
+### 16.9 CLI & registry profile
+
+The zero-dependency reference CLI exposes:
+
+```text
+acx graph lint <file.agent-graph.json> [--publish]
+acx graph sign <file.agent-graph.json> --publisher <reverse-dns> [--key <pem>] [--out <file>]
+acx graph verify <file.agent-graph.json> [--registry <trust.json>]
+acx graph inspect <file.agent-graph.json>
+acx graph digest <file.agent-graph.json>
+acx share graph <file.agent-graph.json> [--publisher <id>] [--registry <dir>] [--dry-run] [--force]
+```
+
+`lint` validates the closed references and graph invariants; `lint --publish` additionally requires the
+public discovery profile. `sign` requires the publishable profile and produces
+`acx.agent-graph-signature/1`; `verify` requires both a valid publishable structure and valid signature;
+`inspect` renders the discovery card; and `digest` prints the JCS digest.
+
+`share graph` is fail-closed: it accepts only a signed, publishable `.agent-graph.json` whose publisher
+binding verifies, preserves the authoritative artifact bytes, and prepares
+`registry/graphs/<id>.agent-graph.json`. `--dry-run` **SHOULD** be used before writing a registry diff.

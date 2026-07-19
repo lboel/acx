@@ -44,7 +44,13 @@ reopened.close()
 const registry = emptyTrustRegistry()
 registry.byKeyId.set(key.keyid, {
   keyid: key.keyid, publisherId: 'io.github.agentibus', algorithm: 'ed25519',
-  publicKeyPem: key.publicKeyPem, status: 'active', namespaceProof: { type: 'github-oidc' },
+  publicKeyPem: key.publicKeyPem, status: 'active',
+  namespaceProof: {
+    method: 'github-oidc',
+    oidcSubject: 'repo:agentibus/acx:ref:refs/heads/main',
+    oidcIssuer: 'https://token.actions.githubusercontent.com',
+    verifiedAt: '2026-01-01T00:00:00Z',
+  },
   notBefore: '2020-01-01T00:00:00Z', notAfter: '2030-01-01T00:00:00Z',
 })
 const reopened2 = Cartridge.open(OUT, { readonly: true })

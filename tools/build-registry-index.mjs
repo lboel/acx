@@ -9,11 +9,17 @@ import { evaluateTrust, emptyTrustRegistry, loadTrustRegistry } from '../src/tru
 import { validatePackageSpec } from '../src/packagespec.mjs'
 import { validatePublishableWorkflow } from '../src/cal.mjs'
 import { verifyWorkflow, workflowCard } from '../src/workflow.mjs'
+import {
+  agentGraphCard,
+  validatePublishableAgentGraph,
+  verifyAgentGraph,
+} from '../src/agent-graph.mjs'
 import { registryPolicyIssues } from '../src/share.mjs'
 
 const REGISTRY = join(new URL('.', import.meta.url).pathname, '..', 'registry')
 const CARTRIDGES = join(REGISTRY, 'cartridges')
 const WORKFLOWS = join(REGISTRY, 'cals')
+const GRAPHS = join(REGISTRY, 'graphs')
 
 function registry() {
   const p = join(REGISTRY, 'trust-registry.json')
@@ -38,6 +44,17 @@ function findWorkflows(dir) {
     const p = join(dir, e.name)
     if (e.isDirectory()) out.push(...findWorkflows(p))
     else if (e.name.endsWith('.cal.json')) out.push(p)
+  }
+  return out
+}
+
+function findAgentGraphs(dir) {
+  const out = []
+  if (!existsSync(dir)) return out
+  for (const e of readdirSync(dir, { withFileTypes: true })) {
+    const p = join(dir, e.name)
+    if (e.isDirectory()) out.push(...findAgentGraphs(p))
+    else if (e.name.endsWith('.agent-graph.json')) out.push(p)
   }
   return out
 }
@@ -97,6 +114,40 @@ function summarizeWorkflow(workflowPath, reg) {
   }
 }
 
+function summarizeAgentGraph(graphPath, reg) {
+  const graph = JSON.parse(readFileSync(graphPath, 'utf8'))
+  const issues = validatePublishableAgentGraph(graph)
+  const verification = verifyAgentGraph(graph, { registry: reg })
+  const card = agentGraphCard(graph, verification)
+  return {
+    _sourceTimestamp: graph?.integrity?.signedAt,
+    path: relative(REGISTRY, graphPath),
+    id: card.id,
+    version: card.version,
+    name: card.name,
+    description: card.description,
+    license: card.license,
+    tags: card.tags,
+    publisher: card.publisher,
+    trust: card.trust,
+    trustStatus: card.status,
+    digest: card.digest,
+    actorCount: card.actorCount,
+    knowledgeCount: card.knowledgeCount,
+    routeCount: card.routeCount,
+    loopCount: card.loopCount,
+    convergenceCount: card.convergenceCount,
+    intents: card.intents,
+    actors: card.actors,
+    knowledge: card.knowledge,
+    loops: card.loops,
+    publishable: issues.length === 0,
+    signed: card.signed,
+    issues: [...verification.issues, ...issues],
+    accepted: verification.ok && verification.signed && issues.length === 0,
+  }
+}
+
 const reg = registry()
 const rejected = registryPolicyIssues(REGISTRY).map((reason) => ({
   type: 'policy',
@@ -127,6 +178,42 @@ for (const file of findWorkflows(WORKFLOWS)) {
 }
 workflowEntries.sort((a, b) => a.id.localeCompare(b.id) || a.version.localeCompare(b.version))
 
+const agentGraphEntries = []
+const seenAgentGraphIds = new Set()
+const seenAgentGraphIdentities = new Set()
+for (const file of findAgentGraphs(GRAPHS)) {
+  const summary = summarizeAgentGraph(file, reg)
+  const graphRelativePath = relative(GRAPHS, file).replaceAll('\\', '/')
+  const canonicalPath = `${summary.id}.agent-graph.json`
+  const identity = `${summary.id}\u0000${summary.version}\u0000${summary.digest}`
+  if (graphRelativePath !== canonicalPath) {
+    rejected.push({
+      path: summary.path,
+      trust: summary.trust,
+      publishable: summary.publishable,
+      type: 'agent-graph',
+      reason: `non-canonical graph path (expected graphs/${canonicalPath})`,
+    })
+  } else if (seenAgentGraphIds.has(summary.id) || seenAgentGraphIdentities.has(identity)) {
+    rejected.push({
+      path: summary.path,
+      trust: summary.trust,
+      publishable: summary.publishable,
+      type: 'agent-graph',
+      reason: `duplicate Agent Graph identity '${summary.id}@${summary.version}'`,
+    })
+  } else if (!summary.accepted) {
+    rejected.push({ path: summary.path, trust: summary.trust, publishable: summary.publishable, type: 'agent-graph' })
+  } else {
+    seenAgentGraphIds.add(summary.id)
+    seenAgentGraphIdentities.add(identity)
+    const { accepted: _accepted, issues: _issues, _sourceTimestamp, ...entry } = summary
+    if (_sourceTimestamp) sourceTimestamps.push(_sourceTimestamp)
+    agentGraphEntries.push(entry)
+  }
+}
+agentGraphEntries.sort((a, b) => a.id.localeCompare(b.id) || a.version.localeCompare(b.version))
+
 const index = {
   schemaVersion: 'acx.registry-index/1',
   generatedAt: sourceTimestamps.sort((a, b) => Date.parse(a) - Date.parse(b)).at(-1) || '1970-01-01T00:00:00.000Z',
@@ -134,17 +221,22 @@ const index = {
   cartridges: entries,
   workflowCount: workflowEntries.length,
   workflows: workflowEntries,
+  agentGraphCount: agentGraphEntries.length,
+  agentGraphs: agentGraphEntries,
 }
 writeFileSync(join(REGISTRY, 'index.json'), JSON.stringify(index, null, 2) + '\n')
 console.log(`indexed ${entries.length} cartridge(s) -> registry/index.json`)
 for (const e of entries) console.log(`  ${e.name.padEnd(16)} ${e.publisher.padEnd(24)} trust=${e.trust.padEnd(8)} level=${e.level ? e.level.careerTier + ' Lv.' + e.level.acxLevel : '—'} spec=${e.specClean ? 'clean' : 'ISSUES'}`)
 console.log(`indexed ${workflowEntries.length} signed workflow(s) -> registry/index.json`)
 for (const workflow of workflowEntries) console.log(`  ${workflow.id.padEnd(20)} v${workflow.version.padEnd(10)} trust=${workflow.trust.padEnd(8)} team=${workflow.participantCount} nodes=${workflow.nodeCount}`)
+console.log(`indexed ${agentGraphEntries.length} signed agent graph(s) -> registry/index.json`)
+for (const graph of agentGraphEntries) console.log(`  ${graph.id.padEnd(20)} v${graph.version.padEnd(10)} trust=${graph.trust.padEnd(8)} actors=${graph.actorCount} routes=${graph.routeCount} loops=${graph.loopCount}`)
 if (rejected.length) {
   console.error(`\nREJECTED ${rejected.length} artifact(s) (tampered / invalid / unsigned / unclean spec):`)
   for (const r of rejected) {
     if (r.type === 'policy') console.error(`  ✗ ${r.reason}`)
-    else console.error(`  ✗ ${r.path}  trust=${r.trust}${r.type === 'workflow' ? ' publishable=' + r.publishable : ' specClean=' + r.specClean}`)
+    else if (r.reason) console.error(`  ✗ ${r.path}  ${r.reason}`)
+    else console.error(`  ✗ ${r.path}  trust=${r.trust}${['workflow', 'agent-graph'].includes(r.type) ? ' publishable=' + r.publishable : ' specClean=' + r.specClean}`)
   }
   process.exit(1)
 }

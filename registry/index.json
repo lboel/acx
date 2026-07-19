@@ -1,6 +1,6 @@
 {
   "schemaVersion": "acx.registry-index/1",
-  "generatedAt": "2026-07-18T15:27:30.680Z",
+  "generatedAt": "2026-07-19T12:00:00.000Z",
   "count": 2,
   "cartridges": [
     {
@@ -178,6 +178,113 @@
         "build-dag",
         "design-api",
         "harden-security"
+      ],
+      "publishable": true,
+      "signed": true
+    }
+  ],
+  "agentGraphCount": 1,
+  "agentGraphs": [
+    {
+      "path": "graphs/product-delivery.agent-graph.json",
+      "id": "product-delivery",
+      "version": "1.0.0",
+      "name": "Product delivery team graph",
+      "description": "A fuzzy but machine-checkable information architecture connecting product intent, research evidence, delivery reporting, and decisions across two reusable agent loops.",
+      "license": "Apache-2.0",
+      "tags": [
+        "agent-graph",
+        "product",
+        "reporting",
+        "team"
+      ],
+      "publisher": "io.github.lboel",
+      "trust": "portable",
+      "trustStatus": "verified",
+      "digest": "sha256:80f8c0c4e098d935c849380ecad108a18e20961ec03aaa5beb1463c41263c0fa",
+      "actorCount": 3,
+      "knowledgeCount": 5,
+      "routeCount": 4,
+      "loopCount": 2,
+      "convergenceCount": 1,
+      "intents": [
+        "advise",
+        "direct",
+        "report",
+        "request"
+      ],
+      "actors": [
+        {
+          "id": "product-owner",
+          "name": "Product Owner",
+          "kind": "agent"
+        },
+        {
+          "id": "developers",
+          "name": "Developer team",
+          "kind": "group"
+        },
+        {
+          "id": "researchers",
+          "name": "Research council",
+          "kind": "group"
+        }
+      ],
+      "knowledge": [
+        {
+          "id": "product-intent",
+          "name": "Product intent",
+          "kind": "intent",
+          "stewards": [
+            "product-owner"
+          ]
+        },
+        {
+          "id": "delivery-brief",
+          "name": "Delivery brief",
+          "kind": "requirement",
+          "stewards": [
+            "product-owner"
+          ]
+        },
+        {
+          "id": "delivery-status",
+          "name": "Delivery status",
+          "kind": "status",
+          "stewards": [
+            "developers"
+          ]
+        },
+        {
+          "id": "research-evidence",
+          "name": "Research evidence",
+          "kind": "evidence",
+          "stewards": [
+            "researchers"
+          ]
+        },
+        {
+          "id": "product-decision",
+          "name": "Product decision",
+          "kind": "decision",
+          "stewards": [
+            "product-owner"
+          ]
+        }
+      ],
+      "loops": [
+        {
+          "id": "discovery-loop",
+          "kind": "acx-workflow",
+          "workflowId": "research-council",
+          "digest": "sha256:3300ea74052dc7f76aa81f79cd37b269267b2f06b4ae4710480dc73d62102ed8"
+        },
+        {
+          "id": "delivery-loop",
+          "kind": "acx-workflow",
+          "workflowId": "ship-a-feature",
+          "digest": "sha256:588424a9ec12483ce13f28e81e9d0833777676bbd2c0c0686bbc27bb58f93dee"
+        }
       ],
       "publishable": true,
       "signed": true

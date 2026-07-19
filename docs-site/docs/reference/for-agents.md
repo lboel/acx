@@ -11,6 +11,7 @@ literally to install and drive the tool. (Humans: the same content lives in `AGE
     node --experimental-sqlite src/cli.mjs load agent.acx --host claude
     node --experimental-sqlite src/cli.mjs workflow verify team.signed.cal.json
     node --experimental-sqlite src/cli.mjs workflow ready team.signed.cal.json --cartridges ./roster
+    node --experimental-sqlite src/cli.mjs graph verify team.signed.agent-graph.json
     node --experimental-sqlite src/cli.mjs share workflow team.signed.cal.json --dry-run
     ```
 
@@ -37,6 +38,10 @@ literally to install and drive the tool. (Humans: the same content lives in `AGE
 | `acx workflow verify <f.cal.json>` | Verify digest, signature, identity binding, and trust | [loops (CAL)](../format/loops-cal.md) |
 | `acx workflow ready <f.cal.json> --cartridges <dir>` | Staff slots and check local capability readiness | [loops (CAL)](../format/loops-cal.md) |
 | `acx workflow inspect <f.cal.json>` | Print a safe discovery card without executing the workflow | [loops (CAL)](../format/loops-cal.md) |
+| `acx graph lint <f.agent-graph.json> [--publish]` | Validate team knowledge, routing, reporting, loop bindings, convergence, and publication metadata | [Agent Graph](../format/agent-graph.md) |
+| `acx graph sign <f.agent-graph.json> --publisher <id>` | JCS-digest and DSSE-sign a shareable information architecture | [Agent Graph](../format/agent-graph.md) |
+| `acx graph verify <f.agent-graph.json>` | Verify graph digest, signature, identity binding, and trust | [Agent Graph](../format/agent-graph.md) |
+| `acx graph inspect <f.agent-graph.json>` | Print a safe graph card without routing messages or dispatching work | [Agent Graph](../format/agent-graph.md) |
 | `acx cal <cal.json>` | Backward-compatible alias for `workflow ready` | [loops (CAL)](../format/loops-cal.md) |
 | `acx lance <f.acx>` | Materialize a real LanceDB memory dataset (optional pylance) | [packages](../format/packages.md) |
 | `acx init [--from-code <dir>]` | Scaffold an agent / agent set | [init & agent sets](../lifecycle/init-agent-set.md) |
@@ -44,7 +49,7 @@ literally to install and drive the tool. (Humans: the same content lives in `AGE
 | `acx strip <f.acx> <out.acx>` | Remove SAVE; ROM hash-equality proof | [cartridge model](../concepts/cartridge-model.md) |
 | `acx level <f.acx>` | Earn a provable level | [provable level](../leveling/provable-level.md) |
 | `acx builder` | Visual CAL/RAC loop builder in the browser | [loops (CAL)](../format/loops-cal.md) |
-| `acx share agent/workflow … [--dry-run]` | Verify and prepare canonical registry PR files | [Share ACX](../share.md) |
+| `acx share agent/workflow/graph … [--dry-run]` | Verify and prepare canonical registry PR files | [Share ACX](../share.md) |
 
 ## Decision tree
 
@@ -53,10 +58,12 @@ flowchart TD
   Q{What do you want?} --> use[Use a shared agent]
   Q --> make[Build one]
   Q --> team[Orchestrate several]
-  Q --> share[Share an agent or team]
+  Q --> map[Map team communication]
+  Q --> share[Share an agent, workflow, or graph]
   use --> v["acx verify → acx check → acx load"]
   make --> i["acx init → fill → acx export → acx verify"]
   team --> c["author / acx builder → workflow lint → sign → verify → ready"]
+  map --> g["author Agent Graph → graph lint → sign → verify"]
   share --> s["verify → share --dry-run → prepare → CI → PR"]
 ```
 
@@ -74,13 +81,15 @@ flowchart TD
 6. **Loops must be bounded.** Any reachable cycle requires `limits.maxSteps`; terminal events have no
    outgoing edges; every reachable node must have a path to `end` or `stop`.
 7. **External side effects are explicit.** Review each task's `sideEffects` and `approval` before dispatch.
-8. **Self-sharing stays reviewable.** Read `skills/acx-share-agent/SKILL.md`; never stage a private key,
+8. **Agent Graphs describe, never authorize.** Roles are logical seats; knowledge is metadata only;
+   reporting cycles never auto-dispatch; host policy remains authoritative.
+9. **Self-sharing stays reviewable.** Read `skills/acx-share-agent/SKILL.md`; never stage a private key,
    and never push or open a PR without human authority.
 
 ## Verify the tool itself
 
 ```bash
-npm test                                              # 88 conformance, workflow, and sharing tests
+npm test                                              # 113 conformance, graph, workflow, and sharing tests
 node --experimental-sqlite scripts/smoke.mjs          # export → verify → strip → tamper
 node --experimental-sqlite scripts/prove-level.mjs    # earn + verify a provable level
 ```

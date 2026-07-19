@@ -1,15 +1,22 @@
 # Conformance
 
-The 15 normative **MUST** items of SPEC §12, mapped to the tests that exercise them in the zero-dependency reference implementation — and an honest accounting of the five requirements that are specified but deliberately left host-side.
+The 16 normative **MUST** items of SPEC §12, mapped to the tests that exercise them in the zero-dependency reference implementation — and an honest accounting of the five requirements that are specified but deliberately left host-side.
 
-A conformant Agent Cartridge is a contract with two parties: the **producer** (the tooling that authors, signs, and levels a `.acx` file or ACX Workflow) and the **host** (the harness that boots it). SPEC §12 enumerates fifteen `MUST` clauses that bind both. The reference implementation proves the producer-side and cryptographic clauses end-to-end; a handful of runtime clauses — OCI push, live namespace proofs, the activation handshake, the loop evaluator, and `vec0` vectors — are **specified normatively but implemented by the host**, not by this repo.
+A conformant Agent Cartridge is a contract with two parties: the **producer** (the tooling that authors,
+signs, and levels a `.acx` file, ACX Workflow, or Agent Graph) and the **host** (the harness that boots or
+consumes it). SPEC §12 enumerates sixteen `MUST` clauses that bind both. The reference implementation
+proves the producer-side and cryptographic clauses end-to-end; a handful of runtime clauses — OCI push,
+live namespace proofs, the activation handshake, the loop evaluator, and `vec0` vectors — are **specified
+normatively but implemented by the host**, not by this repo.
 
 !!! note "How to read this page"
     Each row links to the SPEC clause, to the format page that documents it, and — where applicable — to the exact test name that appears in the [Proofs](../proofs.md) transcript. "Exercised" means a passing assertion re-runs the behaviour on real bytes; "Host-side" means the clause is a normative requirement for a *host*, and the reference impl stops at the seam.
 
-## The 15 MUST items
+## The 16 MUST items
 
-The full suite is **88 tests, 0 failures** (`node --experimental-sqlite --test 'test/*.test.mjs'` — [Proof 1](../proofs.md)). The status column below reflects what that run and the scripted proofs actually assert.
+The full suite runs with **zero failures** (`node --experimental-sqlite --test 'test/*.test.mjs'` —
+[Proof 1](../proofs.md)). The status column below reflects what that run and the scripted proofs actually
+assert.
 
 | # | §12 requirement | Status | Where it is proven |
 |---|-----------------|--------|--------------------|
@@ -28,6 +35,7 @@ The full suite is **88 tests, 0 failures** (`node --experimental-sqlite --test '
 | 13 | Any level is a revocable, evidence-linked VC 2.0 / Open Badge 3.0, issued only after independent held-out re-execution, TrueSkill σ-gated (`sigma < 1.5`, `gamesPlayed ≥ 30`, `R = mu − 3σ`), bound to the ROM digest | :material-check-circle: Exercised | `§10.1 verifyLevelCredential accepts a valid, gated, ROM-bound credential` (+ rejects self-issuance / ROM mismatch / revoked / tampered), `§10.2 a weak agent fails the sigma gate → no VC issued`; [Proof 3](../proofs.md) — [provable level](../leveling/provable-level.md) |
 | 14 | Distribute as **one** OCI image (§11), `artifactType application/vnd.acx.cartridge.v1`, verifiable with stock cosign/oras and **zero** registry change | :material-alert: Specified; host-side | The OCI wrapping is normatively specified; **the push/verify runtime is host-side** (stock `cosign`/`oras`, no code in this repo) — [distribution](../lifecycle/distribution.md) |
 | 15 | Validate workflows independently of staffing; require closed structured conditions, complete references and completion contracts, terminal reachability, bounded cycles, and verify the JCS digest plus DSSE/in-toto publisher binding before slot resolution | :material-check-circle: Exercised | `acx.cal/1 publish profile accepts…`, `CAL conditions are closed structured data…`, `cyclic workflows fail closed…`, `workflow signing binds…`, tamper/trust/revocation tests, and `workflow lint separates portable structure checks from roster readiness` — [loop engineering](../format/loops-cal.md) |
+| 16 | Validate Agent Graphs as non-executing information architecture: description-only knowledge, complete actor/knowledge/loop/return references, conflict-free mandatory direction, unambiguous bindings, and bounded propagation/convergence; verify the distinct JCS + DSSE/in-toto identity binding before publication | :material-check-circle: Exercised | `acx.agent-graph/1 accepts fuzzy prose with hard reference invariants`, reference/return/direction/convergence failure tests, secret-like metadata rejection, workflow-ref pinning, signature tamper/trust tests, and safe registry sharing — [Agent Graph](../format/agent-graph.md) |
 
 !!! success "What the crypto actually proves"
     Items 3, 4, 6, 8, and 13 are the security spine, and they are **fully real** — no stubs. Signing recomputes every object hash from live bytes (`buildRomManifest` → `liveOid()`), so a rewritten `SKILL.md` body or an upgraded capability proficiency is caught even when its stored `objects.oid` is left stale:
@@ -91,6 +99,7 @@ SPEC §12 closes with a rule that keeps future readers safe: **every stored arti
 | Memory record | `schemaVersion` | memory-record v1 |
 | OCI distribution | `artifactType` | `application/vnd.acx.cartridge.v1` |
 | ACX Workflow | `schemaVersion` + SemVer + integrity version | `acx.cal/1`, `version: 1.0.0`, `acx.workflow-signature/1` |
+| ACX Agent Graph | `schemaVersion` + SemVer + integrity version | `acx.agent-graph/1`, `version: 1.0.0`, `acx.agent-graph-signature/1` |
 
 Spec evolution follows a two-track rule: **`spec_MAJOR` bumps break readers; `spec_MINOR` is additive.** v1.1 of the loop-context policy was a `spec_MINOR` addition — it layered `plan`/`reflect` phases, `verification.regression` (held-in/held-out), `observability`, `subAgents[].mode`, and `context.playbook` onto v1 without breaking a v1 reader (SPEC §9.6).
 
@@ -101,6 +110,7 @@ The rule for forward compatibility: **recognizing hosts consume their namespace;
 - Reverse-DNS keys under `acx_skill.ext` (host-superset frontmatter like Claude Code `context`, `effort`, `hooks`, `model` travels here, never as top-level frontmatter keys).
 - Reverse-DNS-prefixed `taskType` tokens.
 - `x-`-prefixed capability scopes.
+- Reverse-DNS keys under an Agent Graph's `extensions` object; unknown namespaces remain ignorable.
 - A2A `AgentExtension` for capability records (`uri: https://acx.dev/a2a/ext/capability/v1`) — plain A2A clients still see a discoverable skill; extension-aware clients read verified proficiency.
 - `acx:` JSON-LD terms in level credentials.
 
@@ -125,4 +135,5 @@ The format is stitched together from six independent design blocks, which disagr
 
 ---
 
-**See also:** [Proofs](../proofs.md) (the transcript and workflow checks behind the test names above) · [CLI](cli.md) · [Schemas](schemas.md) (the 12 draft-2020-12 schemas the `schemaVersion` tags point at).
+**See also:** [Proofs](../proofs.md) (the transcript and artifact checks behind the test names above) ·
+[CLI](cli.md) · [Schemas](schemas.md) (the 13 draft-2020-12 schemas the `schemaVersion` tags point at).

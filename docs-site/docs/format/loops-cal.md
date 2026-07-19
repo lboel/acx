@@ -41,6 +41,11 @@ flowchart TB
 
 Each participant still runs its own signed single-agent loop when it takes a task; the CAL only decides whose turn it is and when the process ends.
 
+!!! tip "Control flow vs. information architecture"
+    **A CAL says what happens next. An [Agent Graph](agent-graph.md) says who owns the context, who can
+    direct whom, where reports return, and where separate loops meet.** Use the graph to describe durable
+    knowledge and reporting relationships around one or several CALs; it never dispatches their tasks.
+
 ## The data model, connected
 
 | Object | What it is | Where it lives |

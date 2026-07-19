@@ -1,22 +1,37 @@
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, symlinkSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 
 import {
+  prepareAgentGraphShare,
   prepareAgentShare,
   prepareWorkflowShare,
   registryPolicyIssues,
   sharePullRequestBody,
 } from '../src/share.mjs'
+import { signAgentGraph } from '../src/agent-graph.mjs'
+import { generateSigningKey } from '../src/sign.mjs'
 import { REPO_ROOT } from '../src/paths.mjs'
 
 const AGENT = join(REPO_ROOT, 'registry', 'cartridges', 'io.github.ridgeworks', 'ada-ridge', 'cartridge.acx')
 const WORKFLOW = join(REPO_ROOT, 'registry', 'cals', 'research-council.cal.json')
+const AGENT_GRAPH_EXAMPLE = join(REPO_ROOT, 'examples', 'product-delivery.agent-graph.json')
 
 function registryDir() {
   return mkdtempSync(join(tmpdir(), 'acx-share-'))
+}
+
+function signedGraphPath(directory) {
+  const source = join(directory, 'product-delivery.agent-graph.json')
+  const graph = JSON.parse(readFileSync(AGENT_GRAPH_EXAMPLE, 'utf8'))
+  const signed = signAgentGraph(graph, generateSigningKey(), {
+    publisherId: 'io.github.lboel',
+    signedAt: '2026-07-19T12:00:00.000Z',
+  })
+  writeFileSync(source, JSON.stringify(signed, null, 2) + '\n')
+  return source
 }
 
 test('share agent prepares only the verified artifact and generated discovery card', () => {
@@ -63,6 +78,45 @@ test('share workflow preserves signed bytes and renders a reviewable PR body', (
   const body = sharePullRequestBody(plan)
   assert.match(body, /JCS digest and DSSE\/in-toto signature verified/)
   assert.match(body, /research-council/)
+})
+
+test('share agent graph preserves signed bytes and explains its non-executing scope', () => {
+  const root = registryDir()
+  const source = signedGraphPath(root)
+  const plan = prepareAgentGraphShare(source, { registryRoot: root })
+  assert.equal(plan.publisher, 'io.github.lboel')
+  assert.equal(plan.type, 'agent-graph')
+  assert.equal(readFileSync(plan.destination).equals(readFileSync(source)), true)
+  const body = sharePullRequestBody(plan)
+  assert.match(body, /\[ \] No task payloads or private knowledge contents are embedded/)
+  assert.match(body, /No secret-like metadata or local home path was detected/)
+  assert.match(body, /grants no tools or runtime permissions/)
+})
+
+test('share accepts signed sub-namespace publishers for path-independent graph artifacts', () => {
+  const root = registryDir()
+  const source = join(root, 'product-delivery.agent-graph.json')
+  const graph = JSON.parse(readFileSync(AGENT_GRAPH_EXAMPLE, 'utf8'))
+  const signed = signAgentGraph(graph, generateSigningKey(), {
+    publisherId: 'io.github.lboel/product',
+    signedAt: '2026-07-19T12:00:00.000Z',
+  })
+  writeFileSync(source, JSON.stringify(signed, null, 2) + '\n')
+  const plan = prepareAgentGraphShare(source, { registryRoot: root })
+  assert.equal(plan.publisher, 'io.github.lboel/product')
+  assert.equal(plan.destination, join(root, 'graphs', 'product-delivery.agent-graph.json'))
+})
+
+test('share refuses symlinked registry destinations before any outside write', () => {
+  const root = registryDir()
+  const outside = registryDir()
+  const source = signedGraphPath(root)
+  symlinkSync(outside, join(root, 'graphs'), 'dir')
+  assert.throws(
+    () => prepareAgentGraphShare(source, { registryRoot: root }),
+    /symbolic links are forbidden/,
+  )
+  assert.equal(existsSync(join(outside, 'product-delivery.agent-graph.json')), false)
 })
 
 test('share preparation is idempotent and registry policy rejects private keys', () => {

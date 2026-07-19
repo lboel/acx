@@ -18,10 +18,18 @@ import { loadCartridge, renderCard, readCard, DEFAULT_SKILLS_DIR } from './load.
 import { harnessCheck, resolveHost, HOSTS, listDir } from './hostcheck.mjs'
 import { lintCal, validatePublishableWorkflow } from './cal.mjs'
 import { signWorkflow, verifyWorkflow, workflowCard, workflowDigest } from './workflow.mjs'
+import {
+  agentGraphCard,
+  agentGraphDigest,
+  signAgentGraph,
+  validateAgentGraphStructure,
+  validatePublishableAgentGraph,
+  verifyAgentGraph,
+} from './agent-graph.mjs'
 import { scaffoldPackage, initFromCode } from './init.mjs'
 import { startBuilder } from './builder.mjs'
 import { materializeLance } from '../tools/materialize-lance.mjs'
-import { prepareAgentShare, prepareWorkflowShare, sharePullRequestBody } from './share.mjs'
+import { prepareAgentGraphShare, prepareAgentShare, prepareWorkflowShare, sharePullRequestBody } from './share.mjs'
 import { REPO_ROOT } from './paths.mjs'
 import { join } from 'node:path'
 import { readFileSync as _readFileSync, readdirSync } from 'node:fs'
@@ -43,11 +51,17 @@ Usage:
   acx workflow sign    <workflow.cal.json> --publisher <reverse-dns> [--key <pem>] [--out <file>]
   acx workflow verify  <workflow.cal.json> [--registry <trust.json>]
   acx workflow inspect <workflow.cal.json>
+  acx graph lint    <graph.agent-graph.json> [--publish]
+  acx graph sign    <graph.agent-graph.json> --publisher <reverse-dns> [--key <pem>] [--out <file>]
+  acx graph verify  <graph.agent-graph.json> [--registry <trust.json>]
+  acx graph inspect <graph.agent-graph.json>
+  acx graph digest  <graph.agent-graph.json>
   acx cal     <cal.json> [--cartridges <dir>]   alias for "workflow ready"
   acx lance   <file.acx> [--python <py>]        materialize a real LanceDB memory dataset
   acx builder [--port 8799]                     visual CAL/RAC loop builder in the browser
   acx share agent    <file.acx> --slug <slug> [--publisher <id>] [--registry <dir>] [--dry-run] [--force]
   acx share workflow <file.cal.json> [--publisher <id>] [--registry <dir>] [--dry-run] [--force]
+  acx share graph    <file.agent-graph.json> [--publisher <id>] [--registry <dir>] [--dry-run] [--force]
   acx level   <file.acx>
 
 Commands:
@@ -461,11 +475,114 @@ function cmdCal(positional, flags) {
   return cmdWorkflow(['ready', ...positional], flags)
 }
 
+// ---- agent graph (knowledge, reporting, and loop convergence) -------------
+function cmdAgentGraph(positional, flags) {
+  const [action, graphFile] = positional
+  if (!['lint', 'sign', 'verify', 'inspect', 'digest'].includes(action) || !graphFile) {
+    die('graph requires lint|sign|verify|inspect|digest <graph.agent-graph.json>')
+  }
+  const graph = readWorkflow(graphFile)
+
+  if (action === 'sign') {
+    if (!flags.publisher) die('graph sign requires --publisher <reverse-dns>')
+    const issues = validatePublishableAgentGraph(graph)
+    if (issues.length) {
+      console.error('agent graph is not publishable:')
+      for (const issue of issues) console.error('  - ' + issue)
+      process.exit(1)
+    }
+    const generated = !flags.key
+    const key = generated
+      ? generateSigningKey()
+      : signingKeyFromPrivatePem(_readFileSync(flags.key, 'utf8'))
+    const signed = signAgentGraph(graph, key, { publisherId: flags.publisher })
+    const out = flags.out || graphFile.replace(/(?:\.signed)?\.agent-graph\.json$/, '') + '.signed.agent-graph.json'
+    writeFileSync(out, JSON.stringify(signed, null, 2) + '\n')
+    console.log('agent graph:  ' + signed.id + '@' + signed.version)
+    console.log('digest:       ' + signed.integrity.digest)
+    console.log('publisher:    ' + signed.integrity.publisherId)
+    console.log('keyid:        ' + signed.integrity.keyid)
+    console.log('wrote:        ' + out)
+    if (generated) {
+      const keyPath = out + '.key.pem'
+      writeFileSync(keyPath, key.privateKeyPem, { mode: 0o600 })
+      console.log('signing key:  ' + keyPath + '  (private — keep secret, never publish)')
+    } else {
+      console.log('signing key:  reused ' + flags.key)
+    }
+    process.exit(0)
+  }
+
+  if (action === 'lint') {
+    const issues = flags.publish
+      ? validatePublishableAgentGraph(graph)
+      : validateAgentGraphStructure(graph)
+    if (flags.json) console.log(JSON.stringify({ ok: issues.length === 0, issues }, null, 2))
+    else {
+      console.log(`ACX Agent Graph: ${graph.name || graph.id} @ ${graph.version || 'unversioned'}`)
+      console.log(`  actors=${(graph.actors || []).length} knowledge=${(graph.knowledge || []).length} routes=${(graph.routes || []).length} loops=${(graph.loops || []).length} convergence=${(graph.convergence || []).length}`)
+      console.log('verdict: ' + (issues.length ? 'INVALID' : 'VALID ✓ — information architecture is reference-safe'))
+      for (const issue of issues) console.log('  - ' + issue)
+    }
+    process.exit(issues.length ? 1 : 0)
+  }
+
+  if (action === 'verify') {
+    const registry = flags.registry ? loadTrustRegistry(flags.registry) : emptyTrustRegistry()
+    const verification = verifyAgentGraph(graph, { registry })
+    const structural = validatePublishableAgentGraph(graph)
+    const ok = verification.ok && verification.signed && structural.length === 0
+    if (flags.json) console.log(JSON.stringify({ ok, verification, structural: { ok: structural.length === 0, issues: structural } }, null, 2))
+    else {
+      console.log('status:       ' + verification.status)
+      console.log('trust:        ' + verification.trust)
+      console.log('digest:       ' + verification.digest)
+      console.log('publisher:    ' + (verification.publisherId || '—'))
+      console.log('architecture: ' + (structural.length ? 'invalid' : 'publishable ✓'))
+      for (const issue of [...verification.issues, ...structural]) console.log('  - ' + issue)
+    }
+    process.exit(ok ? 0 : 1)
+  }
+
+  if (action === 'inspect') {
+    const registry = flags.registry ? loadTrustRegistry(flags.registry) : emptyTrustRegistry()
+    const card = agentGraphCard(graph, verifyAgentGraph(graph, { registry }))
+    if (flags.json) {
+      console.log(JSON.stringify(card, null, 2))
+    } else {
+      console.log(`${card.name} @ ${card.version || 'unversioned'}`)
+      console.log(card.description || '(no description)')
+      console.log(`  id:            ${card.id}`)
+      console.log(`  actors:        ${card.actorCount}`)
+      for (const actor of card.actors) console.log(`    - ${actor.id}: ${actor.kind} — ${actor.name}`)
+      console.log(`  knowledge:     ${card.knowledgeCount}`)
+      for (const item of card.knowledge) console.log(`    - ${item.id}: ${item.kind} — steward=${item.stewards.join(',')}`)
+      console.log(`  routes:        ${card.routeCount} (${card.intents.join(', ') || '—'})`)
+      for (const route of graph.routes || []) {
+        console.log(`    - ${route.from} → ${(route.to || []).join(',')} [${route.intent}/${route.obligation}] carries=${(route.carries || []).join(',')}`)
+      }
+      console.log(`  loops:         ${card.loopCount}`)
+      for (const loop of card.loops) console.log(`    - ${loop.id}: ${loop.workflowId || loop.kind}${loop.digest ? ' ' + loop.digest : ''}`)
+      console.log(`  convergence:   ${card.convergenceCount}`)
+      for (const point of graph.convergence || []) console.log(`    - ${point.id}: ${(point.inputs || []).map((input) => input.loop).join(' + ')} → ${(point.outputs || []).join(',')} (steward=${point.steward})`)
+      console.log(`  license:       ${card.license || '—'}`)
+      console.log(`  tags:          ${card.tags.join(', ') || '—'}`)
+      console.log(`  digest:        ${card.digest}`)
+      console.log(`  signature:     ${card.signed ? card.trust + ' (' + card.status + ')' : 'unsigned'}`)
+      if (card.publisher) console.log(`  publisher:     ${card.publisher}`)
+    }
+    process.exit(0)
+  }
+
+  console.log(agentGraphDigest(graph).digest)
+  process.exit(0)
+}
+
 // ---- share (prepare a verified registry PR) -------------------------------
 function cmdShare(positional, flags) {
   const [type, file] = positional
-  if (!['agent', 'workflow'].includes(type) || !file) {
-    die('share requires agent <file.acx> or workflow <file.cal.json>')
+  if (!['agent', 'workflow', 'graph'].includes(type) || !file) {
+    die('share requires agent <file.acx>, workflow <file.cal.json>, or graph <file.agent-graph.json>')
   }
   const options = {
     registryRoot: flags.registry || join(REPO_ROOT, 'registry'),
@@ -479,7 +596,9 @@ function cmdShare(positional, flags) {
   }
   const plan = type === 'agent'
     ? prepareAgentShare(file, options)
-    : prepareWorkflowShare(file, options)
+    : type === 'workflow'
+      ? prepareWorkflowShare(file, options)
+      : prepareAgentGraphShare(file, options)
   console.log(`${plan.dryRun ? 'share plan' : 'share prepared'}: ${plan.type} ${plan.slug}`)
   console.log('publisher:  ' + plan.publisher)
   console.log('artifact:   ' + plan.destination)
@@ -587,6 +706,7 @@ function main() {
     case 'check': case 'doctor': return cmdCheck(positional, flags)
     case 'ls': case 'list': return cmdLs(positional)
     case 'workflow': case 'flow': return cmdWorkflow(positional, flags)
+    case 'graph': case 'agent-graph': return cmdAgentGraph(positional, flags)
     case 'cal': return cmdCal(positional, flags)
     case 'lance': return cmdLance(positional, flags)
     case 'init': return cmdInit(positional, flags)

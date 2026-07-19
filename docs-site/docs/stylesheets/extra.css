@@ -3,6 +3,7 @@
 :root {
   --acx-teal: #0f766e;
   --acx-cyan: #06b6d4;
+  --acx-gold: #ca8a04;
   --acx-ink: #083344;
   --md-typeset-a-color: #0e7490;
 }
@@ -170,7 +171,7 @@
 .acx-share-status { min-height: 1.2rem; margin: 0.7rem 0 0; color: var(--acx-teal); font-size: 0.74rem; font-weight: 700; }
 @keyframes acx-orbit { to { transform: rotate(360deg); } }
 
-.acx-choice-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin: 1.3rem 0 2.5rem; }
+.acx-choice-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 1rem; margin: 1.3rem 0 2.5rem; }
 .md-typeset .acx-choice {
   display: flex;
   flex-direction: column;
@@ -205,6 +206,214 @@
 .acx-share-footer { margin-top: 2.5rem; padding: 1.3rem; border: 1px solid rgba(6, 182, 212, 0.32); border-radius: 14px; background: rgba(6, 182, 212, 0.08); text-align: center; }
 .acx-figure { text-align: center; }
 
+/* ---- Agent Graph ------------------------------------------------------ */
+.acx-graph-hero {
+  position: relative;
+  overflow: hidden;
+  margin: 0.5rem 0 2.2rem;
+  padding: clamp(1.5rem, 5vw, 3.2rem);
+  border: 1px solid rgba(6, 182, 212, 0.3);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 88% 12%, rgba(202, 138, 4, 0.13), transparent 28%),
+    radial-gradient(circle at 10% 100%, rgba(15, 118, 110, 0.17), transparent 34%),
+    linear-gradient(135deg, rgba(15, 118, 110, 0.1), rgba(6, 182, 212, 0.025));
+}
+.acx-graph-hero::after {
+  content: "";
+  position: absolute;
+  width: 11rem;
+  height: 11rem;
+  right: -4.5rem;
+  top: -5rem;
+  border: 1px dashed rgba(202, 138, 4, 0.34);
+  border-radius: 50%;
+  animation: acx-orbit 18s linear infinite;
+  pointer-events: none;
+}
+.acx-graph-hero h1 {
+  max-width: 17ch;
+  margin: 0.3rem 0 0.8rem;
+  font-size: clamp(2rem, 5vw, 3.3rem);
+  line-height: 1.04;
+  letter-spacing: -0.045em;
+}
+.acx-graph-hero > p,
+.acx-graph-hero > .acx-actions {
+  position: relative;
+  z-index: 1;
+}
+.acx-graph-lede {
+  max-width: 67ch;
+  margin-bottom: 1rem;
+  font-size: 1.02rem;
+  line-height: 1.62;
+}
+
+.acx-agent-graph {
+  margin: 1.5rem 0 2rem;
+}
+.acx-agent-graph__canvas {
+  overflow: hidden;
+  border: 1px solid rgba(6, 182, 212, 0.28);
+  border-radius: 22px;
+  background:
+    linear-gradient(rgba(6, 182, 212, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(6, 182, 212, 0.035) 1px, transparent 1px),
+    radial-gradient(circle at 50% 46%, rgba(202, 138, 4, 0.1), transparent 24%),
+    var(--md-default-bg-color);
+  background-size: 34px 34px, 34px 34px, auto, auto;
+  box-shadow: 0 18px 42px rgba(8, 51, 68, 0.09);
+}
+.acx-agent-graph__desktop {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.acx-agent-graph__actor {
+  fill: var(--md-default-bg-color);
+  stroke: rgba(6, 182, 212, 0.52);
+  stroke-width: 2;
+  filter: drop-shadow(0 8px 14px rgba(8, 51, 68, 0.09));
+}
+.acx-agent-graph__loop {
+  fill: rgba(6, 182, 212, 0.055);
+  stroke: rgba(15, 118, 110, 0.28);
+  stroke-width: 1.5;
+  stroke-dasharray: 6 7;
+}
+.acx-agent-graph__decision {
+  fill: rgba(202, 138, 4, 0.09);
+  fill: color-mix(in srgb, var(--acx-gold) 9%, var(--md-default-bg-color));
+  stroke: rgba(202, 138, 4, 0.68);
+  stroke-width: 2;
+  filter: drop-shadow(0 9px 17px rgba(202, 138, 4, 0.13));
+}
+.acx-agent-graph__kicker {
+  fill: var(--acx-teal);
+  font-family: var(--md-text-font-family);
+  font-size: 12px;
+  font-weight: 850;
+  letter-spacing: 1.5px;
+}
+.acx-agent-graph__title {
+  fill: var(--md-default-fg-color);
+  font-family: var(--md-text-font-family);
+  font-size: 21px;
+  font-weight: 800;
+}
+.acx-agent-graph__sub,
+.acx-agent-graph__route-copy {
+  fill: var(--md-default-fg-color--light);
+  font-family: var(--md-text-font-family);
+  font-size: 13px;
+}
+.acx-agent-graph__label {
+  fill: var(--acx-teal);
+  font-family: var(--md-text-font-family);
+  font-size: 12px;
+  font-weight: 850;
+  letter-spacing: 1.2px;
+}
+.acx-agent-graph__route {
+  fill: none;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 9 10;
+  animation: acx-graph-route 3.6s linear infinite;
+}
+.acx-agent-graph__route--request,
+.acx-agent-graph__route--direct {
+  stroke: var(--acx-cyan);
+}
+.acx-agent-graph__route--return,
+.acx-agent-graph__route--report {
+  stroke: var(--acx-teal);
+  animation-direction: reverse;
+}
+.acx-agent-graph__route--return { animation-delay: -0.9s; }
+.acx-agent-graph__route--report { animation-delay: -1.8s; }
+.acx-agent-graph__route--converge,
+.acx-agent-graph__route--decision {
+  stroke: var(--acx-gold);
+  animation-duration: 2.8s;
+}
+.acx-agent-graph__route--delayed { animation-delay: -1.4s; }
+.acx-agent-graph__marker--cyan { fill: var(--acx-cyan); }
+.acx-agent-graph__marker--teal { fill: var(--acx-teal); }
+.acx-agent-graph__marker--gold { fill: var(--acx-gold); }
+@keyframes acx-graph-route { to { stroke-dashoffset: -38; } }
+.acx-agent-graph figcaption {
+  max-width: 76ch;
+  margin: 0.8rem auto 0;
+  color: var(--md-default-fg-color--light);
+  font-size: 0.74rem;
+  line-height: 1.55;
+  text-align: center;
+}
+.md-typeset .acx-agent-graph__mobile {
+  display: none !important;
+  list-style: none;
+  margin: 0;
+  padding: 1rem;
+}
+.acx-agent-graph__mobile li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 0.45rem;
+  align-items: center;
+  margin: 0;
+  padding: 0.9rem;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 12px;
+  background: var(--md-default-bg-color);
+}
+.acx-agent-graph__mobile li + li { margin-top: 0.7rem; }
+.acx-agent-graph__mobile span { font-size: 0.78rem; font-weight: 750; }
+.acx-agent-graph__mobile strong { color: var(--acx-teal); font-size: 0.7rem; }
+.acx-agent-graph__mobile small {
+  grid-column: 1 / -1;
+  color: var(--md-default-fg-color--light);
+  font-size: 0.68rem;
+  line-height: 1.45;
+}
+.acx-agent-graph__mobile .acx-agent-graph__mobile-convergence {
+  border-color: rgba(202, 138, 4, 0.5);
+  background: rgba(202, 138, 4, 0.07);
+  background: color-mix(in srgb, var(--acx-gold) 7%, var(--md-default-bg-color));
+}
+.acx-graph-components .acx-card:nth-child(5)::before,
+.acx-graph-components .acx-card:nth-child(6)::before {
+  background: linear-gradient(180deg, var(--acx-gold), var(--acx-cyan));
+}
+.acx-graph-share-card {
+  position: relative;
+  overflow: hidden;
+  margin: 2.5rem 0;
+  padding: clamp(1.2rem, 4vw, 2rem);
+  border: 1px solid rgba(202, 138, 4, 0.38);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 95% 15%, rgba(202, 138, 4, 0.13), transparent 30%),
+    rgba(6, 182, 212, 0.055);
+}
+.acx-graph-share-card h3 { margin-top: 0.4rem; }
+.acx-graph-share-card p { max-width: 70ch; }
+.acx-graph-one-liner {
+  margin: 1.3rem 0;
+  padding: 1rem 1.1rem;
+  border-left: 4px solid var(--acx-gold);
+  border-radius: 0 12px 12px 0;
+  background: rgba(202, 138, 4, 0.07);
+  background: color-mix(in srgb, var(--acx-gold) 7%, var(--md-default-bg-color));
+  line-height: 1.6;
+}
+.acx-graph-hero a:focus-visible,
+.acx-graph-share-card a:focus-visible {
+  outline: 3px solid var(--acx-cyan);
+  outline-offset: 3px;
+}
+
 /* ---- ROM / SAVE chips inline ----------------------------------------- */
 .acx-rom, .acx-save {
   font-weight: 700; font-size: 0.78rem; padding: 0.12rem 0.5rem; border-radius: 6px; white-space: nowrap;
@@ -222,14 +431,22 @@
 @media (max-width: 900px) {
   .acx-flow { grid-template-columns: 1fr; }
   .acx-flow__arrow { transform: rotate(90deg); }
-  .acx-choice-grid { grid-template-columns: 1fr; }
-  .acx-choice { min-height: 0; }
+  .acx-choice-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .md-typeset .acx-choice { min-height: 0; }
   .acx-pr-flow { grid-template-columns: 1fr 1fr; }
 }
 
+@media (max-width: 700px) {
+  .acx-agent-graph__desktop { display: none; }
+  .md-typeset .acx-agent-graph__mobile { display: block !important; }
+}
+
 @media (max-width: 520px) {
+  .acx-choice-grid { grid-template-columns: 1fr; }
   .acx-pr-flow { grid-template-columns: 1fr; }
   .acx-button { width: 100%; }
+  .acx-agent-graph__mobile li { grid-template-columns: 1fr; }
+  .acx-agent-graph__mobile small { grid-column: 1; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -237,7 +454,9 @@
   .acx-hero img,
   .acx-flow__node,
   .acx-flow__arrow,
-  .acx-share-hero::after { animation: none !important; }
+  .acx-share-hero::after,
+  .acx-graph-hero::after,
+  .acx-agent-graph__route { animation: none !important; }
   .acx-card,
   .acx-button,
   .acx-choice { transition: none; }

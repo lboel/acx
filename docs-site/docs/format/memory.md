@@ -196,7 +196,9 @@ Before a cartridge is signed, an export-time scrub gate scans **every string fie
 | `repo-identifier-leak` | any raw `repoId`/`repoLabel`/`projectLabel` literal surviving §7.4 |
 
 !!! note "Home paths are a warning, not a block"
-    Absolute home paths (`/Users/<name>`, `/home/<name>`) are flagged but treated as **non-blocking** — they **MAY** be auto-namespaced to `~` and re-scanned. Only the secret and leak rules above set `blocked: true`.
+    Local home paths (`/Users/<name>`, `/home/<name>`, `C:\Users\<name>`, or `~/…`) are flagged but
+    treated as **non-blocking** — they **MAY** be replaced with an environment-independent relative
+    locator and re-scanned. Only the secret and leak rules above set `blocked: true`.
 
     The high-entropy rule is deliberately tuned so that hyphenated/camelCase identifiers (`LicenseRef-…`, `preferredProtocolRevision`) are *not* false positives, while a random 40-char token is. A pure-hex SHA/HMAC key tops out at 4.0 bits/char, so hex secrets get their own explicit `≥ 32 chars` branch rather than relying on an absolute-entropy threshold that could never catch them.
 

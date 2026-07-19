@@ -1,9 +1,9 @@
 ---
 name: acx-share-agent
-description: Verify and prepare signed ACX agents (.acx) or agent-team workflows (.cal.json) for sharing through the lboel/acx git registry and a reviewable pull request. Use when an agent should publish, share, update, or self-submit itself, its skills, a reusable loop, or a team workflow without leaking private keys or bypassing registry verification.
+description: Verify and prepare signed ACX agents (.acx), agent-team workflows (.cal.json), or Agent Graphs (.agent-graph.json) for sharing through the lboel/acx git registry and a reviewable pull request. Use when an agent should publish, share, update, or self-submit itself, its skills, a reusable loop, a team workflow, or a knowledge/reporting architecture without leaking private keys or bypassing registry verification.
 ---
 
-# Share an ACX agent
+# Share an ACX artifact
 
 Prepare a small, cryptographically verifiable registry change. Keep artifact preparation local until the
 user explicitly authorizes a push or pull request.
@@ -16,9 +16,12 @@ user explicitly authorizes a push or pull request.
 4. Classify the input:
    - signed agent: `*.acx`;
    - signed workflow/team: `*.cal.json`;
+   - signed communication and knowledge architecture: `*.agent-graph.json`;
    - agent-package source: export it first with `acx export`;
    - unsigned workflow: lint and sign it first with `acx workflow lint --publish` and
      `acx workflow sign`.
+   - unsigned Agent Graph: lint and sign it first with `acx graph lint --publish` and
+     `acx graph sign`.
 5. Never add a `*.key.pem`, generic private-key PEM, `.env`, credential, SAVE-zone export, or secret-bearing
    source file to git.
 
@@ -40,8 +43,19 @@ acx workflow lint path/to/team.cal.json --publish
 acx share workflow path/to/team.cal.json --dry-run
 ```
 
-Stop on any invalid, tampered, legacy/unsigned, unclean, publisher-mismatch, unsafe-path, or unbounded-loop
-result. Do not weaken a verifier to make an artifact pass.
+For an Agent Graph:
+
+```bash
+acx graph verify path/to/team.agent-graph.json
+acx graph lint path/to/team.agent-graph.json --publish
+acx share graph path/to/team.agent-graph.json --dry-run
+```
+
+Stop on any invalid, tampered, legacy/unsigned, unclean, publisher-mismatch, unsafe-path, dangling-reference,
+unbounded-loop, or unbounded-convergence result. Do not weaken a verifier to make an artifact pass. An
+Agent Graph routes descriptions and references to knowledge; it must not embed private knowledge content or
+secret-like metadata, and must not claim that a route grants tools, credentials, or runtime authority.
+Require every referenced ACX workflow loop to carry its signed digest.
 
 ## 3. Prepare the registry change
 
@@ -53,6 +67,8 @@ git switch -c registry/share-<slug>
 acx share agent path/to/agent.acx --slug <slug>
 # or
 acx share workflow path/to/team.cal.json
+# or
+acx share graph path/to/team.agent-graph.json
 
 node --experimental-sqlite tools/build-registry-index.mjs
 npm test
@@ -70,6 +86,7 @@ Allow only the applicable paths:
 - `registry/cartridges/<publisher>/<slug>/cartridge.acx`;
 - its generated `README.md`;
 - or `registry/cals/<workflow-id>.cal.json`;
+- or `registry/graphs/<graph-id>.agent-graph.json`;
 - `registry/index.json`.
 
 Read [references/pr-contract.md](references/pr-contract.md) before staging or creating the PR. Generate a
@@ -80,7 +97,7 @@ node --experimental-sqlite skills/acx-share-agent/scripts/render-pr-body.mjs \
   agent path/to/agent.acx --slug <slug>
 ```
 
-Use `workflow` instead of `agent` for a `.cal.json`.
+Use `workflow` for a `.cal.json` or `graph` for a `.agent-graph.json`.
 
 ## 5. Publish only with explicit authority
 
@@ -95,4 +112,6 @@ In the PR, report:
 - whether this is a new share or an update;
 - confirmation that no private key or secret is included.
 
-Never merge the PR merely because the submitter asks. Require the registry CI gate and human review.
+Never push, open a pull request, or merge without explicit authority for that external action. Even when
+authorized to open the PR, do not merge merely because the submitter asks: require the registry CI gate and
+human review.

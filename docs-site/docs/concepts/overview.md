@@ -106,10 +106,14 @@ Each part of the cartridge has its own format page:
 - **[Harness requirements](../format/harness-requirements.md)** — the four required tool-roles (`acx:execute`, `acx:dispatch`, `acx:memory.write`, `acx:search`), the MCP protocol floor, and the host capability-negotiation handshake (SPEC §8).
 - **[Loop & context policy](../format/loop-context.md)** — the `cycle [plan, gather_context, act, verify, reflect]`, verification with held-in/held-out regression gating, budgets, sub-agents, and observability (SPEC §9).
 
-And beyond the format:
+And beyond one cartridge:
 
+- **[Conditional Agentic Loops](../format/loops-cal.md)** — signed, bounded execution graphs that bind
+  agent slots, required context, conditions, and completion contracts (SPEC §14).
+- **[Agent Graph](../format/agent-graph.md)** — the signed information architecture around those loops:
+  who owns context, who directs or reports to whom, and where separate loops converge (SPEC §16).
 - **[Provable level](../leveling/provable-level.md)** — how a level is earned by re-run and verified as unfakeable (SPEC §10).
 - **[Distribution](../lifecycle/distribution.md)** — the `.acx` file as one layer in an OCI image manifest (`artifactType application/vnd.acx.cartridge.v1`), verifiable with stock cosign/oras (SPEC §11).
 
 !!! note "About the reference implementation"
-    The reference implementation is **zero-dependency** — Node ≥ 22's built-in `node:sqlite` and `node:crypto` — and runs with `node --experimental-sqlite`. Its cartridge crypto, workflow signing, structural termination checks, safe sharing path, σ-gating, and credential machinery are fully real (88 tests pass; see [Proofs](../proofs.md)). The benchmark's reference solver is **deterministic and pluggable** — a production verifier plugs in a real sandboxed agent run. OCI push, live namespace-proof verification (DNS-TXT / GitHub-OIDC), the host handshake runtime, the loop-policy evaluator, and `vec0` vectors are **specified normatively and are host-side** — they are not exercised by the reference impl.
+    The reference implementation is **zero-dependency** — Node ≥ 22's built-in `node:sqlite` and `node:crypto` — and runs with `node --experimental-sqlite`. Its cartridge crypto, Agent Graph and workflow signing, structural bounds, safe sharing path, σ-gating, and credential machinery are fully real (113 tests pass; see [Proofs](../proofs.md)). The benchmark's reference solver is **deterministic and pluggable** — a production verifier plugs in a real sandboxed agent run. OCI push, live namespace-proof verification (DNS-TXT / GitHub-OIDC), the host handshake runtime, the loop-policy evaluator, and `vec0` vectors are **specified normatively and are host-side** — they are not exercised by the reference impl.

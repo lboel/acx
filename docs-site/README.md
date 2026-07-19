@@ -18,7 +18,7 @@ uv venv && uv pip install zensical      # or: python3 -m venv .venv && .venv/bin
 .venv/bin/zensical build
 ```
 
-The build is clean (`No issues found`) and produces 19 pages.
+The build is clean (`No issues found`) and produces the complete static site under `site/`.
 
 ## Structure
 
@@ -26,7 +26,7 @@ The build is clean (`No issues found`) and produces 19 pages.
 - `docs/` — the content tree (`index.md`, `concepts/`, `format/`, `leveling/`, `lifecycle/`, `reference/`, `proofs.md`).
 - `docs/_assets/` — the cartridge illustration (`cartridge.svg`), the verbatim proof transcript, and a real level credential example.
 - `docs/stylesheets/extra.css` — the cartridge-inspired theme.
-- `AUTHOR-BRIEF.md` — the shared source-of-truth used when authoring the pages (not published).
+- `docs/llms.txt` — the concise machine-readable entry point for agents and language models.
 
 ## Compatibility
 

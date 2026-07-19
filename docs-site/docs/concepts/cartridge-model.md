@@ -155,7 +155,7 @@ And the test suite pins the invariant twice — once as a property and once on a
     === "Run all 10 proofs"
 
         ```bash
-        npm test          # 88 tests, 0 fail
+        npm test          # 113 tests, 0 fail
         node --experimental-sqlite scripts/smoke.mjs
         ```
 

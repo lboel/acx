@@ -229,7 +229,7 @@ wrote:                 /tmp/demo.rom.acx
 exit=0
 ```
 
-Under the hood: `DELETE FROM memory WHERE zone='save'` (and the matching `sqlar`, `vectors`, `objects` rows), clear `acx.save_codebase_fingerprint`, clear the SAVE flag bit, `VACUUM`. The existing `signatures` row re-verifies unchanged. A **fail-closed scrub gate** also runs on export before signing — it blocks (non-zero exit) on any AWS key, PEM private key, GitHub token, JWT, URI credential, or absolute home path, and never silently redacts (SPEC §7.5; tests: *"scrub gate FAILS CLOSED"*).
+Under the hood: `DELETE FROM memory WHERE zone='save'` (and the matching `sqlar`, `vectors`, `objects` rows), clear `acx.save_codebase_fingerprint`, clear the SAVE flag bit, `VACUUM`. The existing `signatures` row re-verifies unchanged. A **fail-closed scrub gate** also runs on export before signing — it blocks (non-zero exit) on any AWS key, PEM private key, GitHub token, JWT, or URI credential; local Unix, Windows, and `~/…` home paths are flagged for normalization, and secrets are never silently redacted (SPEC §7.5; tests: *"scrub gate FAILS CLOSED"*).
 
 The stripped, re-signed ROM is now ready for [distribution](distribution.md) as an OCI layer — the last lifecycle step.
 

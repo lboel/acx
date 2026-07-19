@@ -1,6 +1,6 @@
 [project]
 site_name = "Agent Cartridge (.acx)"
-site_description = "An open standard for portable, signed AI agents, reusable workflows, bounded loops, and verifiable agent teams."
+site_description = "An open standard for portable, signed AI agents, reusable workflows, bounded loops, Agent Graphs, and verifiable agent teams."
 site_author = "The Agent Cartridge authors"
 site_url = "https://acx.dev/"
 repo_url = "https://github.com/lboel/acx"
@@ -29,6 +29,7 @@ nav = [
     "format/harness-requirements.md",
     "format/loop-context.md",
     "format/loops-cal.md",
+    "format/agent-graph.md",
     "format/knowledge-okf.md",
   ] },
   { "Leveling up" = [

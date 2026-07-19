@@ -64,10 +64,23 @@ export function buildSignedCartridge({ publisherId = 'io.github.acxtest', signed
 /** A trust registry entry object for a signer key that is fully valid & namespace-proven. */
 export function trustedRegistry(key, publisherId = 'io.github.acxtest') {
   const byKeyId = new Map()
+  const githubOwner = publisherId.match(/^io\.github\.([a-z0-9-]+)/)?.[1] ?? null
+  const namespaceProof = githubOwner
+    ? {
+        method: 'github-oidc',
+        oidcSubject: `repo:${githubOwner}/acx:ref:refs/heads/main`,
+        oidcIssuer: 'https://token.actions.githubusercontent.com',
+        verifiedAt: '2026-01-01T00:00:00Z',
+      }
+    : {
+        method: 'dns-txt',
+        txtRecord: `_acx-challenge.${publisherId.split('/')[0].split('.').reverse().join('.')}`,
+        verifiedAt: '2026-01-01T00:00:00Z',
+      }
   byKeyId.set(key.keyid, {
     keyid: key.keyid, publisherId, algorithm: 'ed25519',
     publicKeyPem: key.publicKeyPem, status: 'active',
-    namespaceProof: { type: 'github-oidc' },
+    namespaceProof,
     notBefore: '2020-01-01T00:00:00Z', notAfter: '2030-01-01T00:00:00Z',
   })
   return { raw: { schemaVersion: 'acx.trust-registry/1', keys: [...byKeyId.values()] }, byKeyId }

@@ -1,0 +1,418 @@
+{
+  "schemaVersion": "acx.agent-graph/1",
+  "id": "product-delivery",
+  "version": "1.0.0",
+  "name": "Product delivery team graph",
+  "description": "A fuzzy but machine-checkable information architecture connecting product intent, research evidence, delivery reporting, and decisions across two reusable agent loops.",
+  "license": "Apache-2.0",
+  "homepage": "https://acx.dev/format/agent-graph/",
+  "authors": [
+    {
+      "name": "ACX Contributors",
+      "url": "https://github.com/lboel/acx"
+    }
+  ],
+  "tags": [
+    "agent-graph",
+    "product",
+    "reporting",
+    "team"
+  ],
+  "limits": {
+    "maxPropagationHops": 8,
+    "maxFanout": 8
+  },
+  "actors": [
+    {
+      "id": "product-owner",
+      "kind": "agent",
+      "name": "Product Owner",
+      "description": "Owns product intent, priorities, and the final synthesis of research and delivery reports.",
+      "selector": {
+        "roles": [
+          "product_owner"
+        ],
+        "description": "A trusted product-owner agent accountable for product decisions."
+      },
+      "cardinality": {
+        "min": 1,
+        "max": 1
+      },
+      "responsibilities": [
+        "Keep priorities, constraints, and acceptance intent current.",
+        "Resolve conflicting signals and publish the decision rationale."
+      ]
+    },
+    {
+      "id": "developers",
+      "kind": "group",
+      "name": "Developer team",
+      "description": "Designs and builds the product, then reports verified progress, risks, and blockers.",
+      "selector": {
+        "capabilities": [
+          "implement-feature",
+          "review-change"
+        ],
+        "description": "One or more agents able to design, implement, and verify the selected increment."
+      },
+      "cardinality": {
+        "min": 1,
+        "max": 8
+      },
+      "responsibilities": [
+        "Turn the delivery brief into a verified increment.",
+        "Surface blockers and decisions needed without waiting for a status meeting."
+      ]
+    },
+    {
+      "id": "researchers",
+      "kind": "group",
+      "name": "Research council",
+      "description": "Collects, challenges, and synthesizes decision-relevant evidence.",
+      "selector": {
+        "capabilities": [
+          "research",
+          "fact-check"
+        ],
+        "description": "Agents with complementary discovery, skepticism, and synthesis strengths."
+      },
+      "cardinality": {
+        "min": 1,
+        "max": 6
+      },
+      "responsibilities": [
+        "Separate evidence from assumptions.",
+        "Return uncertainty and counterarguments with every recommendation."
+      ]
+    }
+  ],
+  "knowledge": [
+    {
+      "id": "product-intent",
+      "kind": "intent",
+      "name": "Product intent",
+      "description": "The outcome, audience, constraints, and priority the product should serve; this describes where the current value lives but never embeds the private content itself.",
+      "stewards": [
+        "product-owner"
+      ],
+      "audience": [
+        "developers",
+        "researchers"
+      ],
+      "durability": "project",
+      "sensitivity": "internal",
+      "freshness": {
+        "mode": "event",
+        "description": "Refresh whenever scope, priority, or a governing constraint changes."
+      },
+      "locator": {
+        "type": "rac",
+        "description": "Resolve the current product-intent RAC entry through the host at runtime."
+      }
+    },
+    {
+      "id": "delivery-brief",
+      "kind": "requirement",
+      "name": "Delivery brief",
+      "description": "The current priority, acceptance intent, and boundaries developers should implement.",
+      "stewards": [
+        "product-owner"
+      ],
+      "audience": [
+        "developers"
+      ],
+      "durability": "workflow",
+      "sensitivity": "internal"
+    },
+    {
+      "id": "delivery-status",
+      "kind": "status",
+      "name": "Delivery status",
+      "description": "Progress, verification results, risks, decisions needed, and blockers reported by delivery.",
+      "stewards": [
+        "developers"
+      ],
+      "audience": [
+        "product-owner"
+      ],
+      "durability": "session",
+      "sensitivity": "internal"
+    },
+    {
+      "id": "research-evidence",
+      "kind": "evidence",
+      "name": "Research evidence",
+      "description": "Decision-relevant evidence, uncertainty, counterarguments, and source-quality notes.",
+      "stewards": [
+        "researchers"
+      ],
+      "audience": [
+        "product-owner"
+      ],
+      "durability": "project",
+      "sensitivity": "internal"
+    },
+    {
+      "id": "product-decision",
+      "kind": "decision",
+      "name": "Product decision",
+      "description": "The prioritized decision and rationale produced after research and delivery signals converge.",
+      "stewards": [
+        "product-owner"
+      ],
+      "audience": [
+        "developers",
+        "researchers"
+      ],
+      "durability": "project",
+      "sensitivity": "internal"
+    }
+  ],
+  "routes": [
+    {
+      "id": "po-directs-developers",
+      "from": "product-owner",
+      "to": [
+        "developers"
+      ],
+      "intent": "direct",
+      "relationship": "directs",
+      "obligation": "must",
+      "authority": "delegated",
+      "purpose": "Translate product intent into a clear delivery brief for the developer team.",
+      "success": "Developers can state the priority, boundaries, and acceptance intent in their own words.",
+      "carries": [
+        "delivery-brief"
+      ],
+      "returns": [
+        "delivery-status"
+      ],
+      "triggers": [
+        {
+          "type": "event",
+          "events": [
+            "work.requested",
+            "scope.changed"
+          ],
+          "description": "Send when work is ready or product scope changes materially."
+        }
+      ],
+      "delivery": "broadcast",
+      "acknowledgement": "required",
+      "medium": "Host-selected durable work channel",
+      "weight": 1,
+      "expects": {
+        "via": "developers-report-po",
+        "withinMs": 86400000,
+        "description": "Delivery returns progress or a blocker through the declared reporting route."
+      }
+    },
+    {
+      "id": "po-requests-research",
+      "from": "product-owner",
+      "to": [
+        "researchers"
+      ],
+      "intent": "request",
+      "relationship": "commissions",
+      "obligation": "should",
+      "authority": "delegated",
+      "purpose": "Frame the decision question and request evidence before prioritization.",
+      "success": "The council can distinguish the decision, known constraints, and open uncertainty.",
+      "carries": [
+        "product-intent"
+      ],
+      "returns": [
+        "research-evidence"
+      ],
+      "triggers": [
+        {
+          "type": "event",
+          "events": [
+            "decision.requested",
+            "scope.changed"
+          ]
+        }
+      ],
+      "delivery": "owner",
+      "acknowledgement": "required",
+      "weight": 0.9,
+      "expects": {
+        "via": "research-advises-po",
+        "withinMs": 86400000
+      }
+    },
+    {
+      "id": "research-advises-po",
+      "from": "researchers",
+      "to": [
+        "product-owner"
+      ],
+      "intent": "advise",
+      "relationship": "advises",
+      "obligation": "must",
+      "authority": "advisory",
+      "purpose": "Return evidence, uncertainty, and counterarguments to the decision steward.",
+      "success": "The Product Owner can trace the recommendation and see what remains uncertain.",
+      "carries": [
+        "research-evidence"
+      ],
+      "triggers": [
+        {
+          "type": "event",
+          "events": [
+            "loop.completed",
+            "decision.requested"
+          ]
+        }
+      ],
+      "delivery": "owner",
+      "acknowledgement": "required",
+      "weight": 0.9
+    },
+    {
+      "id": "developers-report-po",
+      "from": "developers",
+      "to": [
+        "product-owner"
+      ],
+      "intent": "report",
+      "relationship": "reports-to",
+      "obligation": "must",
+      "authority": "informational",
+      "purpose": "Report delivery progress, verified outcomes, blockers, risks, and decisions needed.",
+      "success": "The Product Owner can distinguish verified completion, uncertainty, and the next decision.",
+      "carries": [
+        "delivery-status"
+      ],
+      "triggers": [
+        {
+          "type": "event",
+          "events": [
+            "loop.progressed",
+            "loop.blocked",
+            "loop.completed"
+          ]
+        }
+      ],
+      "cadence": {
+        "mode": "event",
+        "description": "Report at verified milestones, blockers, and material scope changes."
+      },
+      "delivery": "owner",
+      "acknowledgement": "required",
+      "weight": 1
+    }
+  ],
+  "loops": [
+    {
+      "id": "discovery-loop",
+      "kind": "acx-workflow",
+      "description": "Research and challenge evidence before a product decision.",
+      "workflowRef": {
+        "id": "research-council",
+        "version": "1.0.0",
+        "digest": "sha256:3300ea74052dc7f76aa81f79cd37b269267b2f06b4ae4710480dc73d62102ed8"
+      },
+      "actorBindings": [
+        {
+          "actor": "researchers",
+          "participants": [
+            "scout",
+            "skeptic",
+            "editor"
+          ]
+        }
+      ],
+      "imports": [
+        "product-intent"
+      ],
+      "exports": [
+        "research-evidence"
+      ]
+    },
+    {
+      "id": "delivery-loop",
+      "kind": "acx-workflow",
+      "description": "Design, build, and review the selected product increment.",
+      "workflowRef": {
+        "id": "ship-a-feature",
+        "version": "1.0.0",
+        "digest": "sha256:588424a9ec12483ce13f28e81e9d0833777676bbd2c0c0686bbc27bb58f93dee"
+      },
+      "actorBindings": [
+        {
+          "actor": "developers",
+          "participants": [
+            "architect",
+            "builder",
+            "reviewer"
+          ]
+        }
+      ],
+      "imports": [
+        "delivery-brief",
+        "product-decision"
+      ],
+      "exports": [
+        "delivery-status"
+      ]
+    }
+  ],
+  "convergence": [
+    {
+      "id": "product-steering",
+      "description": "Research and delivery signals meet before the next product priority is committed.",
+      "inputs": [
+        {
+          "loop": "discovery-loop",
+          "knowledge": [
+            "research-evidence"
+          ]
+        },
+        {
+          "loop": "delivery-loop",
+          "knowledge": [
+            "delivery-status"
+          ]
+        }
+      ],
+      "steward": "product-owner",
+      "contributors": [
+        "developers",
+        "researchers"
+      ],
+      "policy": {
+        "mode": "steward-synthesis",
+        "description": "The Product Owner reconciles evidence, delivery reality, and product intent, then records the rationale."
+      },
+      "outputs": [
+        "product-decision"
+      ],
+      "trigger": "When either loop reaches a decision-ready milestone or reports a material change.",
+      "failureMode": "Escalate missing or contradictory evidence instead of silently choosing a priority.",
+      "limits": {
+        "maxWaitMs": 3600000,
+        "maxRounds": 2
+      }
+    }
+  ],
+  "integrity": {
+    "schemaVersion": "acx.agent-graph-signature/1",
+    "digest": "sha256:80f8c0c4e098d935c849380ecad108a18e20961ec03aaa5beb1463c41263c0fa",
+    "publisherId": "io.github.lboel",
+    "keyid": "ed25519:99f57c3568302ea3a730d955570cc85c3d8596225c1c94c4e5f9ab498d69fe78",
+    "publicKeyPem": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEA5JwpvupE7sEXBaCko65n2IlhfVe/Ov+LqTMAIYeppgQ=\n-----END PUBLIC KEY-----\n",
+    "signedAt": "2026-07-19T12:00:00.000Z",
+    "envelope": {
+      "payloadType": "application/vnd.in-toto+json",
+      "payload": "eyJfdHlwZSI6Imh0dHBzOi8vaW4tdG90by5pby9TdGF0ZW1lbnQvdjEiLCJwcmVkaWNhdGUiOnsiYWN0b3JzIjozLCJhY3hTY2hlbWFWZXJzaW9uIjoiYWN4LmFnZW50LWdyYXBoLzEiLCJhZ2VudEdyYXBoRGlnZXN0Ijoic2hhMjU2OjgwZjhjMGM0ZTA5OGQ5MzVjODQ5MzgwZWNhZDEwOGExOGUyMDk2MWVjMDNhYWE1YmViMTQ2M2M0MTI2M2MwZmEiLCJhZ2VudEdyYXBoSWQiOiJwcm9kdWN0LWRlbGl2ZXJ5IiwiYWdlbnRHcmFwaFZlcnNpb24iOiIxLjAuMCIsImNvbnZlcmdlbmNlUG9pbnRzIjoxLCJrbm93bGVkZ2VNb2R1bGVzIjo1LCJsb29wcyI6MiwicHVibGlzaGVySWQiOiJpby5naXRodWIubGJvZWwiLCJyb3V0ZXMiOjQsInNpZ25lZEF0IjoiMjAyNi0wNy0xOVQxMjowMDowMC4wMDBaIn0sInByZWRpY2F0ZVR5cGUiOiJodHRwczovL2FjeC5kZXYvYXR0ZXN0YXRpb24vYWdlbnQtZ3JhcGgvdjEiLCJzdWJqZWN0IjpbeyJkaWdlc3QiOnsic2hhMjU2IjoiODBmOGMwYzRlMDk4ZDkzNWM4NDkzODBlY2FkMTA4YTE4ZTIwOTYxZWMwM2FhYTViZWIxNDYzYzQxMjYzYzBmYSJ9LCJuYW1lIjoidXJuOmFjeDphZ2VudC1ncmFwaDpwcm9kdWN0LWRlbGl2ZXJ5QDEuMC4wIn1dfQ==",
+      "signatures": [
+        {
+          "keyid": "ed25519:99f57c3568302ea3a730d955570cc85c3d8596225c1c94c4e5f9ab498d69fe78",
+          "sig": "zpccYXHtBt/JkXwy7woQKuqKdDxBN0xW2KPZfPQa1Mhv+H0+wH6P8DhJx4LIrxTva0wC+vH+SvPQVWAA7z5KCg=="
+        }
+      ]
+    }
+  }
+}

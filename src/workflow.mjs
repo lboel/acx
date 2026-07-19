@@ -4,7 +4,7 @@
 // RFC 8785/JCS canonicalized and addressed by sha256.
 import { jcs, sha256Hex } from './canonical.mjs'
 import { keyIdFromPem, signEnvelope, verifyEnvelope } from './sign.mjs'
-import { emptyTrustRegistry } from './trust.mjs'
+import { emptyTrustRegistry, trustedRegistryEntryIssues } from './trust.mjs'
 
 export const WORKFLOW_SCHEMA_VERSION = 'acx.cal/1'
 export const WORKFLOW_SIGNATURE_VERSION = 'acx.workflow-signature/1'
@@ -202,23 +202,19 @@ export function verifyWorkflow(cal, { registry = emptyTrustRegistry(), now = new
   if (!registryEntry) {
     return result({ ...base, ok: true, status: 'verified', trust: 'portable', issues: ['signer keyid not in trust registry'] })
   }
-  if (registryEntry.publisherId && registryEntry.publisherId !== integrity.publisherId) {
+  if (registryEntry.publisherId !== integrity.publisherId) {
     return result({ ...base, issues: ['registry publisherId does not match signed publisherId'] })
   }
   if (registryEntry.status === 'revoked' && registryEntry.revocationReason === 'key-compromise') {
     return result({ ...base, issues: ['signer key revoked due to key compromise'] })
   }
-  if (registryEntry.status === 'revoked' || registryEntry.status === 'expired') {
-    return result({ ...base, ok: true, status: 'warning', trust: 'portable', issues: [`signer key is ${registryEntry.status}`] })
-  }
-  if (registryEntry.notBefore && Date.parse(integrity.signedAt) < Date.parse(registryEntry.notBefore)) {
-    return result({ ...base, ok: true, status: 'warning', trust: 'portable', issues: ['workflow signed before key validity window'] })
-  }
-  if (registryEntry.notAfter && Date.parse(now) > Date.parse(registryEntry.notAfter)) {
-    return result({ ...base, ok: true, status: 'warning', trust: 'portable', issues: ['signer key expired'] })
-  }
-  if (!registryEntry.namespaceProof) {
-    return result({ ...base, ok: true, status: 'warning', trust: 'portable', issues: ['publisher namespace proof missing'] })
+  const eligibilityIssues = trustedRegistryEntryIssues(registryEntry, {
+    publisherId: integrity.publisherId,
+    signedAt: integrity.signedAt,
+    now,
+  })
+  if (eligibilityIssues.length) {
+    return result({ ...base, ok: true, status: 'warning', trust: 'portable', issues: eligibilityIssues })
   }
   return result({ ...base, ok: true, status: 'verified', trust: 'trusted', issues: [] })
 }

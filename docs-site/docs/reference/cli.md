@@ -2,7 +2,7 @@
 
 `acx` is the zero-dependency reference command-line tool for building, inspecting, verifying, stripping,
 leveling, and safely sharing `.acx` Agent Cartridges — and for linting, signing, verifying, inspecting,
-staffing, and submitting reusable ACX Workflows.
+staffing, and submitting reusable ACX Workflows and Agent Graphs.
 
 ## Running the tool
 
@@ -35,8 +35,13 @@ Usage:
   acx workflow verify  <workflow.cal.json> [--registry <trust.json>]
   acx workflow inspect <workflow.cal.json>
   acx workflow ready   <workflow.cal.json> [--cartridges <dir>]
+  acx graph lint    <graph.agent-graph.json> [--publish]
+  acx graph sign    <graph.agent-graph.json> --publisher <reverse-dns> [--key <pem>] [--out <file>]
+  acx graph verify  <graph.agent-graph.json> [--registry <trust.json>]
+  acx graph inspect <graph.agent-graph.json>
   acx share agent      <file.acx> --slug <slug> [--dry-run]
   acx share workflow   <workflow.cal.json> [--dry-run]
+  acx share graph      <graph.agent-graph.json> [--dry-run]
   acx level   <file.acx>
 ```
 
@@ -46,6 +51,7 @@ Usage:
 | [`inspect`](#inspect) | Print meta, ROM objects, skills, capabilities, memory, attestations | §12 |
 | [`verify`](#verify)  | Evaluate the trust taxonomy (`local/trusted/portable/legacy/tampered`) | §4.5, §12.6 |
 | [`workflow`](#workflow) | Validate, sign, verify, inspect, and staff portable agent-team workflows | §14 |
+| [`graph`](#graph) | Validate, sign, verify, and inspect portable team information architectures | §16 |
 | [`share`](#share) | Verify and prepare one focused registry pull request | Reference distribution workflow |
 | [`strip`](#strip)   | Re-export SAVE-free and prove the ROM hash is unchanged | §3.4 |
 | [`level`](#level)   | Earn a σ-gated, ROM-bound level credential from an independent verifier | §10 |
@@ -57,9 +63,9 @@ Usage:
 
 ## `share`
 
-Prepare a signed agent or workflow for the git registry. `share` performs no git, network, push, or PR
-operation: it verifies the artifact, enforces safe canonical paths, copies only the public artifact, and
-generates review metadata.
+Prepare a signed agent, workflow, or Agent Graph for the git registry. `share` performs no git, network,
+push, or PR operation: it verifies the artifact, enforces safe canonical paths, copies only the public
+artifact, and generates review metadata.
 
 ```bash
 acx share agent agent.acx --slug research-designer --dry-run
@@ -67,6 +73,9 @@ acx share agent agent.acx --slug research-designer
 
 acx share workflow research-council.cal.json --dry-run
 acx share workflow research-council.cal.json
+
+acx share graph product-delivery.agent-graph.json --dry-run
+acx share graph product-delivery.agent-graph.json
 ```
 
 | Flag | Meaning |
@@ -80,8 +89,9 @@ acx share workflow research-council.cal.json
 For agents, `share` requires a valid signed cartridge and clean `acx.package-spec/1`, then produces
 `registry/cartridges/<publisher>/<slug>/cartridge.acx` plus a generated README card. For workflows, it
 requires the complete publication profile and valid JCS/DSSE/in-toto publisher binding, then produces
-`registry/cals/<id>.cal.json`. It refuses legacy/unsigned artifacts, tampering, publisher mismatches, unsafe
-identifiers, and silent overwrite.
+`registry/cals/<id>.cal.json`. For Agent Graphs, it applies the same signature and publication gates, then
+produces `registry/graphs/<id>.agent-graph.json`. It refuses legacy/unsigned artifacts, tampering, publisher
+mismatches, unsafe identifiers, secret-like public metadata, and silent overwrite.
 
 Continue with the deterministic index builder and tests:
 
@@ -95,6 +105,61 @@ git diff -- registry/
 See [Share ACX](../share.md) for the human path and the bundled
 [`$acx-share-agent`](../share.md#let-an-agent-prepare-its-own-share-pr) skill for agent-driven PR
 preparation.
+
+---
+
+## `graph`
+
+Work with a standalone `acx.agent-graph/1` information architecture without assigning or executing tasks.
+The five public subcommands follow the workflow trust model while keeping organizational communication
+separate from control flow.
+
+| Subcommand | Purpose | Exit behavior |
+|---|---|---|
+| `graph lint <file> [--publish]` | Validate actor and knowledge references, routes and expected returns, loop bindings, convergence, direction invariants, and graph bounds; optionally validate public metadata | non-zero on any structural/publication issue |
+| `graph sign <file> --publisher <id> [--key <pem>] [--out <file>]` | JCS-canonicalize the document, compute its SHA-256 digest, and add an Ed25519 DSSE/in-toto integrity block | non-zero if invalid or not publishable |
+| `graph verify <file> [--registry <trust.json>]` | Recompute the digest and verify signature, graph id/version, publisher, key id, time, and trust-registry binding | non-zero when unsigned, invalid, or tampered |
+| `graph inspect <file>` | Print a safe discovery card: actors, knowledge, route intents, connected loops, convergence, digest, and trust | read-only; never routes a message or dispatches a task |
+| `graph digest <file>` | Print the SHA-256 digest of the unsigned JCS-canonical graph document | read-only; fails when the input is not a JSON object |
+
+```bash
+# Validate the public contract.
+node --experimental-sqlite src/cli.mjs graph lint \
+  product-delivery.agent-graph.json --publish
+
+# Sign. With no --key, a new private key is written beside the output.
+node --experimental-sqlite src/cli.mjs graph sign \
+  product-delivery.agent-graph.json \
+  --publisher io.github.yourhandle \
+  --out product-delivery.signed.agent-graph.json
+
+# Verify and inspect without executing anything.
+node --experimental-sqlite src/cli.mjs graph verify \
+  product-delivery.signed.agent-graph.json
+node --experimental-sqlite src/cli.mjs graph inspect \
+  product-delivery.signed.agent-graph.json
+node --experimental-sqlite src/cli.mjs graph digest \
+  product-delivery.signed.agent-graph.json
+```
+
+`lint` accepts fuzzy prose and selectors but fails closed on hard invariants. Routes cannot point back to
+their own source. Required direction cannot have conflicting owners or cycles. Expected returns must name
+a real reverse route. Loop participant bindings cannot be ambiguous. Every convergence has at least two
+distinct loop inputs and positive wait/round limits; graph-wide propagation and fan-out are bounded.
+
+Publishable graphs add a stricter safety profile: discovery metadata must not look like credentials or
+private key material, and every referenced ACX Workflow is pinned by id, SemVer, and canonical digest.
+Knowledge modules contain descriptions, stewards, audiences, and optional metadata locators — never the
+knowledge payload itself.
+
+!!! warning "An Agent Graph is not an authorization or dispatch engine"
+    `direct`, `approval`, and other route fields describe team relationships. They never grant tool access,
+    budget, filesystem rights, or permission to act. `lint`, `sign`, `verify`, and `inspect` consume
+    declarative data only. A host that routes events remains responsible for policy, authorization, and all
+    declared propagation/convergence bounds.
+
+See the visual [Agent Graph guide](../format/agent-graph.md) for the Product Owner ↔ Developer reporting
+loop and the research + delivery convergence pattern.
 
 ---
 

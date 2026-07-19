@@ -1,0 +1,548 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://acx.dev/schema/agent-graph.v1.json",
+  "title": "ACX Agent Graph — knowledge, reporting, and loop convergence",
+  "description": "A portable information architecture for an agent team. It describes who stewards which knowledge, who directs or reports to whom, and where separate loops converge. It is declarative and MUST NOT embed knowledge content or grant runtime authority.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "id", "actors", "knowledge", "routes", "limits"],
+  "properties": {
+    "schemaVersion": { "const": "acx.agent-graph/1" },
+    "id": { "$ref": "#/$defs/id" },
+    "version": { "$ref": "#/$defs/semver" },
+    "name": { "type": "string", "minLength": 3, "maxLength": 120 },
+    "description": { "type": "string", "minLength": 20, "maxLength": 2000 },
+    "license": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "description": "SPDX license expression."
+    },
+    "authors": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/author" }
+    },
+    "tags": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 20,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/tag" }
+    },
+    "homepage": { "type": "string", "format": "uri" },
+    "actors": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/actor" }
+    },
+    "knowledge": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/knowledgeModule" }
+    },
+    "routes": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/route" }
+    },
+    "loops": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/loopBinding" }
+    },
+    "convergence": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/convergencePoint" }
+    },
+    "limits": { "$ref": "#/$defs/graphLimits" },
+    "extensions": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9][a-z0-9-]*$"
+      },
+      "additionalProperties": true
+    },
+    "integrity": { "$ref": "#/$defs/integrity" }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9._-]{0,127}$"
+    },
+    "semver": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$"
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "tag": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$"
+    },
+    "author": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "url": { "type": "string", "format": "uri" }
+      }
+    },
+    "selector": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "roles": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1, "maxLength": 120 }
+        },
+        "capabilities": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1, "maxLength": 160 }
+        },
+        "tags": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/tag" }
+        },
+        "description": { "type": "string", "minLength": 1, "maxLength": 1000 }
+      }
+    },
+    "actor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "description"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "kind": { "enum": ["agent", "human", "group", "service", "mixed"] },
+        "name": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "description": { "type": "string", "minLength": 1, "maxLength": 2000 },
+        "selector": { "$ref": "#/$defs/selector" },
+        "cardinality": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "min": { "type": "integer", "minimum": 0 },
+            "max": { "type": "integer", "minimum": 1 }
+          },
+          "minProperties": 1
+        },
+        "responsibilities": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1, "maxLength": 500 }
+        }
+      }
+    },
+    "freshness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "description"],
+      "allOf": [
+        {
+          "if": {
+            "properties": { "mode": { "const": "periodic" } },
+            "required": ["mode"]
+          },
+          "then": { "required": ["maxAgeMs"] }
+        }
+      ],
+      "properties": {
+        "mode": { "enum": ["event", "continuous", "periodic", "on-demand", "custom"] },
+        "description": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "maxAgeMs": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "knowledgeModule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "description", "stewards"],
+      "description": "Metadata describing a knowledge responsibility. The actual knowledge content is deliberately not a valid property.",
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "kind": {
+          "enum": [
+            "intent",
+            "requirement",
+            "decision",
+            "status",
+            "evidence",
+            "feedback",
+            "risk",
+            "context",
+            "artifact",
+            "tacit",
+            "custom"
+          ]
+        },
+        "name": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "description": { "type": "string", "minLength": 1, "maxLength": 2000 },
+        "stewards": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/id" }
+        },
+        "audience": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/id" }
+        },
+        "durability": {
+          "enum": ["turn", "session", "workflow", "project", "organization", "public"]
+        },
+        "sensitivity": {
+          "enum": ["public", "internal", "restricted"]
+        },
+        "freshness": { "$ref": "#/$defs/freshness" },
+        "locator": {
+          "type": "object",
+          "description": "Optional metadata-only hint for resolving the authoritative knowledge in the receiving environment.",
+          "additionalProperties": false,
+          "required": ["type", "description"],
+          "properties": {
+            "type": { "enum": ["rac", "okf", "mcp-resource", "artifact", "manual", "custom"] },
+            "description": { "type": "string", "minLength": 1, "maxLength": 1000 }
+          }
+        }
+      }
+    },
+    "cadence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "description"],
+      "allOf": [
+        {
+          "if": {
+            "properties": { "mode": { "const": "periodic" } },
+            "required": ["mode"]
+          },
+          "then": { "required": ["intervalMs"] }
+        }
+      ],
+      "properties": {
+        "mode": { "enum": ["event", "continuous", "periodic", "on-demand", "custom"] },
+        "description": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "intervalMs": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "route": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "from", "to", "intent", "obligation", "purpose", "carries", "triggers"],
+      "allOf": [
+        {
+          "if": { "required": ["returns"] },
+          "then": { "required": ["expects"] }
+        }
+      ],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "from": { "$ref": "#/$defs/id" },
+        "to": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/id" }
+        },
+        "intent": {
+          "enum": [
+            "inform",
+            "direct",
+            "request",
+            "report",
+            "advise",
+            "review",
+            "approve",
+            "escalate",
+            "coordinate",
+            "observe",
+            "custom"
+          ]
+        },
+        "relationship": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9._-]{0,63}$",
+          "description": "Optional open-world relationship label such as reports-to or consults."
+        },
+        "obligation": { "enum": ["must", "should", "may"] },
+        "authority": {
+          "enum": ["informational", "advisory", "delegated", "approval", "escalation"]
+        },
+        "purpose": { "type": "string", "minLength": 10, "maxLength": 2000 },
+        "success": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "carries": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/id" }
+        },
+        "returns": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/id" }
+        },
+        "triggers": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/trigger" }
+        },
+        "cadence": { "$ref": "#/$defs/cadence" },
+        "delivery": { "enum": ["broadcast", "one", "owner", "custom"] },
+        "acknowledgement": { "enum": ["required", "optional", "none"] },
+        "medium": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "weight": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Optional fuzzy importance or expected communication strength, never an authorization score."
+        },
+        "expects": { "$ref": "#/$defs/expectation" }
+      }
+    },
+    "trigger": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "events"],
+          "properties": {
+            "type": { "const": "event" },
+            "events": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9-]*(?:\\.[a-z0-9][a-z0-9-]*)+$"
+              }
+            },
+            "description": { "type": "string", "minLength": 1, "maxLength": 1000 }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "everyMs"],
+          "properties": {
+            "type": { "const": "interval" },
+            "everyMs": { "type": "integer", "minimum": 1 },
+            "description": { "type": "string", "minLength": 1, "maxLength": 1000 }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type"],
+          "properties": {
+            "type": { "const": "manual" },
+            "description": { "type": "string", "minLength": 1, "maxLength": 1000 }
+          }
+        }
+      ]
+    },
+    "expectation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["via"],
+      "properties": {
+        "via": { "$ref": "#/$defs/id" },
+        "withinMs": { "type": "integer", "minimum": 1 },
+        "description": { "type": "string", "minLength": 1, "maxLength": 1000 }
+      }
+    },
+    "workflowRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "version": { "$ref": "#/$defs/semver" },
+        "digest": { "$ref": "#/$defs/digest" }
+      }
+    },
+    "actorBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["actor", "participants"],
+      "properties": {
+        "actor": { "$ref": "#/$defs/id" },
+        "participants": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/id" }
+        }
+      }
+    },
+    "loopBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "description"],
+      "anyOf": [
+        { "required": ["imports"] },
+        { "required": ["exports"] }
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": { "kind": { "const": "acx-workflow" } },
+            "required": ["kind"]
+          },
+          "then": { "required": ["workflowRef"] },
+          "else": { "not": { "required": ["workflowRef"] } }
+        }
+      ],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "kind": { "enum": ["acx-workflow", "external", "informal"] },
+        "description": { "type": "string", "minLength": 1, "maxLength": 2000 },
+        "workflowRef": { "$ref": "#/$defs/workflowRef" },
+        "actorBindings": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/actorBinding" }
+        },
+        "imports": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/id" }
+        },
+        "exports": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/id" }
+        }
+      }
+    },
+    "convergenceInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["loop", "knowledge"],
+      "properties": {
+        "loop": { "$ref": "#/$defs/id" },
+        "knowledge": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/id" }
+        }
+      }
+    },
+    "mergePolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "description"],
+      "properties": {
+        "mode": {
+          "enum": [
+            "steward-synthesis",
+            "consensus",
+            "vote",
+            "priority",
+            "latest",
+            "custom"
+          ]
+        },
+        "description": { "type": "string", "minLength": 1, "maxLength": 2000 }
+      }
+    },
+    "convergencePoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "description", "inputs", "steward", "policy", "outputs", "trigger", "limits"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "description": { "type": "string", "minLength": 1, "maxLength": 2000 },
+        "inputs": {
+          "type": "array",
+          "minItems": 2,
+          "items": { "$ref": "#/$defs/convergenceInput" }
+        },
+        "steward": { "$ref": "#/$defs/id" },
+        "contributors": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/id" }
+        },
+        "policy": { "$ref": "#/$defs/mergePolicy" },
+        "outputs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/id" }
+        },
+        "trigger": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "failureMode": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "limits": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["maxWaitMs", "maxRounds"],
+          "properties": {
+            "maxWaitMs": { "type": "integer", "minimum": 1 },
+            "maxRounds": { "type": "integer", "minimum": 1 }
+          }
+        }
+      }
+    },
+    "graphLimits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["maxPropagationHops", "maxFanout"],
+      "properties": {
+        "maxPropagationHops": { "type": "integer", "minimum": 1 },
+        "maxFanout": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "integrity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaVersion", "digest", "publisherId", "keyid", "publicKeyPem", "signedAt", "envelope"],
+      "properties": {
+        "schemaVersion": { "const": "acx.agent-graph-signature/1" },
+        "digest": { "$ref": "#/$defs/digest" },
+        "publisherId": {
+          "type": "string",
+          "pattern": "^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9][a-z0-9-]*(?:[./][a-z0-9][a-z0-9._-]*)*$"
+        },
+        "keyid": { "type": "string", "pattern": "^ed25519:[0-9a-f]{64}$" },
+        "publicKeyPem": { "type": "string", "pattern": "^-----BEGIN PUBLIC KEY-----" },
+        "signedAt": { "type": "string", "format": "date-time" },
+        "envelope": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["payloadType", "payload", "signatures"],
+          "properties": {
+            "payloadType": { "const": "application/vnd.in-toto+json" },
+            "payload": { "type": "string", "minLength": 1 },
+            "signatures": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 1,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["keyid", "sig"],
+                "properties": {
+                  "keyid": { "type": "string", "pattern": "^ed25519:[0-9a-f]{64}$" },
+                  "sig": { "type": "string", "minLength": 1 }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -161,13 +161,46 @@ test('§12.4 loadTrustRegistry refuses private key material', () => {
   const dir = mkdtempSync(join(tmpdir(), 'acx-reg-'))
   const good = join(dir, 'good.json')
   const bad = join(dir, 'bad.json')
+  const malformed = join(dir, 'malformed.json')
+  const unknownTop = join(dir, 'unknown-top.json')
+  const unknownKey = join(dir, 'unknown-key.json')
   const key = generateSigningKey()
-  const entry = { keyid: key.keyid, publisherId: 'p', algorithm: 'ed25519', publicKeyPem: key.publicKeyPem, status: 'active' }
+  const entry = {
+    keyid: key.keyid,
+    publisherId: 'io.github.publisher/product',
+    algorithm: 'ed25519',
+    publicKeyPem: key.publicKeyPem,
+    status: 'active',
+    notBefore: '2020-01-01T00:00:00Z',
+    notAfter: '2030-01-01T00:00:00Z',
+    namespaceProof: {
+      method: 'github-oidc',
+      oidcSubject: 'repo:publisher/acx:ref:refs/heads/main',
+      oidcIssuer: 'https://token.actions.githubusercontent.com',
+      verifiedAt: '2026-01-01T00:00:00Z',
+    },
+  }
   writeFileSync(good, JSON.stringify({ schemaVersion: 'acx.trust-registry/1', keys: [entry] }))
   writeFileSync(bad, JSON.stringify({ schemaVersion: 'acx.trust-registry/1', keys: [{ ...entry, publicKeyPem: key.privateKeyPem }] }))
+  writeFileSync(malformed, JSON.stringify({
+    schemaVersion: 'acx.trust-registry/1',
+    keys: [{ ...entry, status: 'suspended', namespaceProof: { type: 'github-oidc' } }],
+  }))
+  writeFileSync(unknownTop, JSON.stringify({
+    schemaVersion: 'acx.trust-registry/1',
+    keys: [entry],
+    unexpected: true,
+  }))
+  writeFileSync(unknownKey, JSON.stringify({
+    schemaVersion: 'acx.trust-registry/1',
+    keys: [{ ...entry, unexpected: true }],
+  }))
   const reg = loadTrustRegistry(good)
-  assert.equal(reg.byKeyId.get(key.keyid).publisherId, 'p')
+  assert.equal(reg.byKeyId.get(key.keyid).publisherId, 'io.github.publisher/product')
   assert.throws(() => loadTrustRegistry(bad), /private key material/)
+  assert.throws(() => loadTrustRegistry(malformed), /status is invalid/)
+  assert.throws(() => loadTrustRegistry(unknownTop), /unknown field unexpected/)
+  assert.throws(() => loadTrustRegistry(unknownKey), /unknown field unexpected/)
 })
 
 // ── §12.8 — scrub gate (fail-closed) ────────────────────────────────────────

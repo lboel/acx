@@ -14,7 +14,7 @@ export const DENY_RULES = [
   { id: 'secret-assignment', re: /\b[\w-]*(?:secret|token|password|passwd|pwd|api[_-]?key|access[_-]?key|client[_-]?secret|private[_-]?key)[\w-]*\s*[=:]\s*['"]?[^\s'"]{6,}/i },
 ]
 
-const HOME_PATH = /\/(?:Users|home)\/[A-Za-z0-9._-]+/g
+const HOME_PATH = /(?:\/(?:Users|home)\/[A-Za-z0-9._-]+|(?:^|[\s"'`(])~[\\/][^\s"'`,;()[\]{}]*|\b[A-Za-z]:\\Users\\[A-Za-z0-9._-]+)/i
 
 /** Shannon entropy in bits/char. */
 function entropy(s) {
@@ -64,10 +64,8 @@ export function scrub(items, opts = {}) {
     }
     const he = highEntropyHit(s)
     if (he) findings.push({ field, ruleId: 'high-entropy', sample: he })
-    if (HOME_PATH.test(s)) {
-      HOME_PATH.lastIndex = 0
-      findings.push({ field, ruleId: 'home-path', sample: (s.match(HOME_PATH) || [''])[0] })
-    }
+    const homePath = s.match(HOME_PATH)
+    if (homePath) findings.push({ field, ruleId: 'home-path', sample: homePath[0].trim() })
     for (const lit of forbid) {
       if (s.includes(lit)) findings.push({ field, ruleId: 'repo-identifier-leak', sample: lit })
     }

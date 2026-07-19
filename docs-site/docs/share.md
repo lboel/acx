@@ -6,11 +6,11 @@ hide:
 <div class="acx-share-hero" markdown="1">
 <span class="acx-eyebrow">ACX SHARE</span>
 
-# Your agent did good work. Let it travel.
+# Your agent team found a better way to work. Let it travel.
 
-Package one agent, reusable loop, or complete team as a signed artifact. Send it directly or submit it to
-the open `lboel/acx` registry through a pull request. Recipients verify the bytes before they trust the
-claim.
+Share a learned agent, reusable workflow, or team information architecture as a signed artifact. Send it
+directly or submit it to the open `lboel/acx` registry through a pull request. Recipients verify the bytes
+before they trust the claim.
 
 <div class="acx-actions">
 <a class="acx-button acx-button--primary" href="#share-in-60-seconds">Share in 60 seconds</a>
@@ -39,10 +39,17 @@ claim.
 <span>Share workflow →</span>
 </a>
 
+<a class="acx-choice" href="#share-an-agent-graph">
+<span class="acx-choice__icon" aria-hidden="true">⌁</span>
+<strong>An Agent Graph</strong>
+<small>One signed `.agent-graph.json`: context owners, direction, reporting returns, knowledge routes, and the points where loops converge.</small>
+<span>Share team architecture →</span>
+</a>
+
 <a class="acx-choice" href="#let-an-agent-prepare-its-own-share-pr">
 <span class="acx-choice__icon" aria-hidden="true">↗</span>
 <strong>Let the agent self-share</strong>
-<small>The bundled Agent Skill verifies the artifact, prepares the canonical paths, rebuilds the index, and drafts a focused PR.</small>
+<small>The bundled Agent Skill verifies an agent, workflow, or graph; prepares canonical paths; rebuilds the index; and drafts a focused PR.</small>
 <span>Use the skill →</span>
 </a>
 
@@ -50,7 +57,21 @@ claim.
 
 ## Share in 60 seconds
 
-The fastest path starts from this repository checkout and creates no network write:
+Start from a verified checkout:
+
+```bash
+git clone https://github.com/lboel/acx.git && cd acx && npm test
+```
+
+<div class="acx-copy-row">
+<button class="acx-button acx-button--primary" type="button"
+  data-acx-copy="git clone https://github.com/lboel/acx.git && cd acx && npm test">
+  Copy checkout command
+</button>
+<span role="status" aria-live="polite" data-acx-copy-status></span>
+</div>
+
+The artifact preparation itself creates no network write:
 
 === "Agent"
 
@@ -80,7 +101,23 @@ The fastest path starts from this repository checkout and creates no network wri
     node --experimental-sqlite src/cli.mjs share workflow team.cal.json
     ```
 
-Finish both paths with:
+=== "Agent Graph"
+
+    ```bash
+    # 1. Verify the information architecture and its signed identity
+    node --experimental-sqlite src/cli.mjs graph lint \
+      team.agent-graph.json --publish
+    node --experimental-sqlite src/cli.mjs graph verify \
+      team.agent-graph.json
+
+    # 2. Preview, then prepare the canonical registry file
+    node --experimental-sqlite src/cli.mjs share graph \
+      team.agent-graph.json --dry-run
+    node --experimental-sqlite src/cli.mjs share graph \
+      team.agent-graph.json
+    ```
+
+Finish every path with:
 
 ```bash
 node --experimental-sqlite tools/build-registry-index.mjs
@@ -88,14 +125,6 @@ npm test
 git diff --check
 git diff -- registry/
 ```
-
-<div class="acx-copy-row">
-<button class="acx-button acx-button--primary" type="button"
-  data-acx-copy="git clone https://github.com/lboel/acx.git && cd acx && npm test">
-  Copy the first command
-</button>
-<span role="status" aria-live="polite" data-acx-copy-status></span>
-</div>
 
 ## What the pull request proves
 
@@ -107,14 +136,15 @@ git diff -- registry/
 <div><span>5</span><strong>Index</strong><small>makes it discoverable</small></div>
 </div>
 
-The registry never executes a submitted agent or workflow. CI opens cartridges read-only, recomputes the
-content-addressed ROM manifest, verifies Ed25519 DSSE/in-toto signatures, validates package/workflow
-profiles, and regenerates `registry/index.json`. Human review still decides namespace ownership, licensing,
+The registry never executes a submitted agent, workflow, or graph. CI opens cartridges read-only,
+recomputes content-addressed digests, verifies Ed25519 DSSE/in-toto signatures, validates each publication
+profile, and regenerates `registry/index.json`. Human review still decides namespace ownership, licensing,
 quality, and community fit.
 
 !!! danger "A private key never travels"
-    `acx export` and `acx workflow sign` write `*.key.pem` beside the artifact. Keep that file private.
-    The Self‑Share flow copies only the signed artifact and generated public metadata.
+    `acx export`, `acx workflow sign`, and `acx graph sign` may write `*.key.pem` beside the artifact.
+    Keep that file private. The Self‑Share flow copies only the signed artifact and generated public
+    metadata.
 
 ## Share an agent
 
@@ -154,11 +184,50 @@ Explore the signed [Research Council](https://github.com/lboel/acx/blob/main/reg
 for a non-coding team or the [Ship a Feature walkthrough](format/loops-cal.md#worked-example-ship-a-feature)
 for an iterative engineering loop.
 
+## Share an Agent Graph
+
+Use an `.agent-graph.json` when the reusable insight is the team's information architecture rather than a
+task sequence:
+
+- who stewards product intent, evidence, delivery status, decisions, or tacit context;
+- who can direct, request, advise, report, review, approve, or escalate to whom;
+- what knowledge each route carries and which declared route brings a response back;
+- where several workflows or informal loops converge into one bounded synthesis.
+
+<p class="acx-graph-one-liner"><strong>A CAL says what happens next. An Agent Graph says who owns the
+context, who can direct whom, where reports return, and where separate loops meet.</strong></p>
+
+The canonical PR surface is one readable signed file:
+
+```text
+registry/graphs/<id>.agent-graph.json
+registry/index.json
+```
+
+```bash
+acx graph lint product-delivery.agent-graph.json --publish
+acx graph sign product-delivery.agent-graph.json \
+  --publisher io.github.yourhandle \
+  --out product-delivery.signed.agent-graph.json
+acx graph verify product-delivery.signed.agent-graph.json
+acx share graph product-delivery.signed.agent-graph.json --dry-run
+acx share graph product-delivery.signed.agent-graph.json
+```
+
+The graph contains descriptions and references, never the actual roadmap, private messages, credentials, or
+knowledge payloads. `authority` describes a relationship; it never grants a tool permission. Reporting
+cycles are useful, while mandatory direction stays unambiguous and bounded.
+
+See the animated [Agent Graph guide](format/agent-graph.md) to read the Product Owner ↔ Developer reporting
+loop and the research + delivery convergence pattern. The registry's
+[Product Delivery graph](https://github.com/lboel/acx/blob/main/registry/graphs/product-delivery.agent-graph.json)
+is the signed, inspectable example.
+
 ## Let an agent prepare its own share PR
 
 The repository ships `skills/acx-share-agent/`, a standard Agent Skill usable by Codex and other
-SKILL.md-aware hosts. It teaches an agent to verify itself, prepare only safe registry paths, regenerate
-the index, run conformance checks, and draft the pull-request body.
+SKILL.md-aware hosts. It teaches an agent to verify itself, a workflow, or an Agent Graph; prepare only
+safe registry paths; regenerate the index; run conformance checks; and draft the pull-request body.
 
 Install it for Codex:
 
@@ -168,7 +237,8 @@ cp -R skills/acx-share-agent "${CODEX_HOME:-$HOME/.codex}/skills/"
 
 Then ask:
 
-> Use `$acx-share-agent` to verify and prepare this agent for sharing through the ACX registry.
+> Use `$acx-share-agent` to verify and prepare this agent, workflow, or Agent Graph for sharing through
+> the ACX registry.
 
 The skill intentionally stops before remote writes unless the human explicitly authorizes a push or PR.
 It never auto-merges a registry submission.

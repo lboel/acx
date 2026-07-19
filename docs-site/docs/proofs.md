@@ -6,12 +6,12 @@ zero-dependency and runs on Node ≥ 22.
 
 !!! tip "Reproduce it"
     ```bash
-    npm test                                        # 88 conformance, workflow, and sharing tests
+    npm test                                        # 113 conformance, graph, workflow, and sharing tests
     node --experimental-sqlite scripts/smoke.mjs    # export → verify → strip → tamper
     node --experimental-sqlite scripts/prove-level.mjs   # earn + verify a level
     ```
 
-## 1 · Conformance test suite — 88/88 green
+## 1 · Conformance test suite — 113/113 green
 
 Every MUST the reference implementation supports is exercised. A representative slice:
 
@@ -32,12 +32,17 @@ Every MUST the reference implementation supports is exercised. A representative 
 ✔ workflow verification rejects content tampering and publisher-binding tampering
 ✔ workflow verification rejects a valid signature with incomplete in-toto bindings
 ✔ workflow lint separates portable structure checks from roster readiness
+✔ acx.agent-graph/1 accepts fuzzy prose with hard reference invariants
+✔ information cycles are valid because routes do not execute task loops
+✔ mandatory direction for the same knowledge has one acyclic source
+✔ verification rejects a correctly signed graph with an invalid publication structure
+✔ share refuses symlinked registry destinations before any outside write
 ✔ share agent prepares only the verified artifact and generated discovery card
 ✔ share agent dry-run is non-mutating and refuses unsafe identity changes
 ✔ share workflow preserves signed bytes and renders a reviewable PR body
 ✔ share preparation is idempotent and requires force for changed bytes
-ℹ tests 88
-ℹ pass 88
+ℹ tests 113
+ℹ pass 113
 ℹ fail 0
 ```
 
@@ -67,7 +72,39 @@ The tests additionally mutate graph content and publisher identity, revoke a sig
 feed unknown executable-looking fields, remove cycle bounds, and separate portable validity from local
 staffing. Every case fails closed at the expected boundary.
 
-## 3 · Round-trip: export → verify → strip → tamper
+## 3 · Signed Agent Graph — lint → verify → inspect
+
+The signed Product Delivery graph keeps task order in its two pinned CALs while making context ownership,
+direction, reporting returns, and their bounded convergence independently reviewable.
+
+```text
+$ acx graph lint registry/graphs/product-delivery.agent-graph.json --publish
+ACX Agent Graph: Product delivery team graph @ 1.0.0
+  actors=3 knowledge=5 routes=4 loops=2 convergence=1
+verdict: VALID ✓ — information architecture is reference-safe
+
+$ acx graph verify registry/graphs/product-delivery.agent-graph.json
+status:       verified
+trust:        portable
+digest:       sha256:80f8c0c4e098d935c849380ecad108a18e20961ec03aaa5beb1463c41263c0fa
+publisher:    io.github.lboel
+architecture: publishable ✓
+  - signer keyid not in trust registry
+
+$ acx graph inspect registry/graphs/product-delivery.agent-graph.json
+actors:        3
+knowledge:     5
+routes:        4 (advise, direct, report, request)
+loops:         2
+convergence:   1
+```
+
+The adversarial suite also checks dangling actors and knowledge, malformed collections, duplicate triggers,
+ambiguous participant bindings, conflicting or cyclic mandatory direction, unreachable or unbounded
+convergence, embedded/private metadata, correctly signed but structurally invalid graphs, symlink path
+escapes, and publisher tampering. Reporting cycles remain valid; every unsafe case fails closed.
+
+## 4 · Round-trip: export → verify → strip → tamper
 
 ```text
 exported cartridge: io.github.agentibus/scenario-research-designer@22f2ae29-…
@@ -97,7 +134,7 @@ SMOKE OK
     - Both a metadata tamper *and* a content-body tamper (the critical **C1** attack — rewrite a signed
       `SKILL.md` while leaving the object hash stale) are caught as `tampered`.
 
-## 4 · Provable level — earned, verified, unfakeable
+## 5 · Provable level — earned, verified, unfakeable
 
 ```text
 cartridge ROM digest: sha256:1726cf1e6025c166e06dc839a5cbae6c900f0ffa3e0b1235be8b78e88ee09943
@@ -123,7 +160,7 @@ PROVABLE LEVEL OK — level earned from re-run, cryptographically verified, unfa
     and every forgery route — self-issuance, transplanting the level onto a mutated cartridge, and a
     revoked credential — is rejected. See [how agents level up](leveling/provable-level.md).
 
-## 5 · The CLI, end to end
+## 6 · The CLI, end to end
 
 ```text
 $ acx export <agent-package> demo.acx --publisher io.github.agentibus
@@ -147,7 +184,7 @@ credential verify: VALID
 
 See the full [CLI reference](reference/cli.md).
 
-## 6 · Interoperability & file identity
+## 7 · Interoperability & file identity
 
 The cartridge is a plain SQLite file — the stock tools recognize and open it:
 

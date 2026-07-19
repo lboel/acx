@@ -28,8 +28,8 @@
       shareButton.dataset.acxBound = 'true'
       shareButton.addEventListener('click', async () => {
         const data = {
-          title: 'ACX — share agents, workflows, and teams',
-          text: 'Package an AI agent or team workflow as one signed, verifiable artifact.',
+          title: 'ACX — share agents, workflows, and Agent Graphs',
+          text: 'Share an AI agent, team workflow, or information architecture as one signed, verifiable artifact.',
           url: window.location.href,
         }
         try {

@@ -10,7 +10,7 @@
   "additionalProperties": false,
   "properties": {
     "schemaVersion": {
-      "const": "1.0"
+      "const": "acx.trust-registry/1"
     },
     "registryId": {
       "type": "string",
@@ -50,8 +50,8 @@
         },
         "publisherId": {
           "type": "string",
-          "pattern": "^[a-z0-9]+(\\.[a-z0-9-]+)+$",
-          "description": "reverse-DNS publisher id, e.g. com.example.teamx or io.github.alice"
+          "pattern": "^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9][a-z0-9-]*(?:[./][a-z0-9][a-z0-9._-]*)*$",
+          "description": "reverse-DNS publisher id with optional signed sub-namespace, e.g. com.example.teamx or io.github.alice/project"
         },
         "algorithm": {
           "const": "ed25519"
