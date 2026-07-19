@@ -54,7 +54,7 @@ Each participant still runs its own signed single-agent loop when it takes a tas
 | `RacItem` | Required Available Context: a **description** of knowledge that must be present (`kind`, `description`, `required`, a `check` for how to confirm it, optional `okf` descriptor). **MUST NOT carry content** | `cal.rac[]` |
 | `CalNode` | A `task` (agent alias + `requires{skills, capabilities, rac}` + a `completion` condition), a `gateway` (`exclusive` / `parallel` / `inclusive`), or an `event` (`start` / `end` / `stop` / `handoff` / `timer`) | `cal.nodes[]` |
 | `CalEdge` | A transition `{from, to, when}` with a **structured** condition — no expression eval | `cal.edges[]` |
-| `Cal` | The whole document: discovery metadata + `participants[] + rac[] + variables[] + limits + start + nodes[] + edges[] + integrity` | a standalone `.cal.json` (e.g. `registry/cals/`) |
+| `Cal` | The whole document: discovery metadata + `participants[] + rac[] + variables[] + limits + start + nodes[] + edges[] + integrity` | a standalone `.cal.json` (published at `registry/cals/<publisher>/<id>/<version>.cal.json`) |
 | `CalSkillSet` | The per-cartridge participation declaration: which roles it plays, which other agents it references by `romDigest`, which CAL ids it takes part in | **inside each cartridge** at `rom/cal/skillset.json` (ROM-signed) |
 
 Everything connects: a `CalNode` names a participant alias; the alias resolves via a `CartridgeRef`; the node's `requires.rac` points at `RacItem` ids; `CalEdge` conditions read the CAL's declared `variables` or RAC availability; and each cartridge advertises its side of the contract in its own signed `CalSkillSet`.
@@ -85,7 +85,11 @@ A participant is a stable alias inside the process; how it binds to a real cartr
                 "capabilities": [{ "taskType": "build-dag" }] } }
     ```
 
-    Any cartridge whose card matches the constraints may fill the alias. `role` matches the card role; each required capability must appear as a [capability](capabilities.md) `taskType`; `minLevel.acxLevel` gates on the cartridge's level — which is only worth trusting because levels are [independently attested, held-out-verified credentials](../leveling/provable-level.md), not self-declared numbers. When several cartridges match, the resolver staffs the highest-level candidate.
+    Any cartridge whose card matches the constraints may fill the alias. `role` matches the card role; each
+    required capability must appear as a [capability](capabilities.md) `taskType`; `minLevel.acxLevel` gates
+    only on a [cryptographically resolved, independently issued credential](../leveling/provable-level.md).
+    A declared level or an unresolved credential never satisfies `minLevel`. When several cartridges
+    match, the resolver ranks proven candidates without turning a stored claim into evidence.
 
 Set `"required": false` on a participant to make an unstaffed slot a warning rather than a readiness failure.
 
@@ -186,9 +190,9 @@ A conformant runtime still enforces the limits and fails closed when a completio
 
 ## Worked example: `ship-a-feature`
 
-The repository ships a real CAL at `registry/cals/ship-a-feature.cal.json`: an architect designs, a
-builder builds, a security sentinel reviews, and an exclusive gateway **loops back to build** until that
-review passes.
+The repository ships a real CAL at
+`registry/cals/io.github.lboel/ship-a-feature/1.0.0.cal.json`: an architect designs, a builder builds, a
+security sentinel reviews, and an exclusive gateway **loops back to build** until that review passes.
 
 ```mermaid
 flowchart LR
@@ -199,43 +203,30 @@ flowchart LR
   gate -->|"not completed"| build
 ```
 
-All three participants are slot-bound (`architect`, `devops_engineer` with `minLevel.acxLevel: 15`, `security_expert`), so the same document staffs itself from whatever roster is on hand — or you pin any of them by `romDigest`. Resolving it against the bundled catalog:
+All three participants are slot-bound (`architect`, `devops_engineer` with `minLevel.acxLevel: 15`,
+`security_expert`), so the same document can be staffed from a receiving roster — or you pin any of them
+by `romDigest`. Readiness fails closed when the roster lacks an independently proven level:
 
 ```console
-$ node --experimental-sqlite src/cli.mjs workflow ready registry/cals/ship-a-feature.cal.json
-ACX Workflow: Ship a data-pipeline feature @ 1.0.0  (5 nodes, 3 participants)
+$ node --experimental-sqlite src/cli.mjs workflow lint \
+    registry/cals/io.github.lboel/ship-a-feature/1.0.0.cal.json --publish
+verdict: VALID ✓ — portable structure and publication profile pass
 
-Participants (agents, referenced by hash or staffed by slot):
-  ✓ architect      slot  Mia Torres — staffed best of 1 match(es)
-  ✓ builder        slot  Ada Ridge — staffed best of 1 match(es)
-  ✓ reviewer       slot  Rex Calder — staffed best of 1 match(es)
-
-Required Available Context (RAC — descriptions only, confirm before running):
-  □ infra-arch       [terraform] Terraform modules describing the network + IAM architecture (structure only, not the .tf contents).  (check: file-glob infra/**/*.tf)
-  □ code-wiki        [wiki] An LLM-readable wiki / knowledge map of the codebase: modules, data flows, conventions.  (check: mcp-resource wiki://project/overview)
-  · warehouse-schema [api-spec] A description of the target Snowflake warehouse schema (table names + grains, not the data).  (check: manual confirm the DE team shared the schema doc)
-
-Flow:
-  [task] design         agent=architect    Design the pipeline + interfaces  {cap:design-api rac:infra-arch rac:code-wiki}  completion=artifact
-  [task] build          agent=builder      Build + backfill the Airflow DAG  {cap:build-dag rac:infra-arch rac:warehouse-schema}  completion=verification
-  [task] review         agent=reviewer     Security + quality review  {cap:harden-security}  completion=guardrail
-  [gateway] gate (exclusive)
-  [event] done
-
-Conditional transitions:
-  gate → done   when {"var":"review.outcome","op":"eq","value":"completed"}
-  gate → build  when {"not":{"var":"review.outcome","op":"eq","value":"completed"}}
-
-verdict: READY ✓ — structure valid, team staffed, requirements covered
+$ node --experimental-sqlite src/cli.mjs workflow ready \
+    registry/cals/io.github.lboel/ship-a-feature/1.0.0.cal.json \
+    --cartridges ./my-roster
 ```
 
-`acx workflow ready <cal.json> [--cartridges <dir>]` recursively scans `.acx` files (default: the bundled
-catalog), resolves every participant, prints the RAC checklist (`□` required, `·` optional) and flow, and
-exits non-zero when anything is unresolved or uncovered. `acx cal` remains an alias.
+`acx workflow ready <cal.json> [--cartridges <dir>]` recursively scans `.acx` files, resolves every
+participant, prints the RAC checklist (`□` required, `·` optional) and flow, and exits non-zero when
+anything is unresolved or uncovered. The last command's verdict depends on `./my-roster`. A stored or
+self-declared level is never enough for `minLevel`; credential signature, issuer, revocation, evidence,
+and ROM binding must resolve. `acx cal` remains an alias.
 
-The registry also ships `research-council.cal.json`, a task-general example: a scout and skeptic work in
-parallel, then an editor with `approval: always` synthesizes a decision brief. It demonstrates that ACX is
-not tied to coding workflows.
+The registry also ships
+`registry/cals/io.github.lboel/research-council/1.0.0.cal.json`, a task-general example: a scout and
+skeptic work in parallel, then an editor with `approval: always` synthesizes a decision brief. It
+demonstrates that ACX is not tied to coding workflows.
 
 ## Integrity, identity, and trust
 
@@ -252,12 +243,16 @@ matching, namespace-proven public-key registry entry is `trusted`; a digest, sig
 key-compromise mismatch is `tampered` and exits non-zero. The private key is never embedded.
 
 ```bash
-acx workflow inspect registry/cals/ship-a-feature.cal.json
-acx workflow verify registry/cals/ship-a-feature.cal.json
+acx workflow inspect registry/cals/io.github.lboel/ship-a-feature/1.0.0.cal.json
+acx workflow verify registry/cals/io.github.lboel/ship-a-feature/1.0.0.cal.json
 ```
 
 The public profile uses media type `application/vnd.acx.workflow.v1+json`. Its DSSE payload type is
 `application/vnd.in-toto+json`, matching the cartridge signing model.
+
+The immutable published identity is `publisherId + id + SemVer + digest`. Changing signed bytes requires
+a new SemVer and path. A remix can preserve the parent's publisher, id, version, and digest inside signed
+`lineage`, while receiving its own publisher identity and signature.
 
 ## Interoperability profile
 
@@ -300,22 +295,23 @@ Because the file lives in ROM, it is covered by the content-addressed manifest a
 
 ## Visual authoring
 
-```bash
-acx builder --port 8799
-```
+Open the static [ACX Studio](../exchange/studio/) to start or remix a workflow. It edits portable JSON
+locally, can import a signed parent, removes the old `integrity`, and adds digest-pinned lineage before
+export. It never receives a private key or writes to the registry.
 
-The local builder edits discovery metadata, bounds, participants, RAC, nodes, task safety/approval,
-completion contracts, and structured edges. “Validate for share” runs the same publication and roster
-checks as the CLI. “Save draft” writes an **unsigned** draft under `platform/builder/drafts/`; it never
-writes directly into the signed registry. Export or save, then sign explicitly:
+Validate, sign, and prepare the exported draft explicitly:
 
 ```bash
-acx workflow sign platform/builder/drafts/my-loop.cal.json \
+acx workflow lint my-loop.cal.json --publish
+acx workflow sign my-loop.cal.json \
   --publisher io.github.yourhandle \
-  --out registry/cals/my-loop.cal.json
+  --out my-loop.signed.cal.json
+acx workflow verify my-loop.signed.cal.json
+acx share workflow my-loop.signed.cal.json --dry-run
 ```
 
-This boundary is intentional: a browser editor does not silently create or retain a publishing private key.
+`acx builder --port 8799` serves that same static Studio locally. Export remains a browser download; there
+is no draft-write API. Publication always crosses the CLI and PR verification boundary.
 
 ## Generating a loop from a codebase
 

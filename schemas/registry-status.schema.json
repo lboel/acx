@@ -1,0 +1,161 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://acx.dev/schema/registry-status.v1.json",
+  "title": "ACX Registry Status Ledger",
+  "description": "A git-reviewed advisory ledger for published ACX artifacts. Status is keyed by immutable artifact identity and digest; it never rewrites or revokes the signed artifact itself.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "updatedAt",
+    "entries"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "acx.registry-status/1"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/statusEntry"
+      }
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9._-]{0,127}$"
+    },
+    "agentId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{0,63}$"
+    },
+    "publisher": {
+      "type": "string",
+      "pattern": "^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9][a-z0-9-]*(?:[./][a-z0-9][a-z0-9._-]*)*$"
+    },
+    "semver": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-((?:0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)(?:\\.(?:0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*))*))?(?:\\+(?:[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*))?$"
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifactType",
+        "publisherId",
+        "id",
+        "version",
+        "digest"
+      ],
+      "properties": {
+        "artifactType": {
+          "enum": [
+            "agent",
+            "workflow",
+            "agent-graph"
+          ]
+        },
+        "publisherId": {
+          "$ref": "#/$defs/publisher"
+        },
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "version": {
+          "$ref": "#/$defs/semver"
+        },
+        "digest": {
+          "$ref": "#/$defs/digest"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "artifactType": {
+                "const": "agent"
+              }
+            },
+            "required": [
+              "artifactType"
+            ]
+          },
+          "then": {
+            "properties": {
+              "id": {
+                "$ref": "#/$defs/agentId"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "statusEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifact",
+        "status",
+        "reason",
+        "recordedAt"
+      ],
+      "properties": {
+        "artifact": {
+          "$ref": "#/$defs/identity"
+        },
+        "status": {
+          "enum": [
+            "deprecated",
+            "withdrawn",
+            "superseded"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 10,
+          "maxLength": 1000
+        },
+        "recordedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "successor": {
+          "$ref": "#/$defs/identity"
+        },
+        "advisory": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "superseded"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "required": [
+              "successor"
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

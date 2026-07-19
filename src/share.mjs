@@ -27,6 +27,7 @@ const PUBLISHER_RE = /^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9][a-z0-9-]*(
 const PUBLISHER_SEGMENT_RE = /^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9][a-z0-9-]*$/
 const SLUG_RE = /^[a-z][a-z0-9-]{0,63}$/
 const GRAPH_ID_RE = /^[a-z][a-z0-9._-]{0,127}$/
+const SEMVER_RE = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*)(?:\.(?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*))*))?(?:\+(?:[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$/
 
 function fail(message) {
   throw new Error(`share refused: ${message}`)
@@ -60,11 +61,19 @@ function sameBytes(a, b) {
   return readFileSync(a).equals(readFileSync(b))
 }
 
-function writeArtifact(source, destination, { registryRoot, dryRun, force }) {
+function writeArtifact(source, destination, {
+  registryRoot,
+  dryRun,
+  force,
+  immutable = false,
+}) {
   assertInside(registryRoot, destination)
   if (resolve(source) === resolve(destination)) return { changed: false, reason: 'already in canonical registry path' }
-  if (existsSync(destination) && !sameBytes(source, destination) && !force) {
-    fail(`${destination} already exists with different bytes; review the update and pass --force`)
+  if (existsSync(destination) && !sameBytes(source, destination) && (immutable || !force)) {
+    const resolution = immutable
+      ? 'publish a new version instead; immutable registry coordinates cannot be overwritten'
+      : 'review the update and pass --force'
+    fail(`${destination} already exists with different bytes; ${resolution}`)
   }
   if (sameBytes(source, destination)) return { changed: false, reason: 'identical artifact already present' }
   if (!dryRun) {
@@ -83,16 +92,24 @@ function cleanInline(value) {
 
 function renderAgentReadme(card) {
   const capabilities = card.moves.length
-    ? card.moves.map((move) => `- \`${move.taskType}\`${move.stack.length ? ` — ${move.stack.map((item) => `\`${item}\``).join(', ')}` : ''}`).join('\n')
+    ? card.moves.map((move) => {
+        const verification = move.verified
+          ? 'resolved evidence: verified'
+          : move.claimedVerified
+            ? `publisher claim only; evidence ${move.verificationState || 'unresolved'}`
+            : `unproven; evidence ${move.verificationState || 'unresolved'}`
+        return `- \`${move.taskType}\`${move.stack.length ? ` — ${move.stack.map((item) => `\`${item}\``).join(', ')}` : ''} — ${verification}`
+      }).join('\n')
     : '- No capability claims declared.'
   const level = card.level.proven
-    ? `${cleanInline(card.level.tier)} · Lv.${card.level.acxLevel} · ROM-bound proof`
-    : `Lv.${card.level.acxLevel} · declared, not independently proven`
+    ? `${cleanInline(card.level.tier)} · Lv.${card.level.acxLevel} · issuer key and revocation resolved · ROM-bound proof`
+    : `Lv.${card.level.claimedAcxLevel ?? card.level.declaredAcxLevel ?? 0} · claim only; credential evidence ${cleanInline(card.level.verificationState || 'unresolved')}`
   return `# ${cleanInline(card.name)}
 
 | Field | Value |
 | --- | --- |
 | Publisher | \`${cleanInline(card.publisher)}\` |
+| Artifact | \`${cleanInline(card.discovery.id)}@${cleanInline(card.discovery.version)}\` |
 | Role | \`${cleanInline(card.role)}\` |
 | Class | ${cleanInline(card.class)} |
 | Level | ${level} |
@@ -111,14 +128,28 @@ acx spec cartridge.acx
 acx load cartridge.acx --print-only
 \`\`\`
 
-This card is generated from the signed cartridge. The artifact, not this README, is authoritative.
+This card is generated from the signed, ROM-only cartridge. Embedded level and capability values are claims unless issuer keys, revocation status, and referenced evidence resolve successfully. The artifact, not this README, is authoritative.
 `
+}
+
+function saveZoneCounts(cart) {
+  return {
+    memory: cart.db.prepare("SELECT COUNT(*) n FROM memory WHERE zone='save'").get().n,
+    files: cart.db.prepare("SELECT COUNT(*) n FROM sqlar WHERE name GLOB 'save/*'").get().n,
+    objects: cart.db.prepare("SELECT COUNT(*) n FROM objects WHERE zone='save'").get().n,
+    vectors: cart.db.prepare("SELECT COUNT(*) n FROM vectors WHERE zone='save'").get().n,
+  }
 }
 
 function readAgentShare(file) {
   if (!existsSync(file) || !file.endsWith('.acx')) fail('agent input must be an existing .acx file')
   const cart = Cartridge.open(file, { readonly: true })
   try {
+    const save = saveZoneCounts(cart)
+    const saveTotal = Object.values(save).reduce((sum, count) => sum + Number(count || 0), 0)
+    if (saveTotal > 0) {
+      fail(`public agent sharing requires a ROM-only cartridge; SAVE zone contains data (${Object.entries(save).map(([kind, count]) => `${kind}=${count}`).join(', ')}). Strip field-learned state before sharing`)
+    }
     const verification = evaluateTrust(cart, { registry: emptyTrustRegistry() })
     if (verification.status === 'invalid' || verification.trust === 'tampered' || verification.trust === 'legacy') {
       fail(`agent is not safely shareable (${verification.trust}: ${verification.summary})`)
@@ -127,6 +158,16 @@ function readAgentShare(file) {
     if (!packageSpec.ok) fail(`agent package spec is not clean: ${packageSpec.issues.join('; ')}`)
     const card = readCard(cart)
     if (!PUBLISHER_SEGMENT_RE.test(card.publisher)) fail(`embedded publisher '${card.publisher}' is not a path-safe reverse-DNS id`)
+    if (!SLUG_RE.test(card.discovery.id || '')) {
+      fail(`ROM-bound artifact id '${card.discovery.id || ''}' is missing or is not a safe registry slug`)
+    }
+    if (!SEMVER_RE.test(card.discovery.version || '')) {
+      fail(`ROM-bound artifact version '${card.discovery.version || ''}' is missing or is not SemVer`)
+    }
+    const cartridgeId = cart.getMeta('acx.cartridge_id') || ''
+    if (!cartridgeId.startsWith(`${card.publisher}/${card.discovery.id}@`)) {
+      fail(`ROM-bound cartridge id '${cartridgeId}' conflicts with publisher/artifact identity '${card.publisher}/${card.discovery.id}'`)
+    }
     if (verification.signerInstanceLabel && verification.signerInstanceLabel !== card.publisher) {
       fail(`signed publisher '${verification.signerInstanceLabel}' does not match cartridge publisher '${card.publisher}'`)
     }
@@ -181,22 +222,34 @@ function readAgentGraphShare(file) {
 export function prepareAgentShare(file, {
   registryRoot,
   publisherId = null,
-  slug,
+  slug = null,
   dryRun = false,
   force = false,
 } = {}) {
   if (!registryRoot) fail('registryRoot is required')
-  assertSafeSegment(slug, 'agent slug', SLUG_RE)
   const inspected = readAgentShare(file)
   const publisher = inspected.card.publisher
+  const id = inspected.card.discovery.id
+  const version = inspected.card.discovery.version
   if (publisherId && publisherId !== publisher) {
     fail(`requested publisher '${publisherId}' does not match signed publisher '${publisher}'`)
   }
+  if (slug != null) {
+    assertSafeSegment(slug, 'agent slug', SLUG_RE)
+    if (slug !== id) fail(`requested agent slug '${slug}' does not match ROM-bound artifact id '${id}'`)
+  }
   assertSafeSegment(publisher, 'publisher', PUBLISHER_SEGMENT_RE)
-  const directory = join(resolve(registryRoot), 'cartridges', publisher, slug)
+  assertSafeSegment(id, 'agent id', SLUG_RE)
+  assertSafeSegment(version, 'agent version', SEMVER_RE)
+  const directory = join(resolve(registryRoot), 'cartridges', publisher, id, version)
   const destination = join(directory, 'cartridge.acx')
   assertInside(registryRoot, destination)
-  const artifact = writeArtifact(file, destination, { registryRoot, dryRun, force })
+  const artifact = writeArtifact(file, destination, {
+    registryRoot,
+    dryRun,
+    force,
+    immutable: true,
+  })
   const readme = join(directory, 'README.md')
   assertInside(registryRoot, readme)
   const readmeContent = renderAgentReadme(inspected.card)
@@ -214,7 +267,9 @@ export function prepareAgentShare(file, {
     changed: artifact.changed || readmeChanged,
     dryRun,
     publisher,
-    slug,
+    id,
+    version,
+    slug: id,
     card: inspected.card,
     verification: inspected.verification,
   }
@@ -232,10 +287,23 @@ export function prepareWorkflowShare(file, {
   if (publisherId && publisherId !== publisher) {
     fail(`requested publisher '${publisherId}' does not match signed publisher '${publisher}'`)
   }
-  assertSafeSegment(inspected.workflow.id, 'workflow id', SLUG_RE)
-  const destination = join(resolve(registryRoot), 'cals', `${inspected.workflow.id}.cal.json`)
+  assertSafeSegment(publisher, 'publisher', PUBLISHER_RE)
+  assertSafeSegment(inspected.workflow.id, 'workflow id', GRAPH_ID_RE)
+  assertSafeSegment(inspected.workflow.version, 'workflow version', SEMVER_RE)
+  const destination = join(
+    resolve(registryRoot),
+    'cals',
+    publisher,
+    inspected.workflow.id,
+    `${inspected.workflow.version}.cal.json`,
+  )
   assertInside(registryRoot, destination)
-  const artifact = writeArtifact(file, destination, { registryRoot, dryRun, force })
+  const artifact = writeArtifact(file, destination, {
+    registryRoot,
+    dryRun,
+    force,
+    immutable: true,
+  })
   return {
     type: 'workflow',
     source: resolve(file),
@@ -261,10 +329,23 @@ export function prepareAgentGraphShare(file, {
   if (publisherId && publisherId !== publisher) {
     fail(`requested publisher '${publisherId}' does not match signed publisher '${publisher}'`)
   }
+  assertSafeSegment(publisher, 'publisher', PUBLISHER_RE)
   assertSafeSegment(inspected.graph.id, 'agent graph id', GRAPH_ID_RE)
-  const destination = join(resolve(registryRoot), 'graphs', `${inspected.graph.id}.agent-graph.json`)
+  assertSafeSegment(inspected.graph.version, 'agent graph version', SEMVER_RE)
+  const destination = join(
+    resolve(registryRoot),
+    'graphs',
+    publisher,
+    inspected.graph.id,
+    `${inspected.graph.version}.agent-graph.json`,
+  )
   assertInside(registryRoot, destination)
-  const artifact = writeArtifact(file, destination, { registryRoot, dryRun, force })
+  const artifact = writeArtifact(file, destination, {
+    registryRoot,
+    dryRun,
+    force,
+    immutable: true,
+  })
   return {
     type: 'agent-graph',
     source: resolve(file),
@@ -284,6 +365,7 @@ export function sharePullRequestBody(plan) {
     return `## Share ACX agent: ${cleanInline(card.name)}
 
 - Publisher: \`${cleanInline(plan.publisher)}\`
+- Artifact: \`${cleanInline(plan.id)}@${cleanInline(plan.version)}\`
 - Role: \`${cleanInline(card.role)}\`
 - ROM digest: \`${cleanInline(card.romHash)}\`
 - Signature trust before registry review: \`${cleanInline(card.trust)}\`
@@ -293,6 +375,8 @@ export function sharePullRequestBody(plan) {
 
 - [x] Signature and live ROM bytes verified
 - [x] Package specification is clean
+- [x] Cartridge is ROM-only; no SAVE-zone field state is shared
+- [x] Capability and level labels distinguish claims from resolved evidence
 - [x] Private key is not included
 - [ ] Registry index regenerated
 - [ ] Conformance suite passes
@@ -396,5 +480,7 @@ export const sharePatterns = Object.freeze({
   publisher: PUBLISHER_RE,
   publisherSegment: PUBLISHER_SEGMENT_RE,
   slug: SLUG_RE,
+  agentId: SLUG_RE,
   graphId: GRAPH_ID_RE,
+  semver: SEMVER_RE,
 })

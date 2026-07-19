@@ -206,6 +206,82 @@
 .acx-share-footer { margin-top: 2.5rem; padding: 1.3rem; border: 1px solid rgba(6, 182, 212, 0.32); border-radius: 14px; background: rgba(6, 182, 212, 0.08); text-align: center; }
 .acx-figure { text-align: center; }
 
+/* ---- Static Exchange ------------------------------------------------- */
+.acx-exchange-hero {
+  position: relative;
+  overflow: hidden;
+  margin: 0.5rem 0 2rem;
+  padding: clamp(1.5rem, 5vw, 3.3rem);
+  border: 1px solid rgba(6, 182, 212, 0.3);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 86% 10%, rgba(6, 182, 212, 0.22), transparent 29%),
+    radial-gradient(circle at 12% 100%, rgba(202, 138, 4, 0.12), transparent 31%),
+    linear-gradient(135deg, rgba(15, 118, 110, 0.1), rgba(6, 182, 212, 0.025));
+}
+.acx-exchange-hero::after {
+  content: "";
+  position: absolute;
+  width: 12rem;
+  height: 12rem;
+  right: -5rem;
+  bottom: -7rem;
+  border: 1.1rem solid rgba(6, 182, 212, 0.08);
+  border-radius: 50%;
+  animation: acx-orbit 16s linear infinite;
+  pointer-events: none;
+}
+.acx-exchange-hero > * { position: relative; z-index: 1; }
+.acx-exchange-hero h1 {
+  max-width: 16ch;
+  margin: 0.3rem 0 0.75rem;
+  font-size: clamp(2rem, 5vw, 3.35rem);
+  line-height: 1.03;
+  letter-spacing: -0.045em;
+}
+.acx-exchange-hero > p { max-width: 66ch; font-size: 1rem; line-height: 1.62; }
+.acx-exchange-flow {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin: 1.4rem 0 2rem;
+}
+.acx-exchange-flow > div {
+  position: relative;
+  min-width: 0;
+  padding: 0.9rem 0.75rem;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 12px;
+  background: var(--md-default-bg-color);
+  box-shadow: 0 6px 18px rgba(8, 51, 68, 0.06);
+  animation: acx-exchange-pulse 8s ease-in-out infinite;
+}
+.acx-exchange-flow > div:nth-child(2) { animation-delay: 0.35s; }
+.acx-exchange-flow > div:nth-child(3) { animation-delay: 0.7s; }
+.acx-exchange-flow > div:nth-child(4) { animation-delay: 1.05s; }
+.acx-exchange-flow > div:nth-child(5) { animation-delay: 1.4s; }
+.acx-exchange-flow > div:nth-child(6) { animation-delay: 1.75s; }
+.acx-exchange-flow > div:nth-child(7) { animation-delay: 2.1s; }
+.acx-exchange-flow span,
+.acx-exchange-flow strong,
+.acx-exchange-flow small { display: block; }
+.acx-exchange-flow span {
+  color: var(--acx-teal);
+  font-size: 0.62rem;
+  font-weight: 850;
+  letter-spacing: 0.1em;
+}
+.acx-exchange-flow strong { margin: 0.22rem 0; font-size: 0.76rem; }
+.acx-exchange-flow small {
+  color: var(--md-default-fg-color--light);
+  font-size: 0.63rem;
+  line-height: 1.35;
+}
+@keyframes acx-exchange-pulse {
+  0%, 10%, 100% { border-color: var(--md-default-fg-color--lightest); transform: translateY(0); }
+  5% { border-color: var(--acx-cyan); transform: translateY(-4px); box-shadow: 0 12px 24px rgba(6, 182, 212, 0.14); }
+}
+
 /* ---- Agent Graph ------------------------------------------------------ */
 .acx-graph-hero {
   position: relative;
@@ -430,10 +506,11 @@
 
 @media (max-width: 900px) {
   .acx-flow { grid-template-columns: 1fr; }
-  .acx-flow__arrow { transform: rotate(90deg); }
+  .acx-flow__arrow { animation: none; transform: rotate(90deg); }
   .acx-choice-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .md-typeset .acx-choice { min-height: 0; }
   .acx-pr-flow { grid-template-columns: 1fr 1fr; }
+  .acx-exchange-flow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 700px) {
@@ -444,6 +521,7 @@
 @media (max-width: 520px) {
   .acx-choice-grid { grid-template-columns: 1fr; }
   .acx-pr-flow { grid-template-columns: 1fr; }
+  .acx-exchange-flow { grid-template-columns: 1fr; }
   .acx-button { width: 100%; }
   .acx-agent-graph__mobile li { grid-template-columns: 1fr; }
   .acx-agent-graph__mobile small { grid-column: 1; }
@@ -455,6 +533,8 @@
   .acx-flow__node,
   .acx-flow__arrow,
   .acx-share-hero::after,
+  .acx-exchange-hero::after,
+  .acx-exchange-flow > div,
   .acx-graph-hero::after,
   .acx-agent-graph__route { animation: none !important; }
   .acx-card,

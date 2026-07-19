@@ -1,78 +1,103 @@
-// `acx builder` — a zero-dependency visual CAL/RAC loop builder.
-// Serves a single-page, n8n-style drag-and-drop editor in the browser. It reads
-// the local cartridge catalog to populate participants/capabilities/skills, and
-// validates a CAL with the same lintCal() the CLI uses. It never executes anything.
+// `acx builder` serves the exact dependency-free ACX Studio that can be hosted
+// statically. It has no catalog API, upload endpoint, draft write endpoint, or
+// execution capability: drafts stay in the browser and export as JSON.
 import { createServer } from 'node:http'
-import { readFileSync, writeFileSync, mkdirSync, readdirSync, existsSync } from 'node:fs'
-import { join } from 'node:path'
-import { Cartridge } from './container.mjs'
-import { readCard } from './load.mjs'
-import { lintCal } from './cal.mjs'
+import { existsSync, lstatSync, readFileSync } from 'node:fs'
+import { extname, join, relative, resolve, sep } from 'node:path'
 import { REPO_ROOT } from './paths.mjs'
 
-const APP = join(REPO_ROOT, 'platform', 'builder', 'app.html')
-const CATALOG = join(REPO_ROOT, 'platform', 'catalog')
-const DRAFTS = join(REPO_ROOT, 'platform', 'builder', 'drafts')
-const safeName = (s) => String(s || 'loop').toLowerCase().replace(/[^a-z0-9._-]+/g, '-').replace(/^[.-]+|[.-]+$/g, '').slice(0, 64) || 'loop'
+const STATIC_ROOT = join(REPO_ROOT, 'platform', 'static')
+const MIME_TYPES = new Map([
+  ['.css', 'text/css; charset=utf-8'],
+  ['.html', 'text/html; charset=utf-8'],
+  ['.ico', 'image/x-icon'],
+  ['.js', 'text/javascript; charset=utf-8'],
+  ['.json', 'application/json; charset=utf-8'],
+  ['.png', 'image/png'],
+  ['.svg', 'image/svg+xml'],
+  ['.txt', 'text/plain; charset=utf-8'],
+  ['.webmanifest', 'application/manifest+json'],
+  ['.webp', 'image/webp'],
+])
+const SEGMENT_RE = /^[A-Za-z0-9][A-Za-z0-9._@+-]*$/
+const SECURITY_HEADERS = {
+  'content-security-policy': "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+  'cross-origin-opener-policy': 'same-origin',
+  'referrer-policy': 'no-referrer',
+  'x-content-type-options': 'nosniff',
+}
 
-function catalogEntries() {
-  if (!existsSync(CATALOG)) return []
-  const out = []
-  for (const f of readdirSync(CATALOG)) {
-    if (!f.endsWith('.acx')) continue
-    const c = Cartridge.open(join(CATALOG, f), { readonly: true })
-    try {
-      const card = readCard(c)
-      out.push({ file: f, path: join(CATALOG, f), card, name: card.name, role: card.role, romHash: card.romHash,
-        capabilities: card.moves.map((m) => m.taskType), skills: card.skills.map((s) => s.name),
-        level: card.level.proven ? `${card.level.tier} Lv.${card.level.acxLevel}` : `Lv.${card.level.acxLevel}` })
-    } finally { c.close() }
+function safeFile(pathname) {
+  let decoded
+  try {
+    decoded = decodeURIComponent(pathname)
+  } catch {
+    return null
   }
-  return out
+  if (!decoded.startsWith('/') || decoded.includes('\\') || decoded.includes('\0')) return null
+  const segments = decoded.split('/').filter(Boolean)
+  if (segments.some((segment) => segment === '.' || segment === '..' || !SEGMENT_RE.test(segment))) return null
+  if (decoded.endsWith('/')) segments.push('index.html')
+  const destination = resolve(STATIC_ROOT, ...segments)
+  const rel = relative(resolve(STATIC_ROOT), destination)
+  if (!rel || rel === '..' || rel.startsWith(`..${sep}`)) return null
+
+  let current = resolve(STATIC_ROOT)
+  for (const segment of rel.split(sep)) {
+    current = join(current, segment)
+    if (!existsSync(current) || lstatSync(current).isSymbolicLink()) return null
+  }
+  if (!lstatSync(destination).isFile() || !MIME_TYPES.has(extname(destination))) return null
+  return destination
 }
 
-function readBody(req) {
-  return new Promise((resolve, reject) => {
-    const chunks = []; let size = 0
-    req.on('data', (c) => { size += c.length; if (size > 2 * 1024 * 1024) { req.destroy(); reject(new Error('too large')) } else chunks.push(c) })
-    req.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')))
-    req.on('error', reject)
+function respond(response, status, body, headers = {}) {
+  response.writeHead(status, {
+    ...SECURITY_HEADERS,
+    'cache-control': 'no-store',
+    ...headers,
   })
+  if (body != null) response.end(body)
+  else response.end()
 }
 
-export function startBuilder(port = 8799) {
-  const server = createServer(async (req, res) => {
+export function createBuilderServer() {
+  return createServer((request, response) => {
     try {
-      const url = new URL(req.url, 'http://localhost')
-      const send = (code, body, type = 'application/json') => { res.writeHead(code, { 'content-type': type }); res.end(body) }
-
-      if (req.method === 'GET' && url.pathname === '/') return send(200, readFileSync(APP), 'text/html; charset=utf-8')
-      if (req.method === 'GET' && url.pathname === '/api/catalog') {
-        return send(200, JSON.stringify(catalogEntries().map(({ path, card, ...rest }) => rest)))
+      const url = new URL(request.url || '/', 'http://127.0.0.1')
+      if (!['GET', 'HEAD'].includes(request.method || '')) {
+        respond(response, 405, 'Method not allowed\n', {
+          allow: 'GET, HEAD',
+          'content-type': 'text/plain; charset=utf-8',
+        })
+        return
       }
-      if (req.method === 'POST' && url.pathname === '/api/validate') {
-        const cal = JSON.parse(await readBody(req))
-        const cartridges = catalogEntries().map((e) => ({ path: e.path, card: e.card }))
-        return send(200, JSON.stringify(lintCal(cal, cartridges, { resolve: cartridges.length > 0, publish: true })))
+      if (url.pathname === '/') {
+        respond(response, 302, null, { location: './studio/' })
+        return
       }
-      if (req.method === 'POST' && url.pathname === '/api/save') {
-        const { name, cal } = JSON.parse(await readBody(req))
-        const cartridges = catalogEntries().map((e) => ({ path: e.path, card: e.card }))
-        const lint = lintCal(cal, cartridges, { resolve: cartridges.length > 0, publish: true })
-        mkdirSync(DRAFTS, { recursive: true })
-        const dest = join(DRAFTS, safeName(name || cal.id) + '.cal.json')
-        writeFileSync(dest, JSON.stringify(cal, null, 2) + '\n')
-        return send(200, JSON.stringify({ saved: dest, lint }))
+      const file = safeFile(url.pathname)
+      if (!file) {
+        respond(response, 404, 'Not found\n', { 'content-type': 'text/plain; charset=utf-8' })
+        return
       }
-      send(404, JSON.stringify({ error: 'not found' }))
-    } catch (e) {
-      res.writeHead(400, { 'content-type': 'application/json' }); res.end(JSON.stringify({ error: e.message }))
+      const body = request.method === 'HEAD' ? null : readFileSync(file)
+      respond(response, 200, body, { 'content-type': MIME_TYPES.get(extname(file)) })
+    } catch {
+      respond(response, 400, 'Bad request\n', { 'content-type': 'text/plain; charset=utf-8' })
     }
   })
-  server.listen(port, () => {
-    console.log(`acx builder → http://localhost:${port}`)
-    console.log('  Visual CAL/RAC loop builder. Reads platform/catalog, saves unsigned drafts to platform/builder/drafts/.')
-    console.log('  Publish with: acx workflow sign <draft> --publisher <id> --out registry/cals/<id>.cal.json')
+}
+
+export function startBuilder(port = 8799, { quiet = false } = {}) {
+  const server = createBuilderServer()
+  server.listen(port, '127.0.0.1', () => {
+    if (quiet) return
+    const address = server.address()
+    const boundPort = typeof address === 'object' && address ? address.port : port
+    console.log(`acx builder → http://127.0.0.1:${boundPort}/studio/`)
+    console.log('  Static, local-first ACX Studio. No uploads, backend writes, private keys, or agent execution.')
+    console.log('  Export JSON in the browser; lint, sign, verify, and publish it with the ACX CLI.')
     console.log('  Ctrl-C to stop.')
   })
   return server

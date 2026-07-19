@@ -1,6 +1,8 @@
 # Package specification
 
-Every cartridge is **cleanly specified**: it carries a signed package spec that enumerates each constituent artifact with a versioned schema id — MCP-style self-describing — and pins a fixed, normative LanceDB schema for the optional vector memory payload.
+Every cartridge is **cleanly specified**: it carries a signed, closed package spec with exactly eight
+normative artifact roles and versioned schema ids — MCP-style self-describing — and pins a fixed LanceDB
+schema for the optional vector memory payload.
 
 This page covers SPEC §7.7. The reference logic lives in `src/packagespec.mjs` (build, emit, validate); the JSON Schemas are `schemas/package-spec.schema.json` and `schemas/lance-memory.schema.json`.
 
@@ -29,7 +31,10 @@ all before activating anything. Because the spec lives in the ROM zone (`rom/pac
 
 ## Inspecting a package: `acx spec`
 
-The `spec` command prints the package spec and runs full validation — spec present, required artifacts exist, every memory record conforms to `acx.memory-record.v1`, and the LanceDB descriptor's dimension matches the cartridge's embedding engine.
+The `spec` command prints the package spec and runs full validation: the closed eight-role profile and
+cartridge metadata agree exactly, every stored archive path is portable and traversal-safe, required
+artifacts exist, memory and capability records conform, and the LanceDB descriptor matches the
+cartridge's embedding engine.
 
 ```console
 $ node --experimental-sqlite src/cli.mjs spec examples/research-designer.acx
@@ -84,7 +89,8 @@ A `*` marks a **required** artifact; counts in parentheses are live row/file cou
 
 ## Artifact roles and schema ids
 
-Each artifact entry is `{role, kind, schema, required, …}`. The `role` is stable, the `kind` says *where in the container* the artifact lives, and `schema` is one of the registered, versioned ids:
+Each artifact entry is `{role, kind, schema, required, …}`. The `role` is stable, the `kind` says *where
+in the container* the artifact lives, and `schema` is one of the registered, versioned ids:
 
 | Role | Schema id | Kind | Required | Format page |
 |---|---|---|---|---|
@@ -96,6 +102,13 @@ Each artifact entry is `{role, kind, schema, required, …}`. The `role` is stab
 | `harness` | `acx.harness.v1` | sqlar (`rom/manifest/harness-requirements.json`) | yes | [Harness requirements](harness-requirements.md) |
 | `loop-context` | `acx.loop-context-policy/1.1` | sqlar (`rom/policy/loop-context-policy.json`) | yes | [Loop + context policy](loop-context.md) |
 | `level` | `acx.level-credential.v1` | attestation | no | [Leveling](../leveling/provable-level.md) |
+
+`acx.package-spec/1` contains **one and only one of every row in this table**. Each role has a fixed set of
+fields and fixed values for its kind, schema, required flag, locator, and import policy. Unknown top-level
+or role fields, unknown roles, duplicates, omissions, or a changed role profile make the package unclean.
+The manifest's `cartridgeId`, `specVersion`, and closed `{id, dim}` `embeddingEngine` must exactly match
+the signed cartridge metadata. “Required: no” means that role's payload may be absent; its role declaration
+still appears in the eight-entry manifest with a zero count or the fixed re-index policy.
 
 The full schema index — `$id`s, media types, and the files under `schemas/` — is on the [JSON schemas & media types](../reference/schemas.md) reference page.
 
@@ -173,10 +186,20 @@ Because the projection is deterministic, the `.lance` payload can be materialize
 
 `acx spec` (and `validatePackageSpec` in `src/packagespec.mjs`) reports a cartridge as **CLEAN** only when all of the following hold:
 
-1. `rom/package-spec.json` exists and declares `schemaVersion: "acx.package-spec/1"`.
-2. Every record in the `memory` table structurally conforms to `acx.memory-record.v1` — all mandatory fields present, `portable` boolean, valid `impact`/`zone` enums, and the tier invariant: `portable: true` ⇒ `codebaseFingerprint` is `null`, `portable: false` ⇒ a fingerprint is present.
-3. `rom/schema/lance-memory.json` exists, its `embeddingEngine.dim` matches the cartridge's engine, and its column count matches the normative 14-column list.
-4. Every `required` sqlar artifact path in the spec resolves to a real file.
+1. `rom/package-spec.json` exists, declares `schemaVersion: "acx.package-spec/1"`, contains only the five
+   defined top-level fields, and exactly matches cartridge id, spec version, and embedding-engine metadata.
+2. `artifacts` contains exactly the eight role profiles above — no unknown, duplicate, missing, extended,
+   or altered entries.
+3. Every stored `sqlar` name begins with `rom/` or `save/` and uses only non-empty portable ASCII
+   segments matching `[A-Za-z0-9][A-Za-z0-9._-]{0,127}`. Absolute paths, `.`, `..`, empty segments,
+   backslashes, NUL, and other traversal/platform-specific forms are rejected before extraction.
+4. Every record in the `memory` table structurally conforms to `acx.memory-record.v1` — all mandatory
+   fields present, `portable` boolean, valid `impact`/`zone` enums, and the tier invariant:
+   `portable: true` ⇒ `codebaseFingerprint` is `null`, `portable: false` ⇒ a fingerprint is present.
+5. Capability records conform and their locally resolvable evidence references exist.
+6. `rom/schema/lance-memory.json` exists, its embedding engine matches the cartridge's engine, and its
+   column count matches the normative 14-column list.
+7. Every `required` SQLAR artifact path in the spec resolves to a real file.
 
 Anything less is reported as a list of issues and a non-clean verdict.
 

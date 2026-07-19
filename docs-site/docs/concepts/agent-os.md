@@ -38,14 +38,20 @@ The cartridge's contribution is not to invent this layer — it is to make it a 
 
 "Bundled loops" is the design stance that these five layers must travel **together**, under **one integrity boundary**, or the guarantee dissolves.
 
-Consider the alternative. If the loop policy lived in a repo, the skills in a package registry, the tool list in a host config, and the memory in a database, then "this agent behaves the way its author intended" would be an assertion about *four independently mutable things*. You could not sign it, sell it, or reproduce it. The cartridge collapses that into a single SQLite file where every behavior-defining part is a `sqlar` row in the ROM zone, listed in the content-addressed integrity manifest, and covered by one DSSE/ed25519 signature.
+Consider the alternative. If the loop policy lived in a repo, the skills in a package registry, the tool
+list in a host config, and the memory in a database, then "this agent behaves the way its author intended"
+would be an assertion about *four independently mutable things*. You could not sign, share, or reproduce
+it as one unit. The cartridge collapses that into a single SQLite file where every behavior-defining part
+is a `sqlar` row in the ROM zone, listed in the content-addressed integrity manifest, and covered by one
+DSSE/ed25519 signature.
 
 === "What is bundled"
 
     - **The loop** — `rom/policy/loop-context-policy.json` (`schemaVersion: "acx.loop-context-policy/1"`), the declarative shape of the agentic cycle (SPEC §9.1).
     - **The context policy** — the `context` object inside that same document: retrieval strategy, compaction *intent*, tool-result truncation, memory-file references (§9.3).
     - **The skills** — `SKILL.md` bundles under `rom/skills/<name>/` in the `sqlar` table, extractable by [stock `sqlite3`](../format/skills.md) (§5).
-    - **The tools contract** — `manifest/harness-requirements.json` (`schemaVersion: "acx.harness.v1"`), four required roles plus an optional inventory (§8).
+    - **The tools contract** — `rom/manifest/harness-requirements.json`
+      (`schemaVersion: "acx.harness.v1"`), four required roles plus an optional inventory (§8).
     - **The memory** — the always-present JSON baseline plus its zone partition (§7), the durable state the harness reads and writes.
 
 === "Why the bundle must be atomic"
@@ -163,7 +169,7 @@ sequenceDiagram
     participant C as .acx cartridge (ROM)
     participant S as SAVE zone
 
-    H->>C: read manifest/harness-requirements.json
+    H->>C: read rom/manifest/harness-requirements.json
     Note over H,C: 4 required roles: acx:execute, acx:dispatch,<br/>acx:memory.write, acx:search
     H->>C: signature-verify recomputed ROM manifest hash
     Note over H: trusted / local / portable / legacy / tampered

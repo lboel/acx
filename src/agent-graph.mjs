@@ -7,6 +7,7 @@ import { jcs, sha256Hex } from './canonical.mjs'
 import { keyIdFromPem, signEnvelope, verifyEnvelope } from './sign.mjs'
 import { scrub } from './scrub.mjs'
 import { emptyTrustRegistry, trustedRegistryEntryIssues } from './trust.mjs'
+import { validateLineage } from './lineage.mjs'
 
 export const AGENT_GRAPH_SCHEMA_VERSION = 'acx.agent-graph/1'
 export const AGENT_GRAPH_SIGNATURE_VERSION = 'acx.agent-graph-signature/1'
@@ -282,10 +283,11 @@ function collectAgentGraphScanItems(graph) {
   const document = unsignedAgentGraph(graph)
   function walk(value, path) {
     if (typeof value === 'string') {
-      // Only a schema-constrained workflow pin is an expected high-entropy
-      // digest. Digest-looking extension metadata must still pass the scrub gate.
+      // Schema-constrained workflow and lineage pins are expected high-entropy
+      // digests. Digest-looking extension metadata must still pass the scrub gate.
       const pinnedWorkflowDigest = /^agent-graph\.loops\[\d+\]\.workflowRef\.digest$/.test(path)
-      if (!(pinnedWorkflowDigest && DIGEST_RE.test(value))) {
+      const pinnedLineageDigest = /^agent-graph\.lineage\.parents\[\d+\]\.digest$/.test(path)
+      if (!((pinnedWorkflowDigest || pinnedLineageDigest) && DIGEST_RE.test(value))) {
         items.push({ field: path, text: DIGEST_RE.test(value) ? value.slice('sha256:'.length) : value })
       }
       return
@@ -327,7 +329,7 @@ export function validateAgentGraphStructure(graph) {
   issues.push(...explicitNullIssues(graph, 'agent graph'))
   issues.push(...rejectUnknownKeys(graph, [
     'schemaVersion', 'id', 'version', 'name', 'description', 'license', 'homepage',
-    'authors', 'tags', 'actors', 'knowledge', 'routes', 'loops', 'convergence',
+    'authors', 'tags', 'lineage', 'actors', 'knowledge', 'routes', 'loops', 'convergence',
     'limits', 'extensions', 'integrity',
   ], 'agent graph'))
   if (graph.schemaVersion !== AGENT_GRAPH_SCHEMA_VERSION) issues.push(`unexpected schemaVersion ${graph.schemaVersion}`)
@@ -361,6 +363,16 @@ export function validateAgentGraphStructure(graph) {
     for (const tag of Array.isArray(graph.tags) ? graph.tags : []) {
       if (typeof tag === 'string' && !TAG_RE.test(tag)) issues.push(`agent graph.tags contains invalid tag '${tag}'`)
     }
+  }
+  if (hasOwn(graph, 'lineage')) {
+    issues.push(...validateLineage(graph.lineage, {
+      self: {
+        artifactType: 'agent-graph',
+        publisherId: graph.integrity?.publisherId,
+        id: graph.id,
+        version: graph.version,
+      },
+    }))
   }
   if (!Array.isArray(graph.actors) || graph.actors.length === 0) issues.push('actors must be a non-empty array')
   if (!Array.isArray(graph.knowledge) || graph.knowledge.length === 0) issues.push('knowledge must be a non-empty array')
@@ -557,8 +569,9 @@ export function validateAgentGraphStructure(graph) {
     if (loop.kind === 'acx-workflow' && !record(loop.workflowRef)) issues.push(`${path}.workflowRef is required for acx-workflow`)
     if (loop.kind !== 'acx-workflow' && loop.workflowRef != null) issues.push(`${path}.workflowRef is only valid for acx-workflow`)
     if (loop.workflowRef != null) {
-      issues.push(...rejectUnknownKeys(loop.workflowRef, ['id', 'version', 'digest'], `${path}.workflowRef`))
+      issues.push(...rejectUnknownKeys(loop.workflowRef, ['publisherId', 'id', 'version', 'digest'], `${path}.workflowRef`))
       if (record(loop.workflowRef)) {
+        if (loop.workflowRef.publisherId != null && !PUBLISHER_RE.test(loop.workflowRef.publisherId)) issues.push(`${path}.workflowRef.publisherId is invalid`)
         if (!ID_RE.test(loop.workflowRef.id || '')) issues.push(`${path}.workflowRef.id is invalid`)
         if (loop.workflowRef.version != null && !SEMVER_RE.test(loop.workflowRef.version)) issues.push(`${path}.workflowRef.version must be SemVer`)
         if (loop.workflowRef.digest != null && !DIGEST_RE.test(loop.workflowRef.digest)) issues.push(`${path}.workflowRef.digest must be sha256`)
@@ -710,6 +723,7 @@ export function validatePublishableAgentGraph(graph) {
   }
   for (const [index, loop] of (Array.isArray(graph?.loops) ? graph.loops : []).entries()) {
     if (record(loop) && loop.kind === 'acx-workflow') {
+      if (!PUBLISHER_RE.test(loop.workflowRef?.publisherId || '')) issues.push(`loop[${index}].workflowRef.publisherId is required for publication`)
       if (!SEMVER_RE.test(loop.workflowRef?.version || '')) issues.push(`loop[${index}].workflowRef.version is required and must be SemVer for publication`)
       if (!DIGEST_RE.test(loop.workflowRef?.digest || '')) issues.push(`loop[${index}].workflowRef.digest is required for publication`)
     }
@@ -769,6 +783,15 @@ export function signAgentGraph(graph, key, { publisherId, signedAt = new Date().
   if (!PUBLISHER_RE.test(publisherId || '')) throw new Error('publisherId must be a reverse-DNS identifier')
   if (!key?.privateKey || !key?.keyid || !key?.publicKeyPem) throw new Error('an Ed25519 signing key is required')
   const document = unsignedAgentGraph(graph)
+  const lineageIssues = !Object.prototype.hasOwnProperty.call(document, 'lineage') ? [] : validateLineage(document.lineage, {
+    self: {
+      artifactType: 'agent-graph',
+      publisherId,
+      id: document.id,
+      version: document.version,
+    },
+  })
+  if (lineageIssues.length) throw new Error(`agent graph lineage is invalid: ${lineageIssues.join('; ')}`)
   const { digest } = agentGraphDigest(document)
   const envelope = signEnvelope(buildAgentGraphStatement(document, { publisherId, signedAt }), key)
   return {
@@ -953,6 +976,15 @@ export function agentGraphCard(graph, verification = verifyAgentGraph(graph)) {
     routeCount: graph?.routes?.length ?? 0,
     loopCount: graph?.loops?.length ?? 0,
     convergenceCount: graph?.convergence?.length ?? 0,
+    lineage: (Array.isArray(graph?.lineage?.parents) ? graph.lineage.parents : []).filter(record).map((parent) => ({
+      artifactType: parent.artifactType ?? null,
+      publisherId: parent.publisherId ?? null,
+      id: parent.id ?? null,
+      version: parent.version ?? null,
+      digest: parent.digest ?? null,
+      relation: parent.relation ?? null,
+      source: parent.source ?? null,
+    })),
     actors: (Array.isArray(graph?.actors) ? graph.actors : []).filter(record).map((actor) => ({
       id: actor.id,
       name: actor.name || actor.id,
@@ -968,7 +1000,9 @@ export function agentGraphCard(graph, verification = verifyAgentGraph(graph)) {
     loops: (Array.isArray(graph?.loops) ? graph.loops : []).filter(record).map((loop) => ({
       id: loop.id,
       kind: loop.kind,
+      workflowPublisherId: loop.workflowRef?.publisherId ?? null,
       workflowId: loop.workflowRef?.id ?? null,
+      workflowVersion: loop.workflowRef?.version ?? null,
       digest: loop.workflowRef?.digest ?? null,
     })),
     digest: verification.digest,

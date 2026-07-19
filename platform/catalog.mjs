@@ -4,9 +4,12 @@ import { readdirSync, existsSync, mkdirSync, statSync } from 'node:fs'
 import { join, basename } from 'node:path'
 import { Cartridge } from '../src/container.mjs'
 import { evaluateTrust, emptyTrustRegistry, loadTrustRegistry } from '../src/trust.mjs'
-import { verifyLevelCredential } from '../src/level/credential.mjs'
+import { resolveCartridgeEvidence } from '../src/level/resolution.mjs'
+import { validatePackageSpec } from '../src/packagespec.mjs'
 
 export const CATALOG_DIR = join(new URL('.', import.meta.url).pathname, 'catalog')
+const ARTIFACT_ID_RE = /^[a-z][a-z0-9-]{0,63}$/
+const SEMVER_RE = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*)(?:\.(?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*))*))?(?:\+(?:[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$/
 
 export function ensureCatalog() {
   if (!existsSync(CATALOG_DIR)) mkdirSync(CATALOG_DIR, { recursive: true })
@@ -22,65 +25,93 @@ function loadRegistry() {
   }
 }
 
-/** A gallery/detail summary of one cartridge, verification included. */
-export function summarize(acxPath) {
+/**
+ * A gallery/detail summary of one cartridge, verification included.
+ * Credential evidence is fail-closed: absent explicit issuer/revocation
+ * resolvers, embedded VCs and verified proficiency bits remain claims.
+ */
+export function summarize(acxPath, resolutionOptions = {}) {
   const cart = Cartridge.open(acxPath, { readonly: true })
   try {
     const meta = cart.allMeta()
     const verification = evaluateTrust(cart, { registry: loadRegistry() })
     const skills = cart.db.prepare('SELECT name, description FROM acx_skill ORDER BY name').all()
-    const caps = cart.db.prepare('SELECT json FROM capabilities').all().map((r) => JSON.parse(r.json))
+    const evidence = resolveCartridgeEvidence(cart, resolutionOptions)
     const memByZone = {}
     for (const r of cart.db.prepare('SELECT zone, COUNT(*) n FROM memory GROUP BY zone').all()) memByZone[r.zone] = r.n
-    const attRows = cart.db.prepare('SELECT att_id, type, document FROM attestations').all()
+    const packageSpec = validatePackageSpec(cart)
+    const resolvedLevel = evidence.level
+    const level = resolvedLevel.proven ? {
+      acxLevel: resolvedLevel.acxLevel,
+      careerTier: resolvedLevel.tier,
+      mu: resolvedLevel.mu,
+      sigma: resolvedLevel.sigma,
+      games: resolvedLevel.games,
+      benchmark: resolvedLevel.benchmark,
+      boundToRom: resolvedLevel.boundToRom,
+      attestationId: resolvedLevel.attestationId,
+      verificationState: resolvedLevel.verificationState,
+    } : null
 
-    // resolve a provable level from a level attestation, if present + valid
-    let level = null
-    for (const a of attRows) {
-      if (a.type !== 'vc-2.0') continue
-      let vc
-      try { vc = JSON.parse(a.document) } catch { continue }
-      const res = vc.credentialSubject?.result?.[0]
-      if (!res) continue
-      // verify the credential proof is internally valid + bound to this ROM
-      const romDigest = meta['acx.rom_manifest_hash']
-      const issuerPem = null // exchange does not hold verifier keys; report claimed level + binding
-      const bound = res['acx:cartridgeRomDigest'] === romDigest
-      level = {
-        acxLevel: res['acx:acxLevel'], careerTier: res['acx:careerTier'],
-        mu: res['acx:ratingMu'], sigma: res['acx:ratingSigma'], games: res['acx:gamesPlayed'],
-        benchmark: res['acx:benchmarkId'], boundToRom: bound, attestationId: a.att_id,
-      }
-      break
-    }
-
-    const id = basename(acxPath).replace(/\.acx$/, '')
+    const boundId = meta['acx.artifact_id'] || null
+    const version = meta['acx.artifact_version'] || null
+    const id = boundId || basename(acxPath).replace(/\.acx$/, '')
     return {
       id, path: acxPath, bytes: statSync(acxPath).size,
       name: meta['acx.agent_name'] || id,
       publisher: meta['acx.publisher_id'] || 'unknown',
       role: meta['acx.role'] || 'engineer',
       provider: meta['acx.provider'] || '', model: meta['acx.model'] || '',
+      version,
+      coordinateValid: ARTIFACT_ID_RE.test(boundId || '') && SEMVER_RE.test(version || ''),
+      description: meta['acx.description'] || '',
+      license: meta['acx.license'] || null,
+      authors: safeJsonArray(meta['acx.authors']),
+      tags: safeJsonArray(meta['acx.tags']),
+      homepage: meta['acx.homepage'] || null,
       declaredLevel: Number(meta['acx.declared_level'] || 0),
       romHash: meta['acx.rom_manifest_hash'] || '',
       trust: verification.trust, trustStatus: verification.status, trustSummary: verification.summary,
-      skills, capabilities: caps.map((c) => ({
-        taskType: c.taskType, stack: c.stack, domain: c.domain, verified: !!c.proficiency?.verified,
+      skills,
+      capabilities: evidence.capabilities.filter((item) => item.capability).map((item) => ({
+        taskType: item.capability.taskType,
+        stack: item.capability.stack,
+        domain: item.capability.domain,
+        claimedVerified: item.claimedVerified,
+        verified: item.verified,
+        verificationState: item.verificationState,
       })),
-      memory: memByZone, level,
+      memory: memByZone,
+      level,
+      levelClaim: {
+        acxLevel: resolvedLevel.claimedAcxLevel,
+        careerTier: resolvedLevel.claimedTier,
+        verificationState: resolvedLevel.verificationState,
+        attestationId: resolvedLevel.attestationId,
+      },
+      packageSpec: { ok: packageSpec.ok, issues: packageSpec.issues },
     }
   } finally {
     cart.close()
   }
 }
 
+function safeJsonArray(value) {
+  try {
+    const parsed = JSON.parse(value)
+    return Array.isArray(parsed) ? parsed : []
+  } catch {
+    return []
+  }
+}
+
 /** Full catalog index (all cartridges in CATALOG_DIR). */
-export function listCatalog() {
+export function listCatalog(resolutionOptions = {}) {
   ensureCatalog()
   const out = []
   for (const f of readdirSync(CATALOG_DIR)) {
     if (!f.endsWith('.acx')) continue
-    try { out.push(summarize(join(CATALOG_DIR, f))) } catch (e) { /* skip unreadable */ }
+    try { out.push(summarize(join(CATALOG_DIR, f), resolutionOptions)) } catch (e) { /* skip unreadable */ }
   }
   // rank: verified level desc, then trust, then name
   const trustRank = { local: 4, trusted: 3, portable: 2, legacy: 1, tampered: 0 }
@@ -91,8 +122,13 @@ export function listCatalog() {
 }
 
 /** Validate an uploaded cartridge before accepting it into the catalog. */
-export function inspectUpload(acxPath) {
-  const s = summarize(acxPath)
-  const acceptable = s.trust !== 'tampered' && s.trustStatus !== 'invalid'
-  return { acceptable, summary: s, reason: acceptable ? null : `rejected: ${s.trust} (${s.trustSummary})` }
+export function inspectUpload(acxPath, resolutionOptions = {}) {
+  const s = summarize(acxPath, resolutionOptions)
+  const trustAcceptable = s.trust !== 'tampered' && s.trustStatus !== 'invalid' && s.trust !== 'legacy'
+  const acceptable = trustAcceptable && s.packageSpec.ok && s.coordinateValid
+  const reasons = []
+  if (!trustAcceptable) reasons.push(`${s.trust} (${s.trustSummary})`)
+  if (!s.packageSpec.ok) reasons.push(`unclean package: ${s.packageSpec.issues.join('; ')}`)
+  if (!s.coordinateValid) reasons.push('missing or invalid ROM-bound artifact id/version')
+  return { acceptable, summary: s, reason: acceptable ? null : `rejected: ${reasons.join(' · ')}` }
 }

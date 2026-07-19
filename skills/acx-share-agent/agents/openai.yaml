@@ -1,4 +1,4 @@
 interface:
   display_name: "Share ACX Artifacts"
-  short_description: "Safely share agents, graphs, and workflows"
-  default_prompt: "Use $acx-share-agent to verify and prepare this signed agent, workflow, or Agent Graph for a focused ACX registry pull request."
+  short_description: "Verify and publish portable agent artifacts"
+  default_prompt: "Use $acx-share-agent to verify this ACX artifact and prepare its immutable, PR-only publication to the static Exchange."

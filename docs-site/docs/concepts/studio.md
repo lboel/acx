@@ -23,7 +23,7 @@ flowchart TD
   P1 -->|level up + memory merges back| MEM
   P2 -->|level up + memory merges back| MEM
   MEM --> ROSTER
-  ROSTER -->|export a single employee| ACX["📦 .acx cartridge<br/>signed · portable · sellable"]
+  ROSTER -->|export a single employee| ACX["📦 .acx cartridge<br/>signed · portable · shareable"]
 ```
 
 ## Agents *emerge* from work — they aren't hired blank
@@ -110,16 +110,21 @@ Every project makes the whole studio smarter, because every project's learnings 
 
 ## The payoff: a cartridge is a portable employee
 
-All of the above lives *inside* one studio. A **cartridge is how a single employee leaves the building** — `exportAgentPackage` (upgraded to the `.acx` container) freezes one agent's skills, capabilities, memory and loop policy into a **single signed SQLite file** you can lend, sell, or send to another studio, where it is re-hired already specialized.
+All of the above lives *inside* one studio. A **cartridge is how a single employee leaves the building** —
+`exportAgentPackage` (upgraded to the `.acx` container) freezes one agent's skills, capabilities, memory
+and loop policy into a **single signed SQLite file** you can share or send to another studio, where it is
+re-hired already specialized.
 
 ```mermaid
 flowchart LR
   A["Agent on the AGENTIBUS roster<br/>name · role · skill tree · tier"] -->|export| B["📦 .acx cartridge<br/>ed25519 / DSSE signed"]
-  B -->|lend · sell · send| C["Another studio"]
+  B -->|share · verify · send| C["Another studio"]
   C -->|import · re-hire| D["Same agent,<br/>already specialized"]
 ```
 
-The [ROM zone](cartridge-model.md) carries the shareable, sellable core; the SAVE zone carries codebase-specific learning that can be stripped before re-sharing. See the full round-trip — [**from hire to cartridge and back**](../lifecycle/company-loop.md).
+The [ROM zone](cartridge-model.md) carries the portable, shareable core; the SAVE zone carries
+codebase-specific learning that can be stripped before re-sharing. See the full round-trip —
+[**from hire to cartridge and back**](../lifecycle/company-loop.md).
 
 ## Honest boundary: studio game-state vs. the provable credential
 
@@ -139,6 +144,7 @@ Both use the **same 8 career tiers** (`intern … legend`). The studio's XP, lev
 
 - **[Overview](overview.md)** — what an `.acx` cartridge is as a file.
 - **[The studio loop](../lifecycle/company-loop.md)** — the full hire → dispatch → return → export cycle.
-- **[Capabilities](../format/capabilities.md)** — the sellable claim an agent carries, `verified` only when an attestation resolves.
+- **[Capabilities](../format/capabilities.md)** — the portable claim an agent carries, `verified` only
+  when an attestation resolves.
 - **[Memory](../format/memory.md)** — the transferable vs field-learned partition that merges back.
 - **[Provable level](../leveling/provable-level.md)** — how self-asserted tier becomes a cross-studio credential.

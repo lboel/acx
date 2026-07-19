@@ -25,7 +25,7 @@
   "actors": [
     {
       "id": "product-owner",
-      "kind": "agent",
+      "kind": "mixed",
       "name": "Product Owner",
       "description": "Owns product intent, priorities, and the final synthesis of research and delivery reports.",
       "selector": {
@@ -310,6 +310,7 @@
       "kind": "acx-workflow",
       "description": "Research and challenge evidence before a product decision.",
       "workflowRef": {
+        "publisherId": "io.github.lboel",
         "id": "research-council",
         "version": "1.0.0",
         "digest": "sha256:3300ea74052dc7f76aa81f79cd37b269267b2f06b4ae4710480dc73d62102ed8"
@@ -336,6 +337,7 @@
       "kind": "acx-workflow",
       "description": "Design, build, and review the selected product increment.",
       "workflowRef": {
+        "publisherId": "io.github.lboel",
         "id": "ship-a-feature",
         "version": "1.0.0",
         "digest": "sha256:588424a9ec12483ce13f28e81e9d0833777676bbd2c0c0686bbc27bb58f93dee"

@@ -1,18 +1,24 @@
 # Conformance
 
-The 16 normative **MUST** items of SPEC §12, mapped to the tests that exercise them in the zero-dependency reference implementation — and an honest accounting of the five requirements that are specified but deliberately left host-side.
+The 17 normative **MUST** items of SPEC §12, mapped to the tests that exercise them in the zero-dependency
+reference implementation — and an honest accounting of the requirements that are deliberately left
+host-side.
 
 A conformant Agent Cartridge is a contract with two parties: the **producer** (the tooling that authors,
 signs, and levels a `.acx` file, ACX Workflow, or Agent Graph) and the **host** (the harness that boots or
-consumes it). SPEC §12 enumerates sixteen `MUST` clauses that bind both. The reference implementation
+consumes it). SPEC §12 enumerates seventeen `MUST` clauses that bind producers, registries, exchanges, and
+hosts. The reference implementation
 proves the producer-side and cryptographic clauses end-to-end; a handful of runtime clauses — OCI push,
 live namespace proofs, the activation handshake, the loop evaluator, and `vec0` vectors — are **specified
 normatively but implemented by the host**, not by this repo.
 
 !!! note "How to read this page"
-    Each row links to the SPEC clause, to the format page that documents it, and — where applicable — to the exact test name that appears in the [Proofs](../proofs.md) transcript. "Exercised" means a passing assertion re-runs the behaviour on real bytes; "Host-side" means the clause is a normative requirement for a *host*, and the reference impl stops at the seam.
+    Each row links to the SPEC clause, the format page, and representative assertions on the
+    [Proofs](../proofs.md) page. `npm test` is the source of the current test list. “Exercised” means a
+    passing assertion re-runs the behaviour on real bytes; “Host-side” means the clause is a normative
+    requirement for a *host*, and the reference implementation stops at the seam.
 
-## The 16 MUST items
+## The 17 MUST items
 
 The full suite runs with **zero failures** (`node --experimental-sqlite --test 'test/*.test.mjs'` —
 [Proof 1](../proofs.md)). The status column below reflects what that run and the scripted proofs actually
@@ -21,14 +27,14 @@ assert.
 | # | §12 requirement | Status | Where it is proven |
 |---|-----------------|--------|--------------------|
 | 1 | Single SQLite ≥ 3.37, `application_id = 1094932529` (offset 68) + packed `user_version` (offset 60) | :material-check-circle: Exercised | `§12.1 header bytes…`, `§12.1 Cartridge.open rejects a non-.acx file`; [Proof 10](../proofs.md) `file(1)` magic — [container](../format/container.md) |
-| 2 | Verbatim §3.2 DDL, stock `sqlar` schema, files zoned by `rom/`/`save/` prefix | :material-check-circle: Exercised | `§12.2 sqlar names must be zone-prefixed; zoneOf classifies rom/save` — [container](../format/container.md) |
+| 2 | Verbatim §3.2 DDL, stock `sqlar` schema, and only portable traversal-safe paths rooted at `rom/` or `save/` | :material-check-circle: Exercised | The portable-path validator is applied to every live SQLAR row; signed traversal-shaped content is refused before skill loading — [container](../format/container.md), [package spec](../format/packages.md) |
 | 3 | Sign **only** the ROM manifest via DSSE/in-toto (`payloadType application/vnd.in-toto+json`), Ed25519, `keyid = ed25519:<hex sha256(DER SPKI)>`, `subject.digest.sha256 = manifest_hash` | :material-check-circle: Exercised | `§12.3 DSSE/in-toto sign+verify round-trip; keyid form; subject.digest = manifest_hash`, `§4.2 DSSE envelope contains exactly {payloadType, payload, signatures}` — [signing & trust](../format/signing-trust.md) |
 | 4 | Private keys out of the cartridge and out of git; publish trust as a **public-keys-only** registry | :material-check-circle: Exercised | `§12.4 loadTrustRegistry refuses private key material` — [signing & trust](../format/signing-trust.md) |
 | 5 | Bind trust to `publisherId` (reverse-DNS, DNS-TXT or GitHub-OIDC proven) + `keyid`, never to `instanceId` | :material-check-circle: Binding exercised · :material-alert: proof host-side | keyid/publisher binding exercised across the `§12.6 trust` states; **live DNS-TXT / GitHub-OIDC namespace proof is host-side** — [signing & trust](../format/signing-trust.md) |
-| 6 | Evaluate the trust taxonomy `tampered/legacy/portable/trusted/local` in §4.5 order | :material-check-circle: Exercised | `§12.6 trust:` ×5 (`unsigned → legacy`, `unknown signer → portable`, `registered → trusted`, `own key → local`, `mutated ROM → tampered`); [Proof 2](../proofs.md) — [signing & trust](../format/signing-trust.md) |
+| 6 | Evaluate the trust taxonomy `tampered/legacy/portable/trusted/local` in §4.5 order | :material-check-circle: Exercised | `§12.6 trust:` ×5 (`unsigned → legacy`, `unknown signer → portable`, `active key + valid namespace proof → trusted`, `own key → local`, `mutated ROM → tampered`); [Proof 2](../proofs.md) — [signing & trust](../format/signing-trust.md) |
 | 7 | Skills wholly in ROM, six-key agentskills.io frontmatter, re-derivable `acx_skill` index whose `content_sha256` matches the manifest, host-superset fields only in a reverse-DNS `ext` namespace | :material-check-circle: Exercised | `§12.7 sqlar skills are extractable byte-for-byte and index content_sha256 matches`; [Proof 9](../proofs.md) `sqlite3 … -Ax` — [skills](../format/skills.md) |
 | 8 | Partition every memory record with `portable` + `codebaseFingerprint`, reject malformed tiers, run the **fail-closed** scrub gate before signing, strip TRANSFERABLE identity + quarantine FIELD-LEARNED on export, never re-project foreign field-learned memory | :material-check-circle: Exercised | `§12.8 scrub blocks…` ×4, `§7.1 validateRecord…` ×6, `§7.2 codebaseFingerprint…` ×5, `§7.5 scrub gate FAILS CLOSED`, `§7.6 stored memory payload carries schema-required zone + artifactFingerprint` — [memory](../format/memory.md) |
-| 9 | Always-present JSON memory baseline, vectors tagged with an embedding-engine id, foreign vectors re-indexed (never trusted) on import | :material-check-circle: Baseline exercised · :material-alert: vec0 host-side | JSON baseline + `acx.embedding_engine` id are real ([Proof 5](../proofs.md) `acx.embedding_engine = {"id":"local-hash-128","dim":128}`); **`vec0` virtual table is specified; the reference impl uses a plain table** — [memory](../format/memory.md) |
+| 9 | Closed exact eight-role package spec with identity/engine binding; always-present JSON memory baseline; vectors tagged by engine and re-indexed (never trusted) on import | :material-check-circle: Package and baseline exercised · :material-alert: vec0 host-side | Package-spec closure rejects unknown/duplicate/missing/altered roles and metadata drift; JSON baseline + `acx.embedding_engine` id are real ([Proof 5](../proofs.md) `acx.embedding_engine = {"id":"local-hash-128","dim":128}`); **`vec0` virtual table is specified; the reference impl uses a plain table** — [package spec](../format/packages.md), [memory](../format/memory.md) |
 | 10 | Merge idempotently by two-key dedupe (`id`, then 10-char `artifactFingerprint`) | :material-check-circle: Exercised | `§7.3 mergeRecords is idempotent`, `…dedupes by artifactFingerprint across different ids`, `§7.3 artifactFingerprint is exactly 10 hex chars` — [memory](../format/memory.md) |
 | 11 | Exactly one **signed** harness-requirements manifest: four roles (`acx:execute`, `acx:dispatch`, `acx:memory.write`, `acx:search`), capability scopes, MCP `minProtocolRevision` floor; refuse activation (without mutating SAVE) via the §8.5 handshake when unmet | :material-check-circle: Manifest exercised · :material-alert: handshake host-side | `§8 harness-requirements manifest matches its schema (requiredTools, no forbidden keys)`; **the activation handshake runtime is specified; host-side** — [harness requirements](../format/harness-requirements.md) |
 | 12 | Exactly one ROM-zone loop-context policy evaluated **as data**, all vendor/effort/KV-cache/summarization specifics confined to an ignorable `hints` object; enforce host `resource-limits.yaml` precedence over cartridge `budget` | :material-alert: Specified; host-side | Policy is carried in ROM and schema-validated; **the loop-policy evaluator and resource-limits precedence run in the host** — [loop & context](../format/loop-context.md) |
@@ -36,6 +42,7 @@ assert.
 | 14 | Distribute as **one** OCI image (§11), `artifactType application/vnd.acx.cartridge.v1`, verifiable with stock cosign/oras and **zero** registry change | :material-alert: Specified; host-side | The OCI wrapping is normatively specified; **the push/verify runtime is host-side** (stock `cosign`/`oras`, no code in this repo) — [distribution](../lifecycle/distribution.md) |
 | 15 | Validate workflows independently of staffing; require closed structured conditions, complete references and completion contracts, terminal reachability, bounded cycles, and verify the JCS digest plus DSSE/in-toto publisher binding before slot resolution | :material-check-circle: Exercised | `acx.cal/1 publish profile accepts…`, `CAL conditions are closed structured data…`, `cyclic workflows fail closed…`, `workflow signing binds…`, tamper/trust/revocation tests, and `workflow lint separates portable structure checks from roster readiness` — [loop engineering](../format/loops-cal.md) |
 | 16 | Validate Agent Graphs as non-executing information architecture: description-only knowledge, complete actor/knowledge/loop/return references, conflict-free mandatory direction, unambiguous bindings, and bounded propagation/convergence; verify the distinct JCS + DSSE/in-toto identity binding before publication | :material-check-circle: Exercised | `acx.agent-graph/1 accepts fuzzy prose with hard reference invariants`, reference/return/direction/convergence failure tests, secret-like metadata rejection, workflow-ref pinning, signature tamper/trust tests, and safe registry sharing — [Agent Graph](../format/agent-graph.md) |
+| 17 | Publish agents, workflows, and Agent Graphs under immutable publisher/id/version/digest coordinates; reject history-level replacement of accepted paths; verify all live bytes before indexing; retain signed lineage; resolve pinned graph dependencies; project a separate status ledger; and keep browser verification verdicts within their actual boundary | :material-check-circle: Registry and static-build paths exercised | Registry identity/lineage/status/immutability tests plus the static Exchange build and browser-verifier tests — [static Exchange](../lifecycle/exchange.md), [sharing over git](../lifecycle/sharing-git.md) |
 
 !!! success "What the crypto actually proves"
     Items 3, 4, 6, 8, and 13 are the security spine, and they are **fully real** — no stubs. Signing recomputes every object hash from live bytes (`buildRomManifest` → `liveOid()`), so a rewritten `SKILL.md` body or an upgraded capability proficiency is caught even when its stored `objects.oid` is left stale:
@@ -92,6 +99,7 @@ SPEC §12 closes with a rule that keeps future readers safe: **every stored arti
 | Layer | Version carrier | Values |
 |-------|-----------------|--------|
 | SQLite container | `application_id` + packed `user_version` | `1094932529` / `16777472` = `[MAJOR=1][MINOR=0][vec0=1][flags]` |
+| Published cartridge identity | ROM-bound `acx.artifact_id` + `acx.artifact_version` | stable id + SemVer, reflected in `cartridges/<publisher>/<id>/<version>/` |
 | Skill index | `schemaVersion` | `acx.skill/1` |
 | Capability record | `schemaVersion` | `acx.capability/1` |
 | Harness requirements | `schemaVersion` | `acx.harness.v1` |
@@ -100,6 +108,8 @@ SPEC §12 closes with a rule that keeps future readers safe: **every stored arti
 | OCI distribution | `artifactType` | `application/vnd.acx.cartridge.v1` |
 | ACX Workflow | `schemaVersion` + SemVer + integrity version | `acx.cal/1`, `version: 1.0.0`, `acx.workflow-signature/1` |
 | ACX Agent Graph | `schemaVersion` + SemVer + integrity version | `acx.agent-graph/1`, `version: 1.0.0`, `acx.agent-graph-signature/1` |
+| Registry discovery | `schemaVersion` + artifact SemVer | `acx.registry-index/1` |
+| Registry lifecycle | `schemaVersion` | `acx.registry-status/1` |
 
 Spec evolution follows a two-track rule: **`spec_MAJOR` bumps break readers; `spec_MINOR` is additive.** v1.1 of the loop-context policy was a `spec_MINOR` addition — it layered `plan`/`reflect` phases, `verification.regression` (held-in/held-out), `observability`, `subAgents[].mode`, and `context.playbook` onto v1 without breaking a v1 reader (SPEC §9.6).
 
@@ -135,5 +145,5 @@ The format is stitched together from six independent design blocks, which disagr
 
 ---
 
-**See also:** [Proofs](../proofs.md) (the transcript and artifact checks behind the test names above) ·
+**See also:** [Proofs](../proofs.md) (the reproducible suite and artifact checks behind the rows above) ·
 [CLI](cli.md) · [Schemas](schemas.md) (the 13 draft-2020-12 schemas the `schemaVersion` tags point at).

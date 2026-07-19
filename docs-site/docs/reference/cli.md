@@ -39,6 +39,7 @@ Usage:
   acx graph sign    <graph.agent-graph.json> --publisher <reverse-dns> [--key <pem>] [--out <file>]
   acx graph verify  <graph.agent-graph.json> [--registry <trust.json>]
   acx graph inspect <graph.agent-graph.json>
+  acx graph digest  <graph.agent-graph.json>
   acx share agent      <file.acx> --slug <slug> [--dry-run]
   acx share workflow   <workflow.cal.json> [--dry-run]
   acx share graph      <graph.agent-graph.json> [--dry-run]
@@ -52,7 +53,7 @@ Usage:
 | [`verify`](#verify)  | Evaluate the trust taxonomy (`local/trusted/portable/legacy/tampered`) | §4.5, §12.6 |
 | [`workflow`](#workflow) | Validate, sign, verify, inspect, and staff portable agent-team workflows | §14 |
 | [`graph`](#graph) | Validate, sign, verify, and inspect portable team information architectures | §16 |
-| [`share`](#share) | Verify and prepare one focused registry pull request | Reference distribution workflow |
+| [`share`](#share) | Verify and prepare one focused registry pull request | §17 |
 | [`strip`](#strip)   | Re-export SAVE-free and prove the ROM hash is unchanged | §3.4 |
 | [`level`](#level)   | Earn a σ-gated, ROM-bound level credential from an independent verifier | §10 |
 
@@ -84,14 +85,17 @@ acx share graph product-delivery.agent-graph.json
 | `--publisher <id>` | Require an exact match with the publisher bound into the signature |
 | `--slug <slug>` | Required safe destination slug for an agent |
 | `--dry-run` | Verify and print the planned paths/PR body without writing |
-| `--force` | Permit a consciously reviewed update when different bytes already exist |
+| `--force` | Re-run explicit preparation, but never replace different bytes at an immutable coordinate |
 
 For agents, `share` requires a valid signed cartridge and clean `acx.package-spec/1`, then produces
-`registry/cartridges/<publisher>/<slug>/cartridge.acx` plus a generated README card. For workflows, it
+`registry/cartridges/<publisher>/<id>/<version>/cartridge.acx` plus a generated README card. The requested
+slug must match the ROM-bound artifact id. For workflows, it
 requires the complete publication profile and valid JCS/DSSE/in-toto publisher binding, then produces
-`registry/cals/<id>.cal.json`. For Agent Graphs, it applies the same signature and publication gates, then
-produces `registry/graphs/<id>.agent-graph.json`. It refuses legacy/unsigned artifacts, tampering, publisher
-mismatches, unsafe identifiers, secret-like public metadata, and silent overwrite.
+`registry/cals/<publisher>/<id>/<version>.cal.json`. For Agent Graphs, it applies the same signature and
+publication gates, then produces
+`registry/graphs/<publisher>/<id>/<version>.agent-graph.json`. It refuses legacy/unsigned artifacts,
+tampering, publisher mismatches, unsafe identifiers, secret-like public metadata, and coordinate
+replacement. Changed bytes require a new SemVer.
 
 Continue with the deterministic index builder and tests:
 
@@ -148,9 +152,12 @@ a real reverse route. Loop participant bindings cannot be ambiguous. Every conve
 distinct loop inputs and positive wait/round limits; graph-wide propagation and fan-out are bounded.
 
 Publishable graphs add a stricter safety profile: discovery metadata must not look like credentials or
-private key material, and every referenced ACX Workflow is pinned by id, SemVer, and canonical digest.
-Knowledge modules contain descriptions, stewards, audiences, and optional metadata locators — never the
-knowledge payload itself.
+private key material, and every referenced ACX Workflow is pinned by publisher id, workflow id, SemVer,
+and canonical digest. Knowledge modules contain descriptions, stewards, audiences, and optional metadata
+locators — never the knowledge payload itself.
+
+`graph digest` removes only top-level `integrity`, canonicalizes with RFC 8785/JCS, and prints the sha256
+digest used by registry identity, workflow dependency pins, and signed remix lineage.
 
 !!! warning "An Agent Graph is not an authorization or dispatch engine"
     `direct`, `approval`, and other route fields describe team relationships. They never grant tool access,
@@ -348,7 +355,7 @@ node --experimental-sqlite src/cli.mjs verify <file.acx> [--registry <trust.json
 | trust | meaning |
 |-------|---------|
 | `local` | signed by this instance's own key |
-| `trusted` | valid signature, signer in the registry |
+| `trusted` | valid signature, active registry key, valid namespace proof, and lifecycle checks pass |
 | `portable` | valid signature, signer **not** in the registry |
 | `legacy` | unsigned |
 | `tampered` | ROM content diverges from the signed manifest |
@@ -409,7 +416,9 @@ node --experimental-sqlite src/cli.mjs strip <file.acx> <out.acx>
     ```
 
 !!! tip "Why this matters"
-    `strip` is how a buyer proves a cartridge they received was never quietly mutated: strip it, and if the ROM hash still matches the signed manifest, the shareable/sellable core is exactly what was signed. See the [Cartridge model](../concepts/cartridge-model.md) for the ROM/SAVE split.
+    `strip` is how a recipient proves a cartridge was never quietly mutated: strip it, and if the ROM hash
+    still matches the signed manifest, the shareable core is exactly what was signed. See the
+    [Cartridge model](../concepts/cartridge-model.md) for the ROM/SAVE split.
 
 ---
 
@@ -477,4 +486,6 @@ flowchart LR
   B -->|level| F["σ-gated VC<br/>bound to ROM digest"]
 ```
 
-**See also:** [Proofs](../proofs.md) (all ten transcripts) &middot; [Conformance](conformance.md) &middot; [Schemas](schemas.md) &middot; [Signing & trust](../format/signing-trust.md) &middot; [Distribution](../lifecycle/distribution.md).
+**See also:** [Proofs](../proofs.md) (reproducible scripts and assertions) &middot;
+[Conformance](conformance.md) &middot; [Schemas](schemas.md) &middot;
+[Signing & trust](../format/signing-trust.md) &middot; [Distribution](../lifecycle/distribution.md).

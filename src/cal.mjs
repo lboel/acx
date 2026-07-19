@@ -11,6 +11,8 @@
 //   CalEdge       -> a conditional transition (structured condition, no eval)
 //   Cal           -> participants[] + rac[] + variables[] + nodes[] + edges[] + start
 //   CalSkillSet   -> stored IN a cartridge: which roles it plays, which agents it references (by hash)
+import { validateLineage } from './lineage.mjs'
+import { scrub } from './scrub.mjs'
 
 const ID_RE = /^[a-z][a-z0-9._-]{0,127}$/
 const DIGEST_RE = /^sha256:[0-9a-f]{64}$/
@@ -21,6 +23,7 @@ const RAC_KINDS = new Set(['wiki', 'code-map', 'infra', 'terraform', 'api-spec',
 const RAC_CHECK_TYPES = new Set(['file-glob', 'url', 'mcp-resource', 'manual'])
 const TAG_RE = /^[a-z0-9][a-z0-9._-]{0,63}$/
 const NAMESPACE_RE = /^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9][a-z0-9-]*$/
+const PRIVATE_EXTENSION_KEY_RE = /(?:credential|password|passwd|secret|privatekey|apikey|access(?:token|key)|auth(?:token|key)|bearertoken|refreshtoken|client(?:token|secret)|taskcontent|knowledgecontent|payload|transcript)/i
 
 function record(value) {
   return value != null && typeof value === 'object' && !Array.isArray(value)
@@ -96,6 +99,45 @@ function validSpdxExpression(value) {
     }
   }
   return tokens.length > 0 && !expectOperand && depth === 0
+}
+
+function collectWorkflowScanItems(cal) {
+  const items = []
+  const { integrity: _integrity, ...document } = record(cal) ? cal : {}
+  function walk(value, path) {
+    if (typeof value === 'string') {
+      const pinnedDigest = /^workflow\.(?:participants\[\d+\]\.romDigest|lineage\.parents\[\d+\]\.digest)$/.test(path)
+      if (!(pinnedDigest && DIGEST_RE.test(value))) {
+        items.push({ field: path, text: DIGEST_RE.test(value) ? value.slice('sha256:'.length) : value })
+      }
+      return
+    }
+    if (Array.isArray(value)) {
+      value.forEach((item, index) => walk(item, `${path}[${index}]`))
+      return
+    }
+    if (record(value)) {
+      for (const [key, child] of Object.entries(value)) walk(child, `${path}.${key}`)
+    }
+  }
+  walk(document, 'workflow')
+  return items
+}
+
+function privateExtensionIssues(value, path = 'workflow.extensions') {
+  const issues = []
+  if (Array.isArray(value)) {
+    value.forEach((item, index) => issues.push(...privateExtensionIssues(item, `${path}[${index}]`)))
+  } else if (record(value)) {
+    for (const [key, child] of Object.entries(value)) {
+      const childPath = `${path}.${key}`
+      if (PRIVATE_EXTENSION_KEY_RE.test(key.replace(/[^A-Za-z0-9]/g, ''))) {
+        issues.push(`${childPath} uses a private-content or credential-bearing key`)
+      }
+      issues.push(...privateExtensionIssues(child, childPath))
+    }
+  }
+  return issues
 }
 
 function graphHasCycle(start, edges) {
@@ -174,7 +216,7 @@ export function validateCalStructure(cal) {
   if (!record(cal)) return ['workflow must be a JSON object']
   issues.push(...rejectUnknownKeys(cal, [
     'schemaVersion', 'id', 'version', 'name', 'description', 'license', 'homepage',
-    'authors', 'tags', 'participants', 'rac', 'variables', 'limits', 'start',
+    'authors', 'tags', 'lineage', 'participants', 'rac', 'variables', 'limits', 'start',
     'nodes', 'edges', 'extensions', 'integrity',
   ], 'workflow'))
   if (cal.schemaVersion !== 'acx.cal/1') issues.push(`unexpected schemaVersion ${cal.schemaVersion}`)
@@ -185,6 +227,16 @@ export function validateCalStructure(cal) {
   if (cal.extensions && !record(cal.extensions)) issues.push('extensions must be an object')
   if (record(cal.extensions)) {
     for (const key of Object.keys(cal.extensions)) if (!NAMESPACE_RE.test(key)) issues.push(`extension namespace '${key}' must be reverse-DNS`)
+  }
+  if (Object.prototype.hasOwnProperty.call(cal, 'lineage')) {
+    issues.push(...validateLineage(cal.lineage, {
+      self: {
+        artifactType: 'workflow',
+        publisherId: cal.integrity?.publisherId,
+        id: cal.id,
+        version: cal.version,
+      },
+    }))
   }
 
   const participants = Array.isArray(cal.participants) ? cal.participants : []
@@ -401,6 +453,16 @@ export function validatePublishableWorkflow(cal) {
       if (author.url != null && (typeof author.url !== 'string' || !validAbsoluteUri(author.url))) issues.push(`author[${index}].url must be an absolute URI`)
     }
   }
+  if (record(cal)) {
+    if (record(cal.extensions)) issues.push(...privateExtensionIssues(cal.extensions))
+    const scan = scrub(collectWorkflowScanItems(cal))
+    if (scan.blocked) {
+      issues.push(`publishable workflow contains secret-like public metadata: ${scan.findings.filter((finding) => finding.ruleId !== 'home-path').map((finding) => `${finding.ruleId}@${finding.field}`).join(', ')}`)
+    }
+    for (const finding of scan.findings.filter((item) => item.ruleId === 'home-path')) {
+      issues.push(`publishable workflow exposes a local home path at ${finding.field}`)
+    }
+  }
   return [...new Set(issues)]
 }
 
@@ -408,6 +470,7 @@ export function validatePublishableWorkflow(cal) {
 // cartridges: [{ path, card }] where card = readCard() output.
 function matchesSlot(slot, card) {
   if (slot.role && card.role !== slot.role) return false
+  if (slot.minLevel && card.level?.proven !== true) return false
   if (slot.minLevel?.acxLevel != null && (card.level?.acxLevel ?? 0) < slot.minLevel.acxLevel) return false
   if (slot.minLevel?.careerTier) {
     const actual = CAREER_TIERS.indexOf(card.level?.tier)

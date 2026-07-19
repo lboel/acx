@@ -1,14 +1,18 @@
-# Capabilities & the sellable claim
+# Capabilities & portable claims
 
-A **CapabilityRecord** is the marketplace listing for a cartridge — a signed, ROM-resident assertion that "this agent performs well at *taskType* on *stack* for *domain*" — and it is only *proven* when an independent level attestation resolves.
+A **CapabilityRecord** is the discovery claim for a cartridge — a signed, ROM-resident assertion that
+"this agent performs well at *taskType* on *stack* for *domain*" — and it is only *proven* when an
+independent level attestation resolves.
 
 Everything on this page is normatively defined in **SPEC §6** and implemented in [`src/builders.mjs`](../reference/cli.md). Capabilities live in the immutable **ROM zone** alongside [skills](skills.md), so every claim is covered by the [ROM integrity manifest and signature](signing-trust.md).
 
 ---
 
-## The listing on the shelf
+## The discovery card
 
-When a host inspects a cartridge, the capabilities block is the product page: what this agent sells, on which stack, and how confidently. Here is the real block from the reference cartridge, taken verbatim from [Proof 5 (`acx inspect`)](../proofs.md):
+When a host inspects a cartridge, the capabilities block says what the agent claims to do, on which
+stack, and with what evidence state. Here is the real block from the reference cartridge, taken from
+[Proof 5 (`acx inspect`)](../proofs.md):
 
 ```text
 == capabilities ==
@@ -16,10 +20,15 @@ When a host inspects a cartridge, the capabilities block is the product page: wh
   - build-dag[pkg:generic/snowflake+pkg:pypi/apache-airflow+pkg:pypi/dbt-core]  verified=false
 ```
 
-Two records, both `verified=false`. That default is the whole point: a listing you can read for free tells you *what is claimed*; only a resolved attestation tells you the claim is *true*. We call this the **open-envelope / priced-contents split** — and it is what stops the marketplace from filling with self-graded A-pluses.
+Two records, both `verified=false`. That default is the whole point: an open discovery record says *what is
+claimed*; only a resolved attestation says whether it is *proven*. The Exchange never upgrades a claim
+from a stored boolean or popularity signal.
 
 !!! note "Where records live"
-    Records are stored one JSON row per capability in the ROM table `capabilities(id TEXT PRIMARY KEY, json TEXT, content_hash TEXT)` (SPEC §6.1). A record **MUST NOT** be minted from a memory artifact whose `portable` flag is false — a codebase-specific war story never becomes a portable, sellable claim. See [Memory partition](memory.md).
+    Records are stored one JSON row per capability in the ROM table
+    `capabilities(id TEXT PRIMARY KEY, json TEXT, content_hash TEXT)` (SPEC §6.1). A record **MUST NOT** be
+    minted from a memory artifact whose `portable` flag is false — a codebase-specific war story never
+    becomes a portable claim. See [Memory partition](memory.md).
 
 ---
 
@@ -119,12 +128,18 @@ That normalization is exactly how the free-form input `["snowflake", "airflow", 
 
 ## `verified:true` is earned, never declared
 
-This is the load-bearing rule of the whole marketplace.
+This is the load-bearing rule of capability discovery and staffing.
 
 !!! warning "The one gate"
-    `proficiency.verified` **MAY** be `true` **ONLY** when an `evidenceRefs` entry of `kind:"level-attestation"` resolves to a **valid, non-revoked** W3C VC issued after an **independent held-out re-run** (§10). A `verified:false` record **MAY** be published as a self-declared tier, but consumers **MUST** render it as unproven and **MUST NOT** let it satisfy a re-run-gated purchase.
+    `proficiency.verified` **MAY** be `true` in signed source only when an `evidenceRefs` entry of
+    `kind:"level-attestation"` is expected to resolve. A consumer still **MUST** resolve a **valid,
+    non-revoked**, ROM-bound W3C VC issued after an **independent held-out re-run** (§10). Until that full
+    check succeeds, both `verified:true` and `verified:false` source records are rendered unproven and
+    **MUST NOT** satisfy proof-gated staffing, ranking, or policy.
 
-`proficiency.score` is advisory and **MUST** be treated as unverified unless `verified:true`. The builder refuses to mint a `verified:true` record without evidence:
+`proficiency.score` is advisory and **MUST** be treated as unverified unless the evidence resolves. The
+builder refuses to mint a `verified:true` record without an evidence reference, while the reader performs
+the stronger cryptographic resolution:
 
 ```js
 if (verified && evidenceRefs.length === 0)
@@ -148,14 +163,16 @@ capability build-dag effective proficiency (resolved from attestation):
 ROM signature after attaching attestation: warning / portable (intact ✅)
 ```
 
-The `build-dag` claim that shipped as `verified=false` now resolves to **VERIFIED, tier=principal** — and the ROM signature is still intact, because attestations are attached, not baked into the signed manifest. That is the open envelope (the free listing) and the priced contents (the re-run-gated proof) staying cleanly separated.
+The `build-dag` claim that shipped as `verified=false` now resolves to **VERIFIED, tier=principal** — and
+the ROM signature is still intact, because attestations are attached, not baked into the signed manifest.
+The open claim and independently checked evidence remain cleanly separated.
 
 ```mermaid
 flowchart LR
-  A["CapabilityRecord<br/>verified: false<br/>(the listing)"] -->|"read for free"| C{Consumer}
+  A["CapabilityRecord<br/>verified: false<br/>(the claim)"] -->|"inspect"| C{Consumer}
   B["level-attestation VC<br/>held-out re-run, σ-gated,<br/>ROM-digest-bound"] -.->|"evidenceRefs resolves"| C
   C -->|"attestation valid<br/>+ non-revoked"| D["effective proficiency:<br/>VERIFIED"]
-  C -->|"no/invalid attestation"| E["render as unproven;<br/>cannot satisfy a<br/>re-run-gated purchase"]
+  C -->|"no/invalid attestation"| E["render as unproven;<br/>cannot satisfy a<br/>proof-gated requirement"]
 ```
 
 The anti-gaming properties of the attestation itself — no self-issuance, ROM-digest binding, σ-gate, sealed held-out slice, revocation — are documented in [Provable level](../leveling/provable-level.md). This mirrors Lilian Weng's harness rule that "candidates are accepted only if they have no regression on both held-in and held-out data"; the provable level is that held-out re-run made cryptographic.
@@ -200,7 +217,7 @@ Extension-aware consumers read verified proficiency; plain A2A clients still get
 ## Where to go next
 
 - [Signing & trust](signing-trust.md) — how the ROM manifest that covers these records is signed and how tampering is detected (the C1 guarantee).
-- [Skills](skills.md) — the sibling ROM block; `SKILL.md` bundles versus sellable claims.
+- [Skills](skills.md) — the sibling ROM block; `SKILL.md` bundles versus portable claims.
 - [Memory partition](memory.md) — why only `portable` artifacts can back a capability.
 - [Provable level](../leveling/provable-level.md) — the held-out re-run, σ-gate, and revocable VC that make `verified:true` unfakeable.
 - [Proofs](../proofs.md) — the verbatim transcript behind every value on this page.

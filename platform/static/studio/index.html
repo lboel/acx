@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Build and remix portable ACX workflows and Agent Graphs locally in your browser, then export an unsigned JSON draft for CLI signing.">
+  <meta name="theme-color" content="#082f2d">
+  <meta property="og:title" content="ACX Studio — build and remix agent teams">
+  <meta property="og:description" content="A private, browser-local composer for portable ACX workflows and Agent Graphs.">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>ACX Studio — build and remix agent teams</title>
+  <link rel="stylesheet" href="../assets/app.css">
+  <link rel="stylesheet" href="./studio.css">
+  <script type="module" src="./studio.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#composer">Skip to composer</a>
+  <header class="studio-topbar">
+    <a class="studio-brand" href="../" aria-label="Back to ACX Exchange">
+      <span aria-hidden="true">◆</span>
+      <span>ACX <strong>Studio</strong></span>
+    </a>
+    <nav aria-label="Studio navigation">
+      <a href="../">Explore</a>
+      <a href="https://acx.dev/share/">Publish guide</a>
+    </nav>
+  </header>
+
+  <main id="composer">
+    <section class="studio-hero" aria-labelledby="studio-title">
+      <p class="eyebrow">LOCAL-FIRST COMPOSER</p>
+      <h1 id="studio-title">Turn a team idea into a portable artifact.</h1>
+      <p>Build from a friendly form, import a signed artifact to remix it, or edit the JSON directly.
+        Nothing is uploaded. Studio exports an <strong>unsigned draft</strong>; the CLI remains the
+        authoritative publication validator and signer.</p>
+      <div class="privacy-strip" role="note">
+        <span aria-hidden="true">◌</span>
+        <span>No account · no backend · no private key · no knowledge payloads</span>
+      </div>
+    </section>
+
+    <section class="studio-toolbar" aria-label="Artifact controls">
+      <div class="mode-switch" role="group" aria-label="Artifact type">
+        <button type="button" data-mode="agent-graph" aria-pressed="true">Agent Graph</button>
+        <button type="button" data-mode="workflow" aria-pressed="false">Workflow</button>
+      </div>
+      <div class="toolbar-actions">
+        <button type="button" data-action="new">New draft</button>
+        <button type="button" data-action="example">Load example</button>
+        <label class="file-button">
+          Import JSON
+          <input type="file" accept=".json,.cal.json,.agent-graph.json,application/json" data-import>
+        </label>
+        <button type="button" data-action="save-local">Save locally</button>
+        <button type="button" data-action="restore-local">Restore local</button>
+      </div>
+    </section>
+
+    <p class="studio-status" role="status" aria-live="polite" data-status>
+      Start with the example or describe your own team.
+    </p>
+
+    <div class="studio-layout">
+      <section class="studio-panel studio-panel--editor" aria-labelledby="quick-heading">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">QUICK COMPOSER</p>
+            <h2 id="quick-heading">Describe the contract</h2>
+          </div>
+          <span class="draft-chip" data-draft-kind>Agent Graph draft</span>
+        </div>
+
+        <form data-metadata-form>
+          <div class="field-grid field-grid--two">
+            <label>Artifact id
+              <input name="id" required pattern="[a-z][a-z0-9._-]*" autocomplete="off">
+            </label>
+            <label>Version
+              <input name="version" required value="0.1.0" autocomplete="off">
+            </label>
+          </div>
+          <label>Name
+            <input name="name" required autocomplete="off">
+          </label>
+          <label>Description
+            <textarea name="description" required rows="3"></textarea>
+          </label>
+          <div class="field-grid field-grid--two">
+            <label>Author
+              <input name="author" required autocomplete="name">
+            </label>
+            <label>License
+              <input name="license" required value="Apache-2.0" autocomplete="off">
+            </label>
+          </div>
+          <label>Discovery tags
+            <input name="tags" required autocomplete="off" aria-describedby="tag-help">
+          </label>
+          <small id="tag-help">Comma-separated lowercase tags, for example <code>product, reporting, agent-team</code>.</small>
+        </form>
+
+        <div data-graph-editor>
+          <section class="collection" aria-labelledby="actors-heading">
+            <div class="collection-heading">
+              <div>
+                <h3 id="actors-heading">Actors</h3>
+                <p>Logical seats, not hard-coded models or people.</p>
+              </div>
+              <button type="button" data-add="actor">+ Actor</button>
+            </div>
+            <div data-actor-list></div>
+          </section>
+
+          <section class="collection" aria-labelledby="knowledge-heading">
+            <div class="collection-heading">
+              <div>
+                <h3 id="knowledge-heading">Knowledge responsibilities</h3>
+                <p>Metadata and stewardship only — never paste the actual knowledge.</p>
+              </div>
+              <button type="button" data-add="knowledge">+ Knowledge</button>
+            </div>
+            <div data-knowledge-list></div>
+          </section>
+
+          <section class="collection" aria-labelledby="routes-heading">
+            <div class="collection-heading">
+              <div>
+                <h3 id="routes-heading">Communication routes</h3>
+                <p>Who should tell whom what, and with which intent.</p>
+              </div>
+              <button type="button" data-add="route">+ Route</button>
+            </div>
+            <div data-route-list></div>
+          </section>
+
+          <fieldset class="bounds">
+            <legend>Propagation bounds</legend>
+            <label>Maximum hops
+              <input type="number" name="maxPropagationHops" min="1" max="100">
+            </label>
+            <label>Maximum fan-out
+              <input type="number" name="maxFanout" min="1" max="100">
+            </label>
+          </fieldset>
+        </div>
+
+        <div data-workflow-editor hidden>
+          <section class="collection" aria-labelledby="participants-heading">
+            <div class="collection-heading">
+              <div>
+                <h3 id="participants-heading">Team slots</h3>
+                <p>Portable roles and capabilities, staffed by the receiving host.</p>
+              </div>
+              <button type="button" data-add="participant">+ Slot</button>
+            </div>
+            <div data-participant-list></div>
+          </section>
+
+          <section class="collection" aria-labelledby="steps-heading">
+            <div class="collection-heading">
+              <div>
+                <h3 id="steps-heading">Outcome steps</h3>
+                <p>The quick composer creates a bounded linear path. Advanced branches stay editable in JSON.</p>
+              </div>
+              <button type="button" data-add="task">+ Step</button>
+            </div>
+            <div data-task-list></div>
+          </section>
+
+          <fieldset class="bounds">
+            <legend>Execution bounds</legend>
+            <label>Maximum steps
+              <input type="number" name="maxSteps" min="1">
+            </label>
+            <label>Maximum duration (ms)
+              <input type="number" name="maxDurationMs" min="1">
+            </label>
+            <label>Maximum parallel
+              <input type="number" name="maxParallel" min="1">
+            </label>
+          </fieldset>
+        </div>
+      </section>
+
+      <aside class="studio-panel studio-panel--preview" aria-labelledby="preview-heading">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">LIVE MAP</p>
+            <h2 id="preview-heading">Read it at a glance</h2>
+          </div>
+          <span class="draft-chip draft-chip--muted" data-digest>unsigned</span>
+        </div>
+        <div class="visual-preview" data-preview></div>
+        <div class="lineage-card" data-lineage-card hidden>
+          <strong>Remix provenance preserved</strong>
+          <p data-lineage-copy></p>
+        </div>
+        <div class="validation-summary" data-validation-summary>
+          <strong>Draft checks have not run yet.</strong>
+          <p>Studio catches common structural mistakes. Run the CLI before signing.</p>
+        </div>
+        <div class="preview-actions">
+          <button type="button" class="button-primary" data-action="validate">Check draft</button>
+          <button type="button" data-action="download">Download JSON</button>
+          <button type="button" data-action="copy-json">Copy JSON</button>
+        </div>
+      </aside>
+    </div>
+
+    <section class="studio-panel json-panel" aria-labelledby="json-heading">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">ADVANCED</p>
+          <h2 id="json-heading">Edit the full portable document</h2>
+        </div>
+        <button type="button" data-action="apply-json">Apply JSON</button>
+      </div>
+      <p>Imported loops, conditions, bindings, convergence points, and lineage are preserved here even
+        when the quick composer does not expose every advanced field.</p>
+      <textarea class="json-editor" spellcheck="false" aria-label="ACX artifact JSON" data-json-editor></textarea>
+    </section>
+
+    <section class="publish-handoff" aria-labelledby="handoff-heading">
+      <div>
+        <p class="eyebrow">VERIFIED HANDOFF</p>
+        <h2 id="handoff-heading">Sign only after the draft is clean.</h2>
+        <p>Browser export deliberately stops before signing. Keep the generated private key outside git,
+          then let the registry CI recompute every binding.</p>
+      </div>
+      <div>
+        <pre><code data-sign-command>acx graph lint my-team.agent-graph.json --publish</code></pre>
+        <button type="button" data-action="copy-command">Copy CLI handoff</button>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>ACX Studio is a static reference composer. It does not execute agents, resolve private knowledge,
+      upload drafts, or grant permissions.</p>
+  </footer>
+</body>
+</html>

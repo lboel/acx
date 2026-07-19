@@ -5,7 +5,11 @@ A cartridge ships a signed, machine-readable manifest that tells any host the ex
 Lilian Weng defines a **harness** as "the system surrounding a base model that orchestrates execution and decides how the model thinks and plans, calls tools and acts, perceives and manages context, stores artifacts, and evaluates results" ([_Harness Engineering for Self-Improvement_](https://lilianweng.github.io/posts/2026-07-04-harness/), 2026-07-04). She argues "the layer between the raw model and the real-world context seems to be as important as the model's raw intelligence." A `.acx` cartridge is a self-contained, signed harness — the agent-OS image — and this manifest is the socket it plugs into. Everything here is SPEC §8.
 
 !!! info "Where this lives in the cartridge"
-    Exactly one manifest at `sqlar` path `manifest/harness-requirements.json`, media type `application/vnd.acx.harness-requirements.v1+json`, `schemaVersion: "acx.harness.v1"`. It sits in the **ROM zone**, so it is covered by the ROM integrity manifest and the ed25519/DSSE signature (see [signing & trust](signing-trust.md)). A host **MUST** refuse activation if it fails signature verification or if its `schemaVersion` is unrecognized.
+    Exactly one manifest at `sqlar` path `rom/manifest/harness-requirements.json`, media type
+    `application/vnd.acx.harness-requirements.v1+json`, `schemaVersion: "acx.harness.v1"`. It sits in the
+    **ROM zone**, so it is covered by the ROM integrity manifest and the ed25519/DSSE signature (see
+    [signing & trust](signing-trust.md)). A host **MUST** refuse activation if it fails signature
+    verification or if its `schemaVersion` is unrecognized.
 
 ## What the manifest declares
 
@@ -105,7 +109,7 @@ sequenceDiagram
     participant H as Host
     participant C as Cartridge (ROM)
     participant M as MCP server(s)
-    H->>C: read manifest/harness-requirements.json
+    H->>C: read rom/manifest/harness-requirements.json
     H->>H: signature-verify manifest (ROM integrity)
     H->>M: MCP initialize (negotiate protocolRevision)
     loop each required role

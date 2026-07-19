@@ -1,6 +1,6 @@
 [project]
 site_name = "Agent Cartridge (.acx)"
-site_description = "An open standard for portable, signed AI agents, reusable workflows, bounded loops, Agent Graphs, and verifiable agent teams."
+site_description = "Explore, verify, remix, and publish portable signed AI agents, bounded workflows, and Agent Graphs on a fully static exchange."
 site_author = "The Agent Cartridge authors"
 site_url = "https://acx.dev/"
 repo_url = "https://github.com/lboel/acx"
@@ -12,6 +12,7 @@ Apache-2.0 &middot; the open exchange format for portable agents and agent-team 
 
 nav = [
   { "Home" = "index.md" },
+  { "Explore Exchange" = "lifecycle/exchange.md" },
   { "Share ACX" = "share.md" },
   { "Concepts" = [
     "concepts/overview.md",
@@ -40,7 +41,6 @@ nav = [
     "lifecycle/init-agent-set.md",
     "lifecycle/loading.md",
     "lifecycle/distribution.md",
-    "lifecycle/exchange.md",
     "lifecycle/sharing-git.md",
   ] },
   { "Reference" = [

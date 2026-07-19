@@ -29,7 +29,8 @@ export function exportPackageToCartridge(opts) {
     : []
 
   const embeddingEngine = { id: manifest.vectorEngine ?? 'local-hash-128', dim: 128 }
-  const cartridgeId = `${publisherId}/${slug(manifest.name)}@${randomUUID()}`
+  const discovery = discoveryMetadata(manifest, publisherId)
+  const cartridgeId = `${publisherId}/${discovery.id}@${randomUUID()}`
 
   if (existsSync(outPath)) unlinkSync(outPath)
   const cart = Cartridge.create(outPath)
@@ -48,6 +49,13 @@ export function exportPackageToCartridge(opts) {
     cart.setMeta('acx.model', manifest.model ?? '')
     cart.setMeta('acx.role', manifest.role ?? 'fullstack_dev')
     cart.setMeta('acx.declared_level', String(manifest.level ?? 0))
+    cart.setMeta('acx.artifact_id', discovery.id)
+    cart.setMeta('acx.artifact_version', discovery.version)
+    cart.setMeta('acx.description', discovery.description)
+    cart.setMeta('acx.license', discovery.license)
+    cart.setMeta('acx.authors', JSON.stringify(discovery.authors))
+    cart.setMeta('acx.tags', JSON.stringify(discovery.tags))
+    if (discovery.homepage) cart.setMeta('acx.homepage', discovery.homepage)
 
     // ---- knowledge markdown (ROM) --------------------------------------
     for (const f of KNOWLEDGE_FILES) {
@@ -104,7 +112,25 @@ export function exportPackageToCartridge(opts) {
     // after deriveSkillIndex + emitCalSkillSet so the spec's artifact counts are accurate
     emitPackageSpec(cart)
 
-    bindRomMeta(cart, ['acx.spec_version', 'acx.cartridge_id', 'acx.created_at', 'acx.embedding_engine', 'acx.publisher_id', 'acx.agent_name', 'acx.role'])
+    bindRomMeta(cart, [
+      'acx.spec_version',
+      'acx.cartridge_id',
+      'acx.created_at',
+      'acx.embedding_engine',
+      'acx.publisher_id',
+      'acx.agent_name',
+      'acx.provider',
+      'acx.model',
+      'acx.role',
+      'acx.declared_level',
+      'acx.artifact_id',
+      'acx.artifact_version',
+      'acx.description',
+      'acx.license',
+      'acx.authors',
+      'acx.tags',
+      'acx.homepage',
+    ])
 
     // ---- scrub gate (fail-closed) --------------------------------------
     scrubOrThrow(cart, { forbidLiterals })
@@ -161,6 +187,66 @@ ${desc}
 ## Stack
 ${(manifest.techStack ?? []).map((t) => `- ${t} (${toPurl(t)})`).join('\n') || '- general'}
 `
+}
+
+function discoveryMetadata(manifest, publisherId) {
+  const id = manifest.artifactId == null ? slug(manifest.name) : String(manifest.artifactId).trim()
+  if (!/^[a-z][a-z0-9-]{0,63}$/.test(id)) {
+    throw new Error('manifest.artifactId must be a lowercase registry slug')
+  }
+  const version = manifest.artifactVersion ?? '1.0.0'
+  if (!/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*)(?:\.(?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*))*))?(?:\+(?:[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$/.test(version)) {
+    throw new Error('manifest.artifactVersion must be SemVer')
+  }
+  const role = String(manifest.role ?? 'fullstack_dev').replaceAll('_', ' ')
+  const stack = Array.isArray(manifest.techStack) ? manifest.techStack.map(String).filter(Boolean) : []
+  const description = String(
+    manifest.description
+      ?? `A portable ${role} agent${stack.length ? ` specializing in ${stack.join(', ')}` : ' for reusable agent work'}.`,
+  ).trim()
+  if (description.length < 20 || description.length > 500) {
+    throw new Error('manifest.description must contain 20-500 characters')
+  }
+  const license = String(manifest.license ?? 'Apache-2.0').trim()
+  if (!/^[A-Za-z0-9][A-Za-z0-9.+() -]{0,99}$/.test(license)) {
+    throw new Error('manifest.license must be a compact SPDX expression')
+  }
+  const rawAuthors = Array.isArray(manifest.authors) && manifest.authors.length
+    ? manifest.authors
+    : [{ name: publisherId }]
+  const authors = rawAuthors.map((author) => {
+    const value = typeof author === 'string' ? { name: author } : author
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+      throw new Error('manifest.authors entries must be names or author objects')
+    }
+    const name = String(value.name ?? '').trim()
+    if (!name || name.length > 120) throw new Error('manifest author names must contain 1-120 characters')
+    if (value.url == null) return { name }
+    const url = cleanPublicUrl(value.url, 'manifest author url')
+    return { name, url }
+  })
+  const rawTags = Array.isArray(manifest.tags) && manifest.tags.length
+    ? manifest.tags
+    : [manifest.role ?? 'agent', ...stack]
+  const tags = [...new Set(rawTags.map((tag) => slug(tag)).filter(Boolean))].slice(0, 20)
+  if (!tags.length || tags.some((tag) => tag.length > 64)) {
+    throw new Error('manifest.tags must produce 1-20 lowercase discovery tags up to 64 characters')
+  }
+  const homepage = manifest.homepage == null ? null : cleanPublicUrl(manifest.homepage, 'manifest.homepage')
+  return { id, version, description, license, authors, tags, homepage }
+}
+
+function cleanPublicUrl(value, label) {
+  let url
+  try {
+    url = new URL(String(value))
+  } catch {
+    throw new Error(`${label} must be an absolute HTTP(S) URL`)
+  }
+  if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password) {
+    throw new Error(`${label} must be an absolute HTTP(S) URL without credentials`)
+  }
+  return url.href
 }
 
 function slug(s) {

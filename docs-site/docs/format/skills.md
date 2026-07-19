@@ -197,4 +197,5 @@ flowchart LR
   SIG -.->|import: re-derive +\nreject on hash mismatch| HOST
 ```
 
-Next: how [capabilities](capabilities.md) turn a skill's domain into a sellable, attestable claim, and how the whole ROM gets [signed and trusted](signing-trust.md).
+Next: how [capabilities](capabilities.md) turn a skill's domain into a portable, attestable claim, and how
+the whole ROM gets [signed and trusted](signing-trust.md).

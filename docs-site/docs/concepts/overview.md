@@ -9,7 +9,9 @@ An **Agent Cartridge** (`.acx`) is a single SQLite database that packages an AI 
 
 ## What an Agent Cartridge is
 
-A cartridge is a self-describing SQLite ≥ 3.37 database, extension `.acx`, that an agent "trained" (leveled up) in one environment can be **shared, sold, verified, and re-hosted** in another with deterministic integrity guarantees and no host lock-in (SPEC §1).
+A cartridge is a self-describing SQLite ≥ 3.37 database, extension `.acx`, that an agent "trained"
+(leveled up) in one environment can be **shared, verified, remixed, and re-hosted** in another with
+deterministic integrity guarantees and no host lock-in (SPEC §1).
 
 It is branded at the file-header level so `file(1)` recognizes it from a 72-byte read, with no page cache and no schema query:
 
@@ -29,7 +31,9 @@ rom/skills/expertise-designer/SKILL.md
 ```
 
 !!! info "Two zones, one file"
-    Every cartridge splits into a **ROM zone** (signed, immutable, shareable/sellable core) and a **SAVE zone** (mutable, field-learned, codebase-specific memory). The ROM is signed once; SAVE mutates locally; derived vectors are always rebuilt by the consumer. See [The cartridge model](cartridge-model.md).
+    Every cartridge splits into a **ROM zone** (signed, immutable, shareable core) and a **SAVE zone**
+    (mutable, field-learned, codebase-specific memory). The ROM is signed once; SAVE mutates locally;
+    derived vectors are always rebuilt by the consumer. See [The cartridge model](cartridge-model.md).
 
 ## A cartridge is a signed harness
 
@@ -44,8 +48,8 @@ Today a specialized agent is trapped where it was built. Three properties are mi
 | Property | Status quo | What breaks |
 | --- | --- | --- |
 | **Portable** | Identity binds to a hostname-derived `instanceId`; memory binds to a local repo. | Move the agent and its trust, memory, and behavior fall apart. |
-| **Sellable** | An agent's earned expertise is co-mingled with codebase-specific secrets and local paths. | You cannot hand someone the valuable core without leaking the private field data. |
-| **Provable** | "Level 20 agent" is a self-asserted string in a config file. | A buyer has no way to check the claim; anyone can fake it. |
+| **Shareable** | An agent's earned expertise is co-mingled with codebase-specific secrets and local paths. | You cannot hand someone the useful core without leaking the private field data. |
+| **Provable** | "Level 20 agent" is a self-asserted string in a config file. | A recipient has no way to check the claim; anyone can fake it. |
 
 The cartridge fixes each of these by construction, and the fix is machine-checkable rather than promised.
 
@@ -66,7 +70,9 @@ The standard is governed by five goals (SPEC §1):
 
 1. **Portable.** Identity, trust, and behavior bind to a reverse-DNS publisher (e.g. `io.github.agentibus/scenario-research-designer`) and a **content-addressed ROM manifest** — never to a hostname. A cartridge verifies and runs unchanged across machines, orgs, and hosts.
 2. **Codebase-agnostic base, but field-learning.** Every memory record is partitioned into a **TRANSFERABLE** tier (generalizable, signed, shareable) and a **FIELD-LEARNED** tier (codebase-specific, pseudonymously namespaced, quarantined). The agent keeps learning in the field without contaminating its shareable core.
-3. **Shareable / sellable.** The immutable **ROM zone** is the sellable core; the mutable **SAVE zone** holds local learning. A `strip-to-ROM` re-export proves, **by hash equality**, that field learning never mutated the core:
+3. **Shareable and remixable.** The immutable **ROM zone** is the portable core; the mutable **SAVE
+   zone** holds local learning. A `strip-to-ROM` re-export proves, **by hash equality**, that field
+   learning never mutated the core:
 
     ```text
     rom hash before strip: sha256:f479be021b8ea2e55cc6e3e33b95df9d151196548dfc854dedbe578be7120642
@@ -75,12 +81,15 @@ The standard is governed by five goals (SPEC §1):
     ```
 
 4. **Provable level.** An agent's level is a **W3C Verifiable Credential 2.0** embedding an **Open Badges 3.0** achievement, issued by an independent verifier only after held-out re-execution, TrueSkill σ-gated (`sigma < 1.5`, `gamesPlayed >= 30`, conservative rating `R = mu - 3*sigma`), bound to the ROM digest, and revocable.
-5. **Open envelope, priced contents.** The container format, schemas, and descriptive layer are 100% open and unencumbered. The *value* — the signed level attestation, the verified capability evidence, and field-learned memory — is the sellable, revocable, identity-bound asset carried **inside a fully open envelope**.
+5. **Open envelope, valuable contents.** The container format, schemas, and descriptive layer are 100%
+   open and unencumbered. Signed level attestations, verified capability evidence, and field-learned
+   memory remain revocable, identity-bound assets **inside a fully open envelope**. Payments,
+   entitlements, and licensing enforcement are outside ACX.
 
 ```mermaid
 flowchart LR
     subgraph ACX[".acx cartridge — one SQLite file"]
-        subgraph ROM["ROM zone · signed · shareable / sellable"]
+        subgraph ROM["ROM zone · signed · shareable"]
             S[skills]
             C[capabilities]
             RM[ROM memory]
@@ -116,4 +125,11 @@ And beyond one cartridge:
 - **[Distribution](../lifecycle/distribution.md)** — the `.acx` file as one layer in an OCI image manifest (`artifactType application/vnd.acx.cartridge.v1`), verifiable with stock cosign/oras (SPEC §11).
 
 !!! note "About the reference implementation"
-    The reference implementation is **zero-dependency** — Node ≥ 22's built-in `node:sqlite` and `node:crypto` — and runs with `node --experimental-sqlite`. Its cartridge crypto, Agent Graph and workflow signing, structural bounds, safe sharing path, σ-gating, and credential machinery are fully real (113 tests pass; see [Proofs](../proofs.md)). The benchmark's reference solver is **deterministic and pluggable** — a production verifier plugs in a real sandboxed agent run. OCI push, live namespace-proof verification (DNS-TXT / GitHub-OIDC), the host handshake runtime, the loop-policy evaluator, and `vec0` vectors are **specified normatively and are host-side** — they are not exercised by the reference impl.
+    The reference implementation is **zero-dependency** — Node ≥ 22's built-in `node:sqlite` and
+    `node:crypto` — and runs with `node --experimental-sqlite`. Its cartridge crypto, Agent Graph and
+    workflow signing, structural bounds, safe sharing path, σ-gating, and credential machinery are
+    exercised by the current suite; see [Proofs](../proofs.md). The benchmark's reference solver is
+    **deterministic and pluggable** — a production verifier plugs in a real sandboxed agent run. OCI push,
+    live namespace-proof verification (DNS-TXT / GitHub-OIDC), the host handshake runtime, the loop-policy
+    evaluator, and `vec0` vectors are **specified normatively and are host-side** — they are not exercised
+    by the reference impl.

@@ -73,6 +73,90 @@ test('acx.cal/1 publish profile accepts a complete, bounded workflow', () => {
   assert.ok(issues.some((issue) => issue.includes("extension namespace 'vendor'")))
 })
 
+test('workflow publication blocks secrets, private payload fields, and local home paths', () => {
+  const cal = fixture()
+  cal.description = 'Review with access_token=super-secret-token-value before shipping.'
+  let issues = validatePublishableWorkflow(cal)
+  assert.ok(issues.some((issue) => issue.includes('secret-like public metadata')))
+
+  cal.description = fixture().description
+  cal.extensions = {
+    'dev.acx.test': {
+      taskPayload: 'private task body',
+    },
+  }
+  issues = validatePublishableWorkflow(cal)
+  assert.ok(issues.some((issue) => issue.includes('private-content or credential-bearing key')))
+
+  delete cal.extensions
+  cal.rac[0].check.hint = '/Users/alice/private/repo/map.json'
+  issues = validatePublishableWorkflow(cal)
+  assert.ok(issues.some((issue) => issue.includes('local home path')))
+})
+
+test('workflow lineage is closed, digest-pinned, and safe to render as a link', () => {
+  const cal = fixture()
+  cal.lineage = {
+    parents: [{
+      artifactType: 'workflow',
+      publisherId: 'io.github.upstream',
+      id: 'review-and-ship',
+      version: '0.9.0',
+      digest: `sha256:${'a'.repeat(64)}`,
+      relation: 'fork',
+      source: 'https://github.com/upstream/acx/blob/main/review-and-ship.cal.json',
+    }],
+    note: 'Keeps the upstream review contract while changing the delivery role.',
+  }
+  assert.deepEqual(validatePublishableWorkflow(cal), [])
+
+  cal.lineage.parents[0].source = 'https://user:secret@example.com/workflow.json'
+  cal.lineage.parents[0].execute = 'fetch-parent'
+  const issues = validateCalStructure(cal)
+  assert.ok(issues.some((issue) => issue.includes('absolute HTTPS URL without credentials')))
+  assert.ok(issues.some((issue) => issue.includes("unknown property 'execute'")))
+
+  const duplicate = structuredClone(cal.lineage.parents[0])
+  delete duplicate.execute
+  duplicate.source = 'https://example.com/workflow.json'
+  duplicate.relation = 'derived-from'
+  cal.lineage.parents.push(duplicate)
+  assert.ok(validateCalStructure(cal).some((issue) => issue.includes('duplicates another lineage parent')))
+
+  cal.lineage.parents = Array.from({ length: 9 }, (_, index) => ({
+    artifactType: 'workflow',
+    publisherId: 'io.github.upstream',
+    id: `parent-${index}`,
+    digest: `sha256:${String(index).repeat(64)}`,
+    relation: 'remix',
+  }))
+  cal.lineage.note = null
+  const boundedIssues = validateCalStructure(cal)
+  assert.ok(boundedIssues.some((issue) => issue.includes('1-8 parent artifacts')))
+  assert.ok(boundedIssues.some((issue) => issue.includes('note must be a 1-1000 character string')))
+})
+
+test('workflow signing rejects lineage that collides with its own immutable coordinate', () => {
+  const key = generateSigningKey()
+  const cal = fixture()
+  cal.lineage = {
+    parents: [{
+      artifactType: 'workflow',
+      publisherId: 'io.github.acxtest',
+      id: cal.id,
+      version: cal.version,
+      digest: `sha256:${'b'.repeat(64)}`,
+      relation: 'supersedes',
+    }],
+  }
+  assert.throws(
+    () => signWorkflow(cal, key, { publisherId: 'io.github.acxtest' }),
+    /collides with the artifact's own registry identity/,
+  )
+  cal.lineage.parents[0].version = '0.9.0'
+  assert.doesNotThrow(() => signWorkflow(cal, key, { publisherId: 'io.github.acxtest' }))
+})
+
 test('CAL conditions are closed structured data and resolve declared state', () => {
   const ctx = { vars: { review: { outcome: 'completed' } }, rac: { 'code-map': { available: true } } }
   assert.equal(evalCondition({ var: 'review.outcome', op: 'eq', value: 'completed' }, ctx), true)
@@ -123,7 +207,7 @@ test('slot staffing checks role, proven tier/level, capability, and stack', () =
     card: {
       name: 'Builder',
       role: 'backend_dev',
-      level: { tier: 'senior', acxLevel: 18 },
+      level: { tier: 'senior', acxLevel: 18, proven: true },
       moves: [{ taskType: 'implement-feature', stack: ['pkg:generic/node', 'pkg:generic/postgresql'] }],
       skills: [],
     },
@@ -131,6 +215,28 @@ test('slot staffing checks role, proven tier/level, capability, and stack', () =
   assert.equal(resolveParticipants(cal, [candidate])[0].bound, candidate)
   candidate.card.moves[0].stack = ['pkg:generic/python']
   assert.equal(resolveParticipants(cal, [candidate])[0].bound, null)
+})
+
+test('slot minimum level rejects high self-claims unless the level is proven', () => {
+  const cal = fixture()
+  const candidate = {
+    path: '/claimed-agent.acx',
+    card: {
+      name: 'Claimed Builder',
+      role: 'backend_dev',
+      level: {
+        tier: 'legend',
+        acxLevel: 999,
+        claimedAcxLevel: 999,
+        proven: false,
+      },
+      moves: [{ taskType: 'implement-feature', stack: ['pkg:generic/node'] }],
+      skills: [],
+    },
+  }
+  assert.equal(resolveParticipants(cal, [candidate])[0].bound, null)
+  candidate.card.level.proven = true
+  assert.equal(resolveParticipants(cal, [candidate])[0].bound, candidate)
 })
 
 test('workflow signing binds the canonical document and verifies as portable', () => {
@@ -145,6 +251,26 @@ test('workflow signing binds the canonical document and verifies as portable', (
   assert.equal(verification.signed, true)
   assert.equal(verification.trust, 'portable')
   assert.equal(signed.integrity.digest, workflowDigest(cal).digest)
+})
+
+test('workflow signature covers remix lineage', () => {
+  const cal = fixture()
+  cal.lineage = {
+    parents: [{
+      artifactType: 'agent-graph',
+      publisherId: 'io.github.upstream',
+      id: 'delivery-team',
+      version: '1.2.0',
+      digest: `sha256:${'c'.repeat(64)}`,
+      relation: 'derived-from',
+    }],
+  }
+  const signed = signWorkflow(cal, generateSigningKey(), {
+    publisherId: 'io.github.acxtest',
+    signedAt: '2026-07-18T12:00:00.000Z',
+  })
+  signed.lineage.parents[0].relation = 'remix'
+  assert.equal(verifyWorkflow(signed).trust, 'tampered')
 })
 
 test('workflow verification rejects content tampering and publisher-binding tampering', () => {

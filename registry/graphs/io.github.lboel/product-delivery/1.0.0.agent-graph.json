@@ -25,7 +25,7 @@
   "actors": [
     {
       "id": "product-owner",
-      "kind": "agent",
+      "kind": "mixed",
       "name": "Product Owner",
       "description": "Owns product intent, priorities, and the final synthesis of research and delivery reports.",
       "selector": {
@@ -310,6 +310,7 @@
       "kind": "acx-workflow",
       "description": "Research and challenge evidence before a product decision.",
       "workflowRef": {
+        "publisherId": "io.github.lboel",
         "id": "research-council",
         "version": "1.0.0",
         "digest": "sha256:3300ea74052dc7f76aa81f79cd37b269267b2f06b4ae4710480dc73d62102ed8"
@@ -336,6 +337,7 @@
       "kind": "acx-workflow",
       "description": "Design, build, and review the selected product increment.",
       "workflowRef": {
+        "publisherId": "io.github.lboel",
         "id": "ship-a-feature",
         "version": "1.0.0",
         "digest": "sha256:588424a9ec12483ce13f28e81e9d0833777676bbd2c0c0686bbc27bb58f93dee"
@@ -399,18 +401,18 @@
   ],
   "integrity": {
     "schemaVersion": "acx.agent-graph-signature/1",
-    "digest": "sha256:80f8c0c4e098d935c849380ecad108a18e20961ec03aaa5beb1463c41263c0fa",
+    "digest": "sha256:4c2c0fcedb2dbc9fe05df62be0349646df49877486e67d87d6648a945b01a5ff",
     "publisherId": "io.github.lboel",
-    "keyid": "ed25519:99f57c3568302ea3a730d955570cc85c3d8596225c1c94c4e5f9ab498d69fe78",
-    "publicKeyPem": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEA5JwpvupE7sEXBaCko65n2IlhfVe/Ov+LqTMAIYeppgQ=\n-----END PUBLIC KEY-----\n",
-    "signedAt": "2026-07-19T12:00:00.000Z",
+    "keyid": "ed25519:201dbda8259554948b8f4d59c0d7d4c6e3d1e67be02b5d383f86d1fc5756e2ce",
+    "publicKeyPem": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAhBHNNvs0UPh/NgfWlRbNqR1p7VUiytc3KGOLANBOaEc=\n-----END PUBLIC KEY-----\n",
+    "signedAt": "2026-07-19T08:42:44.085Z",
     "envelope": {
       "payloadType": "application/vnd.in-toto+json",
-      "payload": "eyJfdHlwZSI6Imh0dHBzOi8vaW4tdG90by5pby9TdGF0ZW1lbnQvdjEiLCJwcmVkaWNhdGUiOnsiYWN0b3JzIjozLCJhY3hTY2hlbWFWZXJzaW9uIjoiYWN4LmFnZW50LWdyYXBoLzEiLCJhZ2VudEdyYXBoRGlnZXN0Ijoic2hhMjU2OjgwZjhjMGM0ZTA5OGQ5MzVjODQ5MzgwZWNhZDEwOGExOGUyMDk2MWVjMDNhYWE1YmViMTQ2M2M0MTI2M2MwZmEiLCJhZ2VudEdyYXBoSWQiOiJwcm9kdWN0LWRlbGl2ZXJ5IiwiYWdlbnRHcmFwaFZlcnNpb24iOiIxLjAuMCIsImNvbnZlcmdlbmNlUG9pbnRzIjoxLCJrbm93bGVkZ2VNb2R1bGVzIjo1LCJsb29wcyI6MiwicHVibGlzaGVySWQiOiJpby5naXRodWIubGJvZWwiLCJyb3V0ZXMiOjQsInNpZ25lZEF0IjoiMjAyNi0wNy0xOVQxMjowMDowMC4wMDBaIn0sInByZWRpY2F0ZVR5cGUiOiJodHRwczovL2FjeC5kZXYvYXR0ZXN0YXRpb24vYWdlbnQtZ3JhcGgvdjEiLCJzdWJqZWN0IjpbeyJkaWdlc3QiOnsic2hhMjU2IjoiODBmOGMwYzRlMDk4ZDkzNWM4NDkzODBlY2FkMTA4YTE4ZTIwOTYxZWMwM2FhYTViZWIxNDYzYzQxMjYzYzBmYSJ9LCJuYW1lIjoidXJuOmFjeDphZ2VudC1ncmFwaDpwcm9kdWN0LWRlbGl2ZXJ5QDEuMC4wIn1dfQ==",
+      "payload": "eyJfdHlwZSI6Imh0dHBzOi8vaW4tdG90by5pby9TdGF0ZW1lbnQvdjEiLCJwcmVkaWNhdGUiOnsiYWN0b3JzIjozLCJhY3hTY2hlbWFWZXJzaW9uIjoiYWN4LmFnZW50LWdyYXBoLzEiLCJhZ2VudEdyYXBoRGlnZXN0Ijoic2hhMjU2OjRjMmMwZmNlZGIyZGJjOWZlMDVkZjYyYmUwMzQ5NjQ2ZGY0OTg3NzQ4NmU2N2Q4N2Q2NjQ4YTk0NWIwMWE1ZmYiLCJhZ2VudEdyYXBoSWQiOiJwcm9kdWN0LWRlbGl2ZXJ5IiwiYWdlbnRHcmFwaFZlcnNpb24iOiIxLjAuMCIsImNvbnZlcmdlbmNlUG9pbnRzIjoxLCJrbm93bGVkZ2VNb2R1bGVzIjo1LCJsb29wcyI6MiwicHVibGlzaGVySWQiOiJpby5naXRodWIubGJvZWwiLCJyb3V0ZXMiOjQsInNpZ25lZEF0IjoiMjAyNi0wNy0xOVQwODo0Mjo0NC4wODVaIn0sInByZWRpY2F0ZVR5cGUiOiJodHRwczovL2FjeC5kZXYvYXR0ZXN0YXRpb24vYWdlbnQtZ3JhcGgvdjEiLCJzdWJqZWN0IjpbeyJkaWdlc3QiOnsic2hhMjU2IjoiNGMyYzBmY2VkYjJkYmM5ZmUwNWRmNjJiZTAzNDk2NDZkZjQ5ODc3NDg2ZTY3ZDg3ZDY2NDhhOTQ1YjAxYTVmZiJ9LCJuYW1lIjoidXJuOmFjeDphZ2VudC1ncmFwaDpwcm9kdWN0LWRlbGl2ZXJ5QDEuMC4wIn1dfQ==",
       "signatures": [
         {
-          "keyid": "ed25519:99f57c3568302ea3a730d955570cc85c3d8596225c1c94c4e5f9ab498d69fe78",
-          "sig": "zpccYXHtBt/JkXwy7woQKuqKdDxBN0xW2KPZfPQa1Mhv+H0+wH6P8DhJx4LIrxTva0wC+vH+SvPQVWAA7z5KCg=="
+          "keyid": "ed25519:201dbda8259554948b8f4d59c0d7d4c6e3d1e67be02b5d383f86d1fc5756e2ce",
+          "sig": "cggY85kR3Q/V+PIWuPTdAwKRn2GDZeVQzVKzkAmPf4hgUbtClIFx8CB0X/SaBAwzXZjy3Q/vKVKhvI921Y7QDQ=="
         }
       ]
     }

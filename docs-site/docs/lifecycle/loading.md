@@ -5,7 +5,7 @@ How a **host** boots an `.acx` cartridge end to end — open and brand-check the
 A cartridge is a self-contained, signed **harness** — the "agent-OS image" any host boots. In Lilian Weng's framing, a harness is *"the system surrounding a base model that orchestrates execution and decides how the model thinks and plans, calls tools and acts, perceives and manages context, stores artifacts, and evaluates results"* ([*Harness Engineering for Self-Improvement*](https://lilianweng.github.io/posts/2026-07-04-harness/), 2026-07-04). Loading is the moment a host takes that portable harness and wires it onto local tools and a local codebase.
 
 !!! note "What runs today vs. what is specified"
-    The reference implementation is **zero-dependency** (Node ≥ 22 `node:sqlite` + `node:crypto`). Everything in the **open → verify → inspect → strip** path below runs verbatim with `node --experimental-sqlite`. The **capability-negotiation handshake**, the **loop-policy evaluator**, live **namespace-proof** checks, and `vec0` vector indexing are **specified normatively (SPEC §8, §9, §4.3, §3.5) but are host-side and not exercised by the reference tool** — the reference stores vectors in a plain table and re-indexes from the JSON baseline. Where a step is host-side, it is called out.
+    The reference implementation is **zero-dependency** (Node ≥ 22 `node:sqlite` + `node:crypto`). Everything in the **open → verify → spec → inspect → strip** path below runs verbatim with `node --experimental-sqlite`. The **capability-negotiation handshake**, the **loop-policy evaluator**, live **namespace-proof** checks, and `vec0` vector indexing are **specified normatively (SPEC §8, §9, §4.3, §3.5) but are host-side and not exercised by the reference tool** — the reference stores vectors in a plain table and re-indexes from the JSON baseline. Where a step is host-side, it is called out.
 
 ## The loading sequence
 
@@ -27,7 +27,8 @@ sequenceDiagram
     alt trust == tampered / invalid
         H--xF: refuse — do NOT activate ROM, do NOT touch SAVE
     else trust ok
-        H->>F: read manifest/harness-requirements.json
+        H->>F: validate closed package spec + every SQLAR path
+        H->>F: read rom/manifest/harness-requirements.json
         H->>M: MCP initialize + bind acx:execute/dispatch/memory.write/search
         M-->>H: compliance descriptor (accept | refuse)
         H->>F: extract rom/skills/<name>/SKILL.md (acx_skill)
@@ -105,7 +106,21 @@ The **trust registry carries public keys only** — private key material must ne
 !!! warning "A tampered/invalid verdict is a hard stop"
     `acx verify` exits non-zero on `invalid`/`tampered`. On refusal the host **MUST NOT** activate the ROM and **MUST NOT** mutate the SAVE zone (SPEC §8.5). `keyid` itself is only a registry-lookup hint — verification never depends on it beyond the lookup (SPEC §4.2).
 
-## 3. Inspect what you're about to boot
+## 3. Validate and inspect what you're about to boot
+
+Treat `acx spec` as an activation gate, not just a pretty-printer:
+
+```bash
+acx spec /tmp/demo.acx
+acx inspect /tmp/demo.acx
+```
+
+`acx.package-spec/1` is closed and exact. It must contain one each of the eight roles `identity`,
+`memory-baseline`, `memory-vectors`, `skills`, `capabilities`, `harness`, `loop-context`, and `level`,
+with no unknown, duplicate, missing, or extended entries. Its cartridge id, spec version, and embedding
+engine must match ROM-bound metadata exactly. The same gate scans every live SQLAR name: only relative
+portable ASCII paths rooted at `rom/` or `save/` are accepted; absolute paths, empty/`.`/`..` segments,
+backslashes, NUL, and traversal forms fail before extraction.
 
 `acx inspect` is the host's read-only pre-flight over meta, ROM object counts, skills, capabilities, memory zones, and attestations:
 
@@ -149,7 +164,11 @@ Note `acx.embedding_engine = {"id":"local-hash-128","dim":128}`: the ROM manifes
 
 ## 4. Read harness-requirements and negotiate tools
 
-Every cartridge embeds exactly one **harness-requirements manifest** at `sqlar` path `manifest/harness-requirements.json` (`schemaVersion: "acx.harness.v1"`, ROM-zone, covered by the signature). A host **MUST** refuse activation if it fails verification or its `schemaVersion` is unrecognized (SPEC §8.1). ROM content invokes tools **by role**, never by a host-specific tool name — this is what makes a cartridge portable across hosts.
+Every cartridge embeds exactly one **harness-requirements manifest** at `sqlar` path
+`rom/manifest/harness-requirements.json` (`schemaVersion: "acx.harness.v1"`, ROM-zone, covered by the
+signature). A host **MUST** refuse activation if it fails verification or its `schemaVersion` is
+unrecognized (SPEC §8.1). ROM content invokes tools **by role**, never by a host-specific tool name —
+this is what makes a cartridge portable across hosts.
 
 The **required minimal contract is exactly four roles**; absence of any one **MUST** cause refusal (SPEC §8.4):
 
@@ -218,7 +237,10 @@ flowchart LR
 
 ## 9. Strip-to-ROM to re-share cleanly
 
-When you want to hand the cartridge on — sell it, publish it, or push it to a registry — **strip-to-ROM** removes every SAVE-zone row and re-exports. The recomputed ROM manifest hash **MUST** equal the original signed hash; that equality is the machine-checkable proof the ROM was never mutated by field learning (SPEC §3.4):
+When you want to hand the cartridge on — publish it, share it directly, or push it to a registry —
+**strip-to-ROM** removes every SAVE-zone row and re-exports. The recomputed ROM manifest hash **MUST**
+equal the original signed hash; that equality is the machine-checkable proof the ROM was never mutated by
+field learning (SPEC §3.4):
 
 ```console
 $ acx strip /tmp/demo.acx /tmp/demo.rom.acx

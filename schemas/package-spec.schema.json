@@ -2,40 +2,428 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://acx.dev/schema/package-spec.v1.json",
   "title": "ACX Package Spec (acx.package-spec/1)",
-  "description": "Self-describing manifest that enumerates every artifact in a cartridge and its versioned schema id, MCP-style. ROM-signed at rom/package-spec.json.",
+  "description": "The closed, ROM-signed manifest of normative artifacts in an ACX Agent Cartridge.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "artifacts"],
+  "required": [
+    "schemaVersion",
+    "cartridgeId",
+    "specVersion",
+    "embeddingEngine",
+    "artifacts"
+  ],
   "properties": {
-    "schemaVersion": { "const": "acx.package-spec/1" },
-    "cartridgeId": { "type": "string" },
-    "specVersion": { "type": "string" },
+    "schemaVersion": {
+      "const": "acx.package-spec/1"
+    },
+    "cartridgeId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "specVersion": {
+      "type": "string",
+      "minLength": 1
+    },
     "embeddingEngine": {
       "type": "object",
-      "properties": { "id": { "type": "string" }, "dim": { "type": "integer" } }
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "dim"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dim": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
     },
     "artifacts": {
       "type": "array",
-      "minItems": 1,
+      "minItems": 8,
+      "maxItems": 8,
       "items": {
-        "type": "object",
-        "additionalProperties": true,
-        "required": ["role", "kind", "schema"],
-        "properties": {
-          "role": { "type": "string" },
-          "kind": { "enum": ["meta", "table", "sqlar", "lance", "attestation"] },
-          "schema": {
-            "enum": [
-              "acx.cartridge-meta/1", "acx.memory-record.v1", "acx.lance-memory/1",
-              "acx.skill/1", "acx.capability/1", "acx.harness.v1",
-              "acx.loop-context-policy/1.1", "acx.level-credential.v1",
-              "acx.rom-manifest.v1", "acx.trust-registry.v1"
-            ]
+        "oneOf": [
+          {
+            "$ref": "#/$defs/identity"
           },
-          "required": { "type": "boolean" },
-          "path": { "type": "string" },
-          "table": { "type": "string" },
-          "count": { "type": "integer" }
+          {
+            "$ref": "#/$defs/memoryBaseline"
+          },
+          {
+            "$ref": "#/$defs/memoryVectors"
+          },
+          {
+            "$ref": "#/$defs/skills"
+          },
+          {
+            "$ref": "#/$defs/capabilities"
+          },
+          {
+            "$ref": "#/$defs/harness"
+          },
+          {
+            "$ref": "#/$defs/loopContext"
+          },
+          {
+            "$ref": "#/$defs/level"
+          }
+        ]
+      },
+      "allOf": [
+        {
+          "contains": {
+            "properties": {
+              "role": {
+                "const": "identity"
+              }
+            },
+            "required": [
+              "role"
+            ]
+          }
+        },
+        {
+          "contains": {
+            "properties": {
+              "role": {
+                "const": "memory-baseline"
+              }
+            },
+            "required": [
+              "role"
+            ]
+          }
+        },
+        {
+          "contains": {
+            "properties": {
+              "role": {
+                "const": "memory-vectors"
+              }
+            },
+            "required": [
+              "role"
+            ]
+          }
+        },
+        {
+          "contains": {
+            "properties": {
+              "role": {
+                "const": "skills"
+              }
+            },
+            "required": [
+              "role"
+            ]
+          }
+        },
+        {
+          "contains": {
+            "properties": {
+              "role": {
+                "const": "capabilities"
+              }
+            },
+            "required": [
+              "role"
+            ]
+          }
+        },
+        {
+          "contains": {
+            "properties": {
+              "role": {
+                "const": "harness"
+              }
+            },
+            "required": [
+              "role"
+            ]
+          }
+        },
+        {
+          "contains": {
+            "properties": {
+              "role": {
+                "const": "loop-context"
+              }
+            },
+            "required": [
+              "role"
+            ]
+          }
+        },
+        {
+          "contains": {
+            "properties": {
+              "role": {
+                "const": "level"
+              }
+            },
+            "required": [
+              "role"
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "$defs": {
+    "count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "role",
+        "kind",
+        "schema",
+        "required"
+      ],
+      "properties": {
+        "role": {
+          "const": "identity"
+        },
+        "kind": {
+          "const": "meta"
+        },
+        "schema": {
+          "const": "acx.cartridge-meta/1"
+        },
+        "required": {
+          "const": true
+        }
+      }
+    },
+    "memoryBaseline": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "role",
+        "kind",
+        "table",
+        "mediaType",
+        "schema",
+        "required",
+        "count"
+      ],
+      "properties": {
+        "role": {
+          "const": "memory-baseline"
+        },
+        "kind": {
+          "const": "table"
+        },
+        "table": {
+          "const": "memory"
+        },
+        "mediaType": {
+          "const": "application/json"
+        },
+        "schema": {
+          "const": "acx.memory-record.v1"
+        },
+        "required": {
+          "const": true
+        },
+        "count": {
+          "$ref": "#/$defs/count"
+        }
+      }
+    },
+    "memoryVectors": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "role",
+        "kind",
+        "path",
+        "schema",
+        "required",
+        "signed",
+        "reindexOnImport",
+        "descriptor"
+      ],
+      "properties": {
+        "role": {
+          "const": "memory-vectors"
+        },
+        "kind": {
+          "const": "lance"
+        },
+        "path": {
+          "const": "vectors/memories.lance"
+        },
+        "schema": {
+          "const": "acx.lance-memory/1"
+        },
+        "required": {
+          "const": false
+        },
+        "signed": {
+          "const": false
+        },
+        "reindexOnImport": {
+          "const": true
+        },
+        "descriptor": {
+          "const": "rom/schema/lance-memory.json"
+        }
+      }
+    },
+    "skills": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "role",
+        "kind",
+        "path",
+        "schema",
+        "required",
+        "count"
+      ],
+      "properties": {
+        "role": {
+          "const": "skills"
+        },
+        "kind": {
+          "const": "sqlar"
+        },
+        "path": {
+          "const": "rom/skills/"
+        },
+        "schema": {
+          "const": "acx.skill/1"
+        },
+        "required": {
+          "const": false
+        },
+        "count": {
+          "$ref": "#/$defs/count"
+        }
+      }
+    },
+    "capabilities": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "role",
+        "kind",
+        "table",
+        "schema",
+        "required",
+        "count"
+      ],
+      "properties": {
+        "role": {
+          "const": "capabilities"
+        },
+        "kind": {
+          "const": "table"
+        },
+        "table": {
+          "const": "capabilities"
+        },
+        "schema": {
+          "const": "acx.capability/1"
+        },
+        "required": {
+          "const": false
+        },
+        "count": {
+          "$ref": "#/$defs/count"
+        }
+      }
+    },
+    "harness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "role",
+        "kind",
+        "path",
+        "schema",
+        "required"
+      ],
+      "properties": {
+        "role": {
+          "const": "harness"
+        },
+        "kind": {
+          "const": "sqlar"
+        },
+        "path": {
+          "const": "rom/manifest/harness-requirements.json"
+        },
+        "schema": {
+          "const": "acx.harness.v1"
+        },
+        "required": {
+          "const": true
+        }
+      }
+    },
+    "loopContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "role",
+        "kind",
+        "path",
+        "schema",
+        "required"
+      ],
+      "properties": {
+        "role": {
+          "const": "loop-context"
+        },
+        "kind": {
+          "const": "sqlar"
+        },
+        "path": {
+          "const": "rom/policy/loop-context-policy.json"
+        },
+        "schema": {
+          "const": "acx.loop-context-policy/1.1"
+        },
+        "required": {
+          "const": true
+        }
+      }
+    },
+    "level": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "role",
+        "kind",
+        "schema",
+        "required",
+        "count"
+      ],
+      "properties": {
+        "role": {
+          "const": "level"
+        },
+        "kind": {
+          "const": "attestation"
+        },
+        "schema": {
+          "const": "acx.level-credential.v1"
+        },
+        "required": {
+          "const": false
+        },
+        "count": {
+          "$ref": "#/$defs/count"
         }
       }
     }

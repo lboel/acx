@@ -1,24 +1,24 @@
 # Proofs
 
-Every headline claim on this site is backed by a runnable proof. This page shows the **verbatim
-output** of the reference implementation. Reproduce any of it yourself — the whole thing is
-zero-dependency and runs on Node ≥ 22.
+Every headline claim on this site is backed by a runnable proof. The assertions below are representative;
+the suite grows with the standard, so the command output is the source for the current count. Reproduce it
+yourself — the whole thing is zero-dependency and runs on Node ≥ 22.
 
 !!! tip "Reproduce it"
     ```bash
-    npm test                                        # 113 conformance, graph, workflow, and sharing tests
+    npm test                                        # current conformance and security suite
     node --experimental-sqlite scripts/smoke.mjs    # export → verify → strip → tamper
     node --experimental-sqlite scripts/prove-level.mjs   # earn + verify a level
     ```
 
-## 1 · Conformance test suite — 113/113 green
+## 1 · Conformance test suite
 
 Every MUST the reference implementation supports is exercised. A representative slice:
 
 ```text
 ✔ §12.1 header bytes: application_id at offset 68, user_version at offset 60
 ✔ §12.3 DSSE/in-toto sign+verify round-trip; keyid form; subject.digest = manifest_hash
-✔ §12.6 trust: unsigned -> legacy | valid+unknown -> portable | registered -> trusted | own key -> local | mutated ROM -> tampered
+✔ §12.6 trust: unsigned -> legacy | valid+unknown -> portable | namespace-proven active key -> trusted | own key -> local | mutated ROM -> tampered
 ✔ §12.8 scrub blocks an AWS access key / a PEM private key / a GitHub token; passes clean input
 ✔ §3.4 strip-to-ROM: manifest hash equal when only SAVE rows are removed
 ✔ §12.7 sqlar skills are extractable byte-for-byte and index content_sha256 matches
@@ -41,36 +41,36 @@ Every MUST the reference implementation supports is exercised. A representative 
 ✔ share agent dry-run is non-mutating and refuses unsafe identity changes
 ✔ share workflow preserves signed bytes and renders a reviewable PR body
 ✔ share preparation is idempotent and requires force for changed bytes
-ℹ tests 113
-ℹ pass 113
+✔ package spec rejects unknown fields, duplicate roles, and missing normative roles
+✔ loading refuses signed package paths that could escape the skill directory
 ℹ fail 0
 ```
 
-## 2 · Signed team workflow — lint → verify → staff
+## 2 · Signed team workflow — lint → verify → readiness
 
 The repository includes two signed, publishable workflows: `ship-a-feature` (a bounded
 design/build/review loop) and `research-council` (parallel research and challenge followed by an
 approval-gated synthesis).
 
 ```text
-$ acx workflow lint registry/cals/ship-a-feature.cal.json --publish
+$ acx workflow lint registry/cals/io.github.lboel/ship-a-feature/1.0.0.cal.json --publish
 verdict: VALID ✓ — structure and publish profile pass
 
-$ acx workflow verify registry/cals/ship-a-feature.cal.json
+$ acx workflow verify registry/cals/io.github.lboel/ship-a-feature/1.0.0.cal.json
 status:     verified
 trust:      portable
-digest:     sha256:588424a9ec12483ce13f28e81e9d0833777676bbd2c0c0686bbc27bb58f93dee
 publisher:  io.github.lboel
 structure:  publishable ✓
   - signer keyid not in trust registry
 
-$ acx workflow ready registry/cals/ship-a-feature.cal.json --cartridges platform/catalog
-verdict: READY ✓ — structure valid, team staffed, requirements covered
+$ acx workflow ready registry/cals/io.github.lboel/ship-a-feature/1.0.0.cal.json --cartridges ./my-roster
 ```
 
 The tests additionally mutate graph content and publisher identity, revoke a signer for key compromise,
 feed unknown executable-looking fields, remove cycle bounds, and separate portable validity from local
-staffing. Every case fails closed at the expected boundary.
+staffing. The last command's verdict intentionally depends on `./my-roster`. A self-declared or unresolved
+level never satisfies `minLevel`; credential signature, issuer, revocation, evidence, and ROM binding must
+resolve. Every unsafe case fails closed at the expected boundary.
 
 ## 3 · Signed Agent Graph — lint → verify → inspect
 
@@ -78,20 +78,19 @@ The signed Product Delivery graph keeps task order in its two pinned CALs while 
 direction, reporting returns, and their bounded convergence independently reviewable.
 
 ```text
-$ acx graph lint registry/graphs/product-delivery.agent-graph.json --publish
+$ acx graph lint registry/graphs/io.github.lboel/product-delivery/1.0.0.agent-graph.json --publish
 ACX Agent Graph: Product delivery team graph @ 1.0.0
   actors=3 knowledge=5 routes=4 loops=2 convergence=1
 verdict: VALID ✓ — information architecture is reference-safe
 
-$ acx graph verify registry/graphs/product-delivery.agent-graph.json
+$ acx graph verify registry/graphs/io.github.lboel/product-delivery/1.0.0.agent-graph.json
 status:       verified
 trust:        portable
-digest:       sha256:80f8c0c4e098d935c849380ecad108a18e20961ec03aaa5beb1463c41263c0fa
 publisher:    io.github.lboel
 architecture: publishable ✓
   - signer keyid not in trust registry
 
-$ acx graph inspect registry/graphs/product-delivery.agent-graph.json
+$ acx graph inspect registry/graphs/io.github.lboel/product-delivery/1.0.0.agent-graph.json
 actors:        3
 knowledge:     5
 routes:        4 (advise, direct, report, request)

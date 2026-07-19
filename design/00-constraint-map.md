@@ -68,7 +68,7 @@
   `license`, `compatibility`, `metadata` map. Three-level progressive disclosure
   (metadata ~100 tok / body <5000 tok / resources on demand). `allowed-tools` provisional.
   Claude-Code superset fields (`context:fork`, `effort`, `hooks`, `model`) → namespaced extension.
-- **OCI Image Spec v1.1.0** as distribution envelope: image manifest with top-level `artifactType`
+- **OCI Image Specification v1.1.1 / 1.1.x** as distribution envelope: image manifest with top-level `artifactType`
   (RFC 6838 vendor tree, e.g. `application/vnd.agentibus.agent.bundle.v1`). Empty config descriptor
   `application/vnd.oci.empty.v1+json` (`sha256:44136fa3…8a`, size 2) OR custom config media type.
   **Never** the removed `application/vnd.oci.artifact.manifest.v1+json` or the CNAB annotation.

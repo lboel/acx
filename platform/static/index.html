@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Discover, verify, download, remix, and share portable ACX agents, workflows, Agent Graphs, and templates.">
+  <meta name="theme-color" content="#071b18">
+  <meta property="og:title" content="ACX Exchange — portable agent teams">
+  <meta property="og:description" content="Discover, verify, remix, and share portable agents, workflows, Agent Graphs, and templates.">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="ACX Exchange — portable agent teams">
+  <meta name="twitter:description" content="Discover, verify, remix, and share portable agents, workflows, Agent Graphs, and templates.">
+  <!-- ACX_SITE_META -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>ACX Exchange — portable agent teams</title>
+  <link rel="stylesheet" href="./assets/app.css">
+  <script type="module" src="./assets/app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#results">Skip to results</a>
+  <header class="site-header">
+    <a class="brand" href="./" aria-label="ACX Exchange home">
+      <span class="brand-mark" aria-hidden="true">AX</span>
+      <span><strong>ACX</strong><small>Exchange</small></span>
+    </a>
+    <nav aria-label="Primary">
+      <a href="#catalog">Catalog</a>
+      <a href="./studio/">Studio</a>
+      <a href="https://acx.dev/">Standard</a>
+    </nav>
+    <a class="button button-small button-quiet" href="https://github.com/lboel/acx">Publish via PR</a>
+  </header>
+
+  <main>
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="eyebrow">Open agent portability</p>
+        <h1 id="hero-title">Agent teams you can inspect, remix, and take anywhere.</h1>
+        <p class="hero-lede">No account, no upload, no platform lock-in. The catalog is static. Verification runs locally in your browser.</p>
+        <div class="hero-actions">
+          <a class="button button-primary" href="#catalog">Explore the exchange</a>
+          <a class="button button-secondary" href="./studio/">Build a remix</a>
+        </div>
+      </div>
+      <div class="trust-map" aria-label="ACX sharing loop">
+        <div><span>01</span><strong>Discover</strong><small>Portable artifact</small></div>
+        <i aria-hidden="true">→</i>
+        <div><span>02</span><strong>Verify</strong><small>Bytes to signer key</small></div>
+        <i aria-hidden="true">→</i>
+        <div><span>03</span><strong>Remix</strong><small>Your own draft</small></div>
+        <i aria-hidden="true">→</i>
+        <div><span>04</span><strong>Publish</strong><small>Reviewable PR</small></div>
+      </div>
+    </section>
+
+    <section class="trust-strip" aria-label="Trust model">
+      <p><span class="trust-dot trust-dot-valid" aria-hidden="true"></span><strong>Portable signature</strong> proves the artifact bytes were signed by the included key.</p>
+      <p><span class="trust-dot trust-dot-warning" aria-hidden="true"></span><strong>Publisher trust</strong> is separate and requires namespace proof.</p>
+      <p><span class="trust-dot trust-dot-cli" aria-hidden="true"></span><strong>.acx cartridges</strong> are SQLite files and must be verified with the CLI.</p>
+    </section>
+
+    <section class="catalog" id="catalog" aria-labelledby="catalog-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Community catalog</p>
+          <h2 id="catalog-title">Find the right building block</h2>
+        </div>
+        <p id="catalog-meta" class="catalog-meta" aria-live="polite">Loading signed registry…</p>
+      </div>
+
+      <form id="filters" class="filters" role="search">
+        <label class="search-field">
+          <span>Search</span>
+          <input id="search" type="search" autocomplete="off" placeholder="Name, role, capability, tag, publisher…">
+        </label>
+        <label>
+          <span>Artifact</span>
+          <select id="type-filter">
+            <option value="all">All types</option>
+            <option value="agent">Agents</option>
+            <option value="workflow">Workflows</option>
+            <option value="agent-graph">Agent Graphs</option>
+            <option value="template">Templates</option>
+          </select>
+        </label>
+        <label>
+          <span>Trust signal</span>
+          <select id="trust-filter">
+            <option value="all">Any signal</option>
+            <option value="signed">Signed JSON</option>
+            <option value="cli">CLI verification</option>
+            <option value="unsigned">Unsigned template</option>
+          </select>
+        </label>
+        <label>
+          <span>Sort</span>
+          <select id="sort">
+            <option value="featured">Featured</option>
+            <option value="name">Name A–Z</option>
+            <option value="type">Artifact type</option>
+            <option value="level">Agent level</option>
+          </select>
+        </label>
+        <button id="clear-filters" class="button button-small button-quiet" type="button">Clear</button>
+      </form>
+
+      <div class="type-tabs" role="group" aria-label="Quick artifact filter">
+        <button type="button" data-type="all" aria-pressed="true">All <span id="count-all">0</span></button>
+        <button type="button" data-type="agent" aria-pressed="false">Agents <span id="count-agent">0</span></button>
+        <button type="button" data-type="workflow" aria-pressed="false">Workflows <span id="count-workflow">0</span></button>
+        <button type="button" data-type="agent-graph" aria-pressed="false">Graphs <span id="count-agent-graph">0</span></button>
+        <button type="button" data-type="template" aria-pressed="false">Templates <span id="count-template">0</span></button>
+      </div>
+
+      <div id="error-state" class="state-card state-error" hidden>
+        <strong>The static registry could not be loaded.</strong>
+        <p id="error-message">Build the exchange first, or serve it next to the ACX registry.</p>
+        <button id="retry" class="button button-secondary" type="button">Retry</button>
+      </div>
+      <div id="empty-state" class="state-card" hidden>
+        <strong>No portable artifacts match those filters.</strong>
+        <p>Try a broader search or clear the filters.</p>
+        <button id="empty-clear" class="button button-secondary" type="button">Show everything</button>
+      </div>
+      <div id="results" class="card-grid" tabindex="-1" aria-busy="true"></div>
+    </section>
+  </main>
+
+  <dialog id="detail-dialog" class="detail-dialog" aria-labelledby="detail-title">
+    <div class="dialog-shell">
+      <button id="dialog-close" class="dialog-close" type="button" aria-label="Close details">×</button>
+      <div id="detail-accent" class="detail-accent" aria-hidden="true"></div>
+      <div class="detail-content">
+        <p id="detail-type" class="eyebrow"></p>
+        <h2 id="detail-title"></h2>
+        <p id="detail-description" class="detail-description"></p>
+        <div id="detail-trust" class="detail-trust"></div>
+        <dl id="detail-facts" class="fact-grid"></dl>
+        <div id="detail-tags" class="tag-list" aria-label="Tags"></div>
+        <section class="verify-panel" aria-labelledby="verify-heading">
+          <div>
+            <h3 id="verify-heading">Verify before you run</h3>
+            <p id="verify-explanation"></p>
+          </div>
+          <output id="verify-result" class="verify-result" aria-live="polite"></output>
+        </section>
+        <div class="detail-actions">
+          <button id="download-action" class="button button-primary" type="button">Download artifact</button>
+          <button id="verify-action" class="button button-secondary" type="button">Verify in browser</button>
+          <button id="copy-action" class="button button-secondary" type="button">Copy verify command</button>
+          <button id="share-action" class="button button-secondary" type="button">Share</button>
+          <a id="remix-action" class="button button-quiet" href="./studio/">Remix in Studio</a>
+        </div>
+        <p class="local-note">Downloads and verification stay on this device. ACX Exchange has no backend.</p>
+      </div>
+    </div>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+  <noscript>
+    <div class="noscript">JavaScript is required for catalog search and browser verification. Every generated artifact page remains readable without it.</div>
+  </noscript>
+
+  <footer>
+    <p><strong>ACX Exchange</strong> is a static view of a Git-reviewed registry.</p>
+    <p>Discover → verify → remix → sign → publish via PR.</p>
+  </footer>
+</body>
+</html>

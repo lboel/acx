@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title description">
+  <title id="title">ACX Exchange — portable agent teams</title>
+  <desc id="description">A share card showing the ACX loop: discover, verify, remix, and share portable agent teams.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#041713"/>
+      <stop offset="0.58" stop-color="#07352e"/>
+      <stop offset="1" stop-color="#075a4c"/>
+    </linearGradient>
+    <linearGradient id="signal" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#5eead4"/>
+      <stop offset="1" stop-color="#67e8f9"/>
+    </linearGradient>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="18"/>
+    </filter>
+  </defs>
+  <rect width="1200" height="630" rx="34" fill="url(#background)"/>
+  <circle cx="1050" cy="92" r="170" fill="#22d3ee" opacity=".09"/>
+  <circle cx="1120" cy="560" r="260" fill="#2dd4bf" opacity=".08"/>
+  <path d="M0 510 C260 430 420 600 690 520 S980 420 1200 485 V630 H0Z" fill="#041713" opacity=".48"/>
+  <g transform="translate(72 60)">
+    <rect width="88" height="88" rx="24" fill="url(#signal)"/>
+    <text x="44" y="58" fill="#03211d" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="33" font-weight="800" text-anchor="middle">AX</text>
+    <text x="112" y="38" fill="#ecfdf5" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="28" font-weight="800">ACX</text>
+    <text x="112" y="70" fill="#99f6e4" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="23">EXCHANGE</text>
+  </g>
+  <text x="72" y="245" fill="#f0fdfa" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="68" font-weight="780" letter-spacing="-2">Portable agent teams.</text>
+  <text x="74" y="302" fill="#b7eee5" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="30">Inspect the contract. Verify the bytes. Remix the system.</text>
+  <g transform="translate(72 390)" font-family="Inter, ui-sans-serif, system-ui, sans-serif">
+    <path d="M124 38 H195 M324 38 H395 M524 38 H595" stroke="#5eead4" stroke-width="3" stroke-linecap="round" opacity=".75"/>
+    <path d="m185 28 12 10-12 10 M385 28l12 10-12 10 M585 28l12 10-12 10" fill="none" stroke="#5eead4" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <g>
+      <rect width="124" height="76" rx="18" fill="#0f4b42" stroke="#34d399" stroke-opacity=".55"/>
+      <text x="62" y="47" fill="#ecfdf5" font-size="22" font-weight="700" text-anchor="middle">Discover</text>
+    </g>
+    <g transform="translate(200)">
+      <rect width="124" height="76" rx="18" fill="#0f4b42" stroke="#34d399" stroke-opacity=".55"/>
+      <text x="62" y="47" fill="#ecfdf5" font-size="22" font-weight="700" text-anchor="middle">Verify</text>
+    </g>
+    <g transform="translate(400)">
+      <rect width="124" height="76" rx="18" fill="#0f4b42" stroke="#34d399" stroke-opacity=".55"/>
+      <text x="62" y="47" fill="#ecfdf5" font-size="22" font-weight="700" text-anchor="middle">Remix</text>
+    </g>
+    <g transform="translate(600)">
+      <rect width="124" height="76" rx="18" fill="#d9f99d"/>
+      <text x="62" y="47" fill="#17320a" font-size="22" font-weight="800" text-anchor="middle">Share</text>
+    </g>
+  </g>
+  <g transform="translate(882 374)">
+    <circle cx="110" cy="110" r="110" fill="#2dd4bf" opacity=".12" filter="url(#glow)"/>
+    <circle cx="110" cy="110" r="78" fill="#062c26" stroke="#5eead4" stroke-width="2"/>
+    <circle cx="110" cy="42" r="18" fill="#67e8f9"/>
+    <circle cx="51" cy="144" r="18" fill="#a7f3d0"/>
+    <circle cx="169" cy="144" r="18" fill="#d9f99d"/>
+    <path d="M100 57 62 126 M120 57l38 69 M70 144h80" fill="none" stroke="#99f6e4" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="110" cy="110" r="15" fill="#f0fdfa"/>
+  </g>
+  <text x="73" y="574" fill="#6ee7d7" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="20">OPEN STANDARD · STATIC EXCHANGE · PR-REVIEWED REGISTRY</text>
+</svg>

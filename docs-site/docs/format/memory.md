@@ -15,7 +15,7 @@ Every memory record **MUST** carry a mandatory boolean `portable`. That single f
 
 === "TRANSFERABLE (`portable: true`)"
 
-    - Codebase-agnostic know-how — the sharable, sellable core.
+    - Codebase-agnostic know-how — the portable, shareable core.
     - Lands in the **ROM zone**, so it is covered by the [signed manifest](signing-trust.md).
     - `codebaseFingerprint` **MUST** be `null` and `repoId` **MUST** be `null`.
 

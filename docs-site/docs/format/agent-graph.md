@@ -15,7 +15,7 @@ roles, knowledge responsibilities, reporting routes, and whole workflows in one 
 
 <div class="acx-actions">
 <a class="acx-button acx-button--primary" href="#read-the-graph">Read the graph</a>
-<a class="acx-button" href="#author-one-fuzzy-where-useful-strict-where-needed">Author one</a>
+<a class="acx-button" href="../exchange/studio/">Author in Studio</a>
 <a class="acx-button acx-button--quiet" href="loops-cal/">Compare with CAL</a>
 </div>
 </div>
@@ -190,7 +190,8 @@ The graph is deliberately fuzzy at the human boundary and strict at the referenc
   cadence, and the `0..1` communication `weight`.
 - **Strict:** stable ids, known actor and knowledge references, structured event/interval/manual triggers,
   declared return routes, no self-routes, unambiguous participant bindings, conflict-free required
-  direction, SemVer + digest-pinned ACX Workflow references in public graphs, and positive bounds.
+  direction, publisher + SemVer + digest-pinned ACX Workflow references in public graphs, and positive
+  bounds.
 
 ```json title="A direction route with an explicit reporting return"
 {
@@ -218,6 +219,25 @@ The graph is deliberately fuzzy at the human boundary and strict at the referenc
 
 The reverse route is a separate object. That keeps “PO directs developers” distinct from “developers
 report status to PO,” even though together they form a healthy communication loop.
+
+```json title="A workflow binding pinned to exact signed bytes"
+{
+  "id": "delivery-loop",
+  "kind": "acx-workflow",
+  "description": "The bounded build and review loop.",
+  "workflowRef": {
+    "publisherId": "io.github.example",
+    "id": "ship-a-feature",
+    "version": "1.0.0",
+    "digest": "sha256:…"
+  },
+  "imports": ["delivery-brief"],
+  "exports": ["delivery-status", "verification-evidence"]
+}
+```
+
+The publisher, id, version, and digest identify one workflow. A registry gate resolves that exact
+coordinate and refuses a missing or mismatched dependency; it never substitutes a newer version.
 
 ```json title="Two loops converging into decision knowledge"
 {
@@ -270,6 +290,7 @@ acx graph sign product-delivery.agent-graph.json \
 # Verify before using or listing it.
 acx graph verify product-delivery.signed.agent-graph.json
 acx graph inspect product-delivery.signed.agent-graph.json
+acx graph digest product-delivery.signed.agent-graph.json
 
 # Preview the canonical registry path, then prepare the focused diff.
 acx share graph product-delivery.signed.agent-graph.json --dry-run
@@ -279,6 +300,29 @@ acx share graph product-delivery.signed.agent-graph.json
 The public artifact media type is `application/vnd.acx.agent-graph.v1+json`. Signing excludes only the
 top-level `integrity`, canonicalizes the rest with RFC 8785/JCS, hashes it with SHA-256, and binds its id,
 version, publisher, and signing time in an in-toto Statement carried by a single-signature DSSE envelope.
+
+Published graphs use the immutable identity `publisherId + id + SemVer + digest` and path:
+
+```text
+registry/graphs/<publisherId>/<id>/<version>.agent-graph.json
+```
+
+A remix can keep a signed `lineage.parents[]` reference to its source:
+
+```json
+{
+  "artifactType": "agent-graph",
+  "publisherId": "io.github.original",
+  "id": "product-delivery",
+  "version": "1.0.0",
+  "digest": "sha256:…",
+  "relation": "remix"
+}
+```
+
+Lineage preserves attribution. It does not transfer trust, namespace control, licensing permission, or
+runtime authority. [Studio](../exchange/studio/) imports a signed graph as an unsigned draft, removes
+the old integrity block, and adds this pinned parent; signing stays local.
 
 ## Guardrails worth remembering
 
@@ -304,8 +348,9 @@ Publish one signed `.agent-graph.json` beside the CALs it connects. A reviewer c
 plain language; a host can verify every reference, return route, bound, and signature.
 
 <div class="acx-actions">
-<a class="acx-button acx-button--primary" href="../share/#share-an-agent-graph">Share an Agent Graph</a>
-<a class="acx-button" href="loops-cal/">Pair it with a CAL</a>
+<a class="acx-button acx-button--primary" href="../exchange/studio/">Remix this architecture</a>
+<a class="acx-button" href="../share/#share-an-agent-graph">Publish an Agent Graph</a>
+<a class="acx-button acx-button--quiet" href="loops-cal/">Pair it with a CAL</a>
 </div>
 </div>
 

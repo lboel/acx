@@ -51,6 +51,7 @@ Usage:
   acx workflow sign    <workflow.cal.json> --publisher <reverse-dns> [--key <pem>] [--out <file>]
   acx workflow verify  <workflow.cal.json> [--registry <trust.json>]
   acx workflow inspect <workflow.cal.json>
+  acx workflow digest  <workflow.cal.json>
   acx graph lint    <graph.agent-graph.json> [--publish]
   acx graph sign    <graph.agent-graph.json> --publisher <reverse-dns> [--key <pem>] [--out <file>]
   acx graph verify  <graph.agent-graph.json> [--registry <trust.json>]
@@ -58,8 +59,8 @@ Usage:
   acx graph digest  <graph.agent-graph.json>
   acx cal     <cal.json> [--cartridges <dir>]   alias for "workflow ready"
   acx lance   <file.acx> [--python <py>]        materialize a real LanceDB memory dataset
-  acx builder [--port 8799]                     visual CAL/RAC loop builder in the browser
-  acx share agent    <file.acx> --slug <slug> [--publisher <id>] [--registry <dir>] [--dry-run] [--force]
+  acx builder [--port 8799]                     serve the static workflow + Agent Graph Studio locally
+  acx share agent    <file.acx> [--slug <signed-id>] [--publisher <id>] [--registry <dir>] [--dry-run] [--force]
   acx share workflow <file.cal.json> [--publisher <id>] [--registry <dir>] [--dry-run] [--force]
   acx share graph    <file.agent-graph.json> [--publisher <id>] [--registry <dir>] [--dry-run] [--force]
   acx level   <file.acx>
@@ -240,13 +241,16 @@ function cmdLoad(positional, flags) {
   const { card, installed, refused } = loadCartridge(file, { skillsDir, install: !printOnly, registryPath })
   if (refused) {
     console.error(renderCard(card))
-    console.error('\n✗ refused to load: cartridge is ' + card.trust + ' (' + card.trustSummary + ')')
+    const packageReason = card.packageSpec?.ok === false
+      ? `; package is unclean (${card.packageSpec.issues.join('; ')})`
+      : ''
+    console.error('\n✗ refused to load: cartridge is ' + card.trust + ' (' + card.trustSummary + ')' + packageReason)
     process.exit(1)
   }
   console.log(renderCard(card, { installed, skillsDir }))
   if (!printOnly) {
     console.log(`\nInstalled ${installed.length} skill bundle(s). Restart your agent / Claude Code to pick them up.`)
-    if (card.trust === 'portable' || card.trust === 'legacy') console.log(`Note: signer is ${card.trust} (not in your trust registry) — installed anyway; verify the publisher before relying on it.`)
+    if (card.trust === 'portable') console.log('Note: signer is portable (not in your trust registry) — verify the publisher namespace before relying on it.')
   }
   process.exit(0)
 }
@@ -591,8 +595,7 @@ function cmdShare(positional, flags) {
     force: !!flags.force,
   }
   if (type === 'agent') {
-    if (!flags.slug) die('share agent requires --slug <safe-agent-slug>')
-    options.slug = flags.slug
+    options.slug = flags.slug || null
   }
   const plan = type === 'agent'
     ? prepareAgentShare(file, options)

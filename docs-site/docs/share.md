@@ -1,4 +1,6 @@
 ---
+title: Share ACX
+description: Verify, remix, sign, and publish an ACX agent, workflow, or Agent Graph through one focused pull request.
 hide:
   - toc
 ---
@@ -13,8 +15,9 @@ directly or submit it to the open `lboel/acx` registry through a pull request. R
 before they trust the claim.
 
 <div class="acx-actions">
-<a class="acx-button acx-button--primary" href="#share-in-60-seconds">Share in 60 seconds</a>
-<a class="acx-button" href="https://github.com/lboel/acx/fork">Fork the registry</a>
+<a class="acx-button acx-button--primary" href="exchange/">Explore before sharing</a>
+<a class="acx-button" href="exchange/studio/">Remix in Studio</a>
+<a class="acx-button acx-button--quiet" href="#share-in-60-seconds">Publish in 60 seconds</a>
 <button class="acx-button acx-button--quiet" type="button" data-acx-share>Tell another builder</button>
 </div>
 
@@ -57,7 +60,9 @@ before they trust the claim.
 
 ## Share in 60 seconds
 
-Start from a verified checkout:
+Already have a signed artifact? Start from a verified checkout. Want a remix first? Open the static
+[Studio](exchange/studio/), import a workflow or Agent Graph, export the unsigned draft, then sign it
+locally. Studio never receives a private key or writes to the registry.
 
 ```bash
 git clone https://github.com/lboel/acx.git && cd acx && npm test
@@ -126,6 +131,10 @@ git diff --check
 git diff -- registry/
 ```
 
+Each successful PR creates an immutable, shareable detail link in the static Exchange. The next person can
+inspect and verify it, preserve its signed lineage in a remix, and publish a new version — without an
+account or proprietary API.
+
 ## What the pull request proves
 
 <div class="acx-pr-flow" aria-label="Pull-request verification sequence">
@@ -138,8 +147,8 @@ git diff -- registry/
 
 The registry never executes a submitted agent, workflow, or graph. CI opens cartridges read-only,
 recomputes content-addressed digests, verifies Ed25519 DSSE/in-toto signatures, validates each publication
-profile, and regenerates `registry/index.json`. Human review still decides namespace ownership, licensing,
-quality, and community fit.
+profile, and regenerates `registry/index.json`. Human review checks the supplied namespace-proof evidence,
+licensing metadata, quality, and community fit; the PR path itself is not a namespace proof.
 
 !!! danger "A private key never travels"
     `acx export`, `acx workflow sign`, and `acx graph sign` may write `*.key.pem` beside the artifact.
@@ -154,17 +163,21 @@ independently proven level.
 The canonical PR surface is:
 
 ```text
-registry/cartridges/<reverse-dns-publisher>/<agent-slug>/
+registry/cartridges/<publisher>/<id>/<version>/
 ├── cartridge.acx   # signed authority
 └── README.md       # generated discovery card
 registry/index.json # deterministic index
 ```
 
+`<id>` and SemVer `<version>` come from the cartridge's ROM-bound `acx.artifact_id` and
+`acx.artifact_version`; a requested `--slug` must equal that id. Display names never determine the
+coordinate.
+
 Recipients can inspect without installing:
 
 ```bash
-acx verify registry/cartridges/<publisher>/<slug>/cartridge.acx
-acx load registry/cartridges/<publisher>/<slug>/cartridge.acx --print-only
+acx verify registry/cartridges/<publisher>/<id>/<version>/cartridge.acx
+acx load registry/cartridges/<publisher>/<id>/<version>/cartridge.acx --print-only
 ```
 
 ## Share a workflow or team
@@ -176,13 +189,25 @@ Workflows bind roles and capabilities, not local machine identities. A recipient
 graph, then staffs its slots from their own cartridges:
 
 ```bash
-acx workflow verify registry/cals/research-council.cal.json
-acx workflow ready registry/cals/research-council.cal.json --cartridges ./my-roster
+acx workflow verify \
+  registry/cals/io.github.lboel/research-council/1.0.0.cal.json
+acx workflow ready \
+  registry/cals/io.github.lboel/research-council/1.0.0.cal.json \
+  --cartridges ./my-roster
 ```
 
-Explore the signed [Research Council](https://github.com/lboel/acx/blob/main/registry/cals/research-council.cal.json)
+Explore the signed [Research Council](https://github.com/lboel/acx/blob/main/registry/cals/io.github.lboel/research-council/1.0.0.cal.json)
 for a non-coding team or the [Ship a Feature walkthrough](format/loops-cal.md#worked-example-ship-a-feature)
 for an iterative engineering loop.
+
+Published workflows use `publisher + id + SemVer + digest` as their immutable identity:
+
+```text
+registry/cals/<publisher>/<id>/<version>.cal.json
+```
+
+If you change signed bytes, increment SemVer. Do not replace an existing coordinate. A remix may add a
+signed `lineage.parents[]` entry with the parent's publisher, id, version, digest, and relation.
 
 ## Share an Agent Graph
 
@@ -200,7 +225,7 @@ context, who can direct whom, where reports return, and where separate loops mee
 The canonical PR surface is one readable signed file:
 
 ```text
-registry/graphs/<id>.agent-graph.json
+registry/graphs/<publisher>/<id>/<version>.agent-graph.json
 registry/index.json
 ```
 
@@ -210,6 +235,7 @@ acx graph sign product-delivery.agent-graph.json \
   --publisher io.github.yourhandle \
   --out product-delivery.signed.agent-graph.json
 acx graph verify product-delivery.signed.agent-graph.json
+acx graph digest product-delivery.signed.agent-graph.json
 acx share graph product-delivery.signed.agent-graph.json --dry-run
 acx share graph product-delivery.signed.agent-graph.json
 ```
@@ -220,8 +246,12 @@ cycles are useful, while mandatory direction stays unambiguous and bounded.
 
 See the animated [Agent Graph guide](format/agent-graph.md) to read the Product Owner ↔ Developer reporting
 loop and the research + delivery convergence pattern. The registry's
-[Product Delivery graph](https://github.com/lboel/acx/blob/main/registry/graphs/product-delivery.agent-graph.json)
+[Product Delivery graph](https://github.com/lboel/acx/blob/main/registry/graphs/io.github.lboel/product-delivery/1.0.0.agent-graph.json)
 is the signed, inspectable example.
+
+Every published `acx-workflow` loop binding pins `workflowRef.publisherId`, id, version, and digest. The
+registry gate resolves that exact dependency; it never substitutes “latest.” Use `acx graph digest` when
+authoring or reviewing the pin.
 
 ## Let an agent prepare its own share PR
 
@@ -254,7 +284,11 @@ When posting an ACX artifact, include four things:
 
 That makes the artifact understandable before download and trustworthy after download.
 
+The Exchange also displays signed lineage and the separate status ledger. A `deprecated`, `withdrawn`, or
+`superseded` marker warns recipients without rewriting history. It is advisory registry state, not a
+signature, key, or credential revocation.
+
 <div class="acx-share-footer" markdown="1">
-**Ready?** [Fork `lboel/acx`](https://github.com/lboel/acx/fork), follow the
-[full registry contract](lifecycle/sharing-git.md), and let CI prove the bytes.
+**Ready?** [Explore an artifact](exchange/), [remix locally](exchange/studio/), then
+[fork `lboel/acx`](https://github.com/lboel/acx/fork) and let CI prove the bytes.
 </div>

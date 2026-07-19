@@ -5,6 +5,7 @@
 import { jcs, sha256Hex } from './canonical.mjs'
 import { keyIdFromPem, signEnvelope, verifyEnvelope } from './sign.mjs'
 import { emptyTrustRegistry, trustedRegistryEntryIssues } from './trust.mjs'
+import { validateLineage } from './lineage.mjs'
 
 export const WORKFLOW_SCHEMA_VERSION = 'acx.cal/1'
 export const WORKFLOW_SIGNATURE_VERSION = 'acx.workflow-signature/1'
@@ -62,6 +63,15 @@ export function signWorkflow(cal, key, { publisherId, signedAt = new Date().toIS
   if (!PUBLISHER_RE.test(publisherId || '')) throw new Error('publisherId must be a reverse-DNS identifier')
   if (!key?.privateKey || !key?.keyid || !key?.publicKeyPem) throw new Error('an Ed25519 signing key is required')
   const document = unsignedWorkflow(cal)
+  const lineageIssues = !Object.prototype.hasOwnProperty.call(document, 'lineage') ? [] : validateLineage(document.lineage, {
+    self: {
+      artifactType: 'workflow',
+      publisherId,
+      id: document.id,
+      version: document.version,
+    },
+  })
+  if (lineageIssues.length) throw new Error(`workflow lineage is invalid: ${lineageIssues.join('; ')}`)
   const { digest } = workflowDigest(document)
   const envelope = signEnvelope(buildWorkflowStatement(document, { publisherId, signedAt }), key)
   return {
@@ -115,6 +125,15 @@ export function verifyWorkflow(cal, { registry = emptyTrustRegistry(), now = new
     publisherId: integrity.publisherId ?? null,
     keyid: integrity.keyid ?? null,
   }
+  const lineageIssues = !cal || !Object.prototype.hasOwnProperty.call(cal, 'lineage') ? [] : validateLineage(cal.lineage, {
+    self: {
+      artifactType: 'workflow',
+      publisherId: integrity.publisherId,
+      id: cal.id,
+      version: cal.version,
+    },
+  })
+  if (lineageIssues.length) return result({ ...base, issues: lineageIssues })
   if (!exactKeys(integrity, ['schemaVersion', 'digest', 'publisherId', 'keyid', 'publicKeyPem', 'signedAt', 'envelope'])) {
     return result({ ...base, issues: ['integrity must contain exactly the acx.workflow-signature/1 fields'] })
   }
@@ -236,6 +255,15 @@ export function workflowCard(cal, verification = verifyWorkflow(cal)) {
     })),
     participantCount: cal.participants?.length ?? 0,
     nodeCount: cal.nodes?.length ?? 0,
+    lineage: (Array.isArray(cal.lineage?.parents) ? cal.lineage.parents : []).map((parent) => ({
+      artifactType: parent?.artifactType ?? null,
+      publisherId: parent?.publisherId ?? null,
+      id: parent?.id ?? null,
+      version: parent?.version ?? null,
+      digest: parent?.digest ?? null,
+      relation: parent?.relation ?? null,
+      source: parent?.source ?? null,
+    })),
     capabilities,
     digest: verification.digest,
     signed: verification.signed,

@@ -1,0 +1,726 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://acx.dev/schema/registry-index.v1.json",
+  "title": "ACX Registry Index",
+  "description": "Deterministic discovery metadata generated only from accepted registry artifacts. Consumers still verify the referenced artifact bytes.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "generatedAt",
+    "artifactCount",
+    "count",
+    "cartridges",
+    "workflowCount",
+    "workflows",
+    "agentGraphCount",
+    "agentGraphs",
+    "templateCount",
+    "templates"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "acx.registry-index/1"
+    },
+    "generatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "artifactCount": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "cartridges": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/cartridge"
+      }
+    },
+    "workflowCount": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "workflows": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/workflow"
+      }
+    },
+    "agentGraphCount": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "agentGraphs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/agentGraph"
+      }
+    },
+    "templateCount": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "templates": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/template"
+      }
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9._-]{0,127}$"
+    },
+    "agentId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{0,63}$"
+    },
+    "publisher": {
+      "type": "string",
+      "pattern": "^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9][a-z0-9-]*$"
+    },
+    "semver": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-((?:0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)(?:\\.(?:0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*))*))?(?:\\+(?:[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*))?$"
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "path": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._@+/-]*$"
+    },
+    "stringArray": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "lifecycle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "reason",
+        "recordedAt",
+        "successor",
+        "advisory"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "active",
+            "deprecated",
+            "withdrawn",
+            "superseded"
+          ]
+        },
+        "reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "recordedAt": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "successor": {
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "advisory": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uri"
+        }
+      }
+    },
+    "lineageParent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifactType",
+        "publisherId",
+        "id",
+        "version",
+        "digest",
+        "relation",
+        "source"
+      ],
+      "properties": {
+        "artifactType": {
+          "enum": [
+            "agent",
+            "workflow",
+            "agent-graph"
+          ]
+        },
+        "publisherId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "digest": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "relation": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "capability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "taskType",
+        "stack",
+        "domain",
+        "claimedVerified",
+        "verified",
+        "verificationState"
+      ],
+      "properties": {
+        "taskType": {
+          "type": "string"
+        },
+        "stack": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "domain": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "claimedVerified": {
+          "type": "boolean"
+        },
+        "verified": {
+          "type": "boolean"
+        },
+        "verificationState": {
+          "enum": [
+            "verified",
+            "revoked",
+            "invalid",
+            "unresolved"
+          ]
+        }
+      }
+    },
+    "cartridge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "slug",
+        "path",
+        "name",
+        "publisher",
+        "role",
+        "provider",
+        "model",
+        "version",
+        "description",
+        "license",
+        "authors",
+        "tags",
+        "homepage",
+        "trust",
+        "trustStatus",
+        "specClean",
+        "romHash",
+        "digest",
+        "bytes",
+        "capabilities",
+        "level",
+        "levelClaim",
+        "registryStatus",
+        "latest"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/agentId"
+        },
+        "slug": {
+          "type": "string"
+        },
+        "path": {
+          "$ref": "#/$defs/path"
+        },
+        "name": {
+          "type": "string"
+        },
+        "publisher": {
+          "$ref": "#/$defs/publisher"
+        },
+        "role": {
+          "type": "string"
+        },
+        "provider": {
+          "type": "string"
+        },
+        "model": {
+          "type": "string"
+        },
+        "version": {
+          "$ref": "#/$defs/semver"
+        },
+        "description": {
+          "type": "string"
+        },
+        "license": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "authors": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "tags": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "homepage": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "trust": {
+          "type": "string"
+        },
+        "trustStatus": {
+          "type": "string"
+        },
+        "specClean": {
+          "type": "boolean"
+        },
+        "romHash": {
+          "$ref": "#/$defs/digest"
+        },
+        "digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "capabilities": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/capability"
+          }
+        },
+        "level": {
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "levelClaim": {
+          "type": "object"
+        },
+        "registryStatus": {
+          "$ref": "#/$defs/lifecycle"
+        },
+        "latest": {
+          "type": "boolean"
+        }
+      }
+    },
+    "workflow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "id",
+        "version",
+        "name",
+        "description",
+        "license",
+        "tags",
+        "publisher",
+        "trust",
+        "trustStatus",
+        "digest",
+        "participants",
+        "participantCount",
+        "nodeCount",
+        "capabilities",
+        "lineage",
+        "publishable",
+        "signed",
+        "registryStatus",
+        "latest"
+      ],
+      "properties": {
+        "path": {
+          "$ref": "#/$defs/path"
+        },
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "version": {
+          "$ref": "#/$defs/semver"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "license": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "tags": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "publisher": {
+          "$ref": "#/$defs/publisher"
+        },
+        "trust": {
+          "type": "string"
+        },
+        "trustStatus": {
+          "type": "string"
+        },
+        "digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "participants": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "participantCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "nodeCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "capabilities": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "lineage": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/lineageParent"
+          }
+        },
+        "publishable": {
+          "const": true
+        },
+        "signed": {
+          "const": true
+        },
+        "registryStatus": {
+          "$ref": "#/$defs/lifecycle"
+        },
+        "latest": {
+          "type": "boolean"
+        }
+      }
+    },
+    "agentGraph": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "id",
+        "version",
+        "name",
+        "description",
+        "license",
+        "tags",
+        "publisher",
+        "trust",
+        "trustStatus",
+        "digest",
+        "actorCount",
+        "knowledgeCount",
+        "routeCount",
+        "loopCount",
+        "convergenceCount",
+        "intents",
+        "actors",
+        "knowledge",
+        "loops",
+        "lineage",
+        "publishable",
+        "signed",
+        "registryStatus",
+        "latest",
+        "dependencies",
+        "dependenciesResolved"
+      ],
+      "properties": {
+        "path": {
+          "$ref": "#/$defs/path"
+        },
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "version": {
+          "$ref": "#/$defs/semver"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "license": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "tags": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "publisher": {
+          "$ref": "#/$defs/publisher"
+        },
+        "trust": {
+          "type": "string"
+        },
+        "trustStatus": {
+          "type": "string"
+        },
+        "digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "actorCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "knowledgeCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "routeCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "loopCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "convergenceCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "intents": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "actors": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "knowledge": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "loops": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "lineage": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/lineageParent"
+          }
+        },
+        "publishable": {
+          "const": true
+        },
+        "signed": {
+          "const": true
+        },
+        "registryStatus": {
+          "$ref": "#/$defs/lifecycle"
+        },
+        "latest": {
+          "type": "boolean"
+        },
+        "dependencies": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "loopId",
+              "artifactType",
+              "publisherId",
+              "id",
+              "version",
+              "digest",
+              "status",
+              "path",
+              "registryStatus"
+            ],
+            "properties": {
+              "loopId": {
+                "$ref": "#/$defs/id"
+              },
+              "artifactType": {
+                "const": "workflow"
+              },
+              "publisherId": {
+                "$ref": "#/$defs/publisher"
+              },
+              "id": {
+                "$ref": "#/$defs/id"
+              },
+              "version": {
+                "$ref": "#/$defs/semver"
+              },
+              "digest": {
+                "$ref": "#/$defs/digest"
+              },
+              "status": {
+                "const": "resolved"
+              },
+              "path": {
+                "$ref": "#/$defs/path"
+              },
+              "registryStatus": {
+                "enum": [
+                  "active",
+                  "deprecated",
+                  "withdrawn",
+                  "superseded"
+                ]
+              }
+            }
+          }
+        },
+        "dependenciesResolved": {
+          "const": true
+        }
+      }
+    },
+    "template": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "version",
+        "name",
+        "description",
+        "license",
+        "tags",
+        "publisher",
+        "path",
+        "fileCount",
+        "files",
+        "signed",
+        "trust",
+        "trustStatus"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "license": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "tags": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "publisher": {
+          "type": "string"
+        },
+        "path": {
+          "$ref": "#/$defs/path"
+        },
+        "fileCount": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "files": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "signed": {
+          "const": false
+        },
+        "trust": {
+          "const": "unsigned"
+        },
+        "trustStatus": {
+          "const": "warning"
+        }
+      }
+    }
+  }
+}

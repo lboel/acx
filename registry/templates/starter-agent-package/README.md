@@ -28,7 +28,11 @@ Optional extra knowledge files (`MEMORY.md`, `CAREER.md`, `EQUIPMENT.md`,
 | `originInstanceId` / `originInstanceLabel` | Stable id and human label of the machine or instance that produced the package. |
 | `agentId` | Stable id of the agent inside its origin system. |
 | `sourceFingerprint` | Provenance string: `provider:model:role:seed:stack`. |
-| `name` | Display name of the agent. Also used to derive the cartridge id slug. |
+| `name` | Human-readable display name of the agent. |
+| `artifactId` | Stable lowercase registry slug, ROM-bound into the cartridge. It must not change within one release line. |
+| `artifactVersion` | SemVer release of this shareable agent definition. Start at `1.0.0`; publish a new version when its reusable identity or contract changes. |
+| `description` | Public 20-500 character discovery summary. Never put task payloads, credentials, client details, or private knowledge here. |
+| `license` / `authors` / `tags` / `homepage` | Public discovery and attribution metadata. These values are ROM-bound and appear in exchange cards. |
 | `provider` / `model` | Which model family and model id the agent runs on. |
 | `role` | One of `backend_dev`, `frontend_dev`, `fullstack_dev`, `designer`, `ux_researcher`, `devops_engineer`, `security_expert`, `qa_engineer`, `architect`, `lead_developer`, `cto`, `product_owner`, `product_expert`. Determines the capability domain. |
 | `careerTier`, `level`, `xp`, `skillPoints`, `completedProjects` | Career progression numbers. Honest defaults for a new agent: `intern`, `1`, `0`, `0`, `0`. |
@@ -91,16 +95,29 @@ node --experimental-sqlite src/cli.mjs inspect my-agent.acx   # contents overvie
 
 ## Publish to the git registry
 
-1. Copy your cartridge to `registry/cartridges/<publisher>/<name>/cartridge.acx`
-   and add a short `README.md` next to it describing the agent.
-2. Add your PUBLIC key to `registry/trust-registry.json` (public keys only —
-   the `.key.pem` private key never enters the repo).
-3. Run the index build; it opens and verifies every cartridge and rejects any
+1. Let the fail-closed share command derive the immutable path from the signed
+   publisher, artifact id, and version:
+
+   ```bash
+   node --experimental-sqlite src/cli.mjs share agent my-agent.acx --dry-run
+   node --experimental-sqlite src/cli.mjs share agent my-agent.acx
+   ```
+
+   It prepares
+   `registry/cartridges/<publisher>/<id>/<version>/cartridge.acx` and a generated
+   discovery card. It refuses identity mismatches, SAVE data, legacy containers,
+   and unsafe destination paths.
+2. Run the index build; it opens and verifies every cartridge and rejects any
    tampered or invalid one:
 
    ```bash
    node --experimental-sqlite tools/build-registry-index.mjs
    ```
 
-4. Commit the cartridge, its README, and the regenerated
+3. Commit the cartridge, its README, and the regenerated
    `registry/index.json`, then open a pull request.
+
+The embedded public key makes a valid release `portable`; it does not by itself
+prove control of the claimed publisher namespace. A `trusted` verdict requires a
+separately governed trust registry with namespace proof and current revocation
+state. Never commit the `.key.pem` private key.

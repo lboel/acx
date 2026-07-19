@@ -7,7 +7,7 @@ hide:
 <div markdown="1">
 # Agent Cartridge <small>`.acx`</small>
 
-<p class="acx-tagline">An open standard for <strong>portable, self-improving</strong> AI agents — cartridges that learn, level up, form teams, and run workflows. One file you can insert, share, sell, and trust.</p>
+<p class="acx-tagline">An open standard for <strong>portable, self-improving</strong> AI agents — cartridges that learn, level up, form teams, and run workflows. Signed artifacts you can inspect, verify, share, and remix.</p>
 
 <div class="acx-pills">
 <span class="acx-pill">single-file SQLite</span>
@@ -19,9 +19,9 @@ hide:
 </div>
 
 <div class="acx-actions">
-<a class="acx-button acx-button--primary" href="share/">Share an agent</a>
-<a class="acx-button" href="concepts/overview/">See how ACX works</a>
-<a class="acx-button acx-button--quiet" href="format/agent-graph/">Map an agent team</a>
+<a class="acx-button acx-button--primary" href="exchange/">Explore the Exchange</a>
+<a class="acx-button" href="exchange/studio/">Remix in Studio</a>
+<a class="acx-button acx-button--quiet" href="share/">Publish through a PR</a>
 </div>
 </div>
 <div class="acx-cart">
@@ -46,8 +46,9 @@ hide:
 ## Think of it like a game cartridge
 
 You already know this object. A **classic game cartridge** is a small, self-contained thing you
-*insert* into any console and it just boots — no install, no account, region-free, and you can lend or
-sell it. An **Agent Cartridge** is the same idea for an AI agent — coding is the flagship use case, but any agent that has skills, learns, and runs a loop fits.
+*insert* into any console and it just boots — self-contained and portable. An **Agent Cartridge** is the
+same idea for an AI agent — coding is the flagship use case, but any agent that has skills, learns, and
+runs a loop fits.
 
 === "🎮 The cartridge"
 
@@ -59,8 +60,9 @@ sell it. An **Agent Cartridge** is the same idea for an AI agent — coding is t
       codebase — and can be wiped before you re-share. See [the cartridge model](concepts/cartridge-model.md).
     - **Region-free.** A cartridge is codebase-agnostic: it carries transferable expertise, then
       accumulates codebase-specific learnings locally without contaminating the core.
-    - **Collect & trade.** Cartridges are signed, identity-bound, and distributable as OCI artifacts —
-      the substrate for a marketplace of specialized agents. See [capabilities](format/capabilities.md).
+    - **Collect & remix.** Cartridges are signed, identity-bound, and distributable as OCI artifacts or
+      through the static [Exchange](lifecycle/exchange.md). ACX itself defines no payment or entitlement
+      layer. See [capabilities](format/capabilities.md).
     - **Level up.** An agent earns a **verifiable level** by real work on a held-out benchmark — not a
       number it prints about itself. See [how agents level up](leveling/provable-level.md).
 
@@ -119,7 +121,7 @@ Make the implicit team structure explicit with a signed [Agent Graph](format/age
 
 <div class="acx-card" markdown="1">
 ### [Capabilities](format/capabilities.md)
-The sellable claim: *"great at building DAGs with Airflow + Snowflake"*, evidence-backed.
+The portable claim: *"great at building DAGs with Airflow + Snowflake"*, evidence-backed.
 </div>
 
 <div class="acx-card" markdown="1">
@@ -149,7 +151,7 @@ A W3C Verifiable Credential earned via independent, held-out re-run. Unfakeable.
 Cartridges are the *output* of a company of agents. In [AGENTIBUS](concepts/studio.md) — the reference
 studio — agents **emerge from real work**, get **hired**, are **dispatched into your projects**, and
 **level up** as they ship. When one has learned enough to be worth sharing, you **export it as a
-cartridge**: a signed employee file you can lend, sell, or send to another studio, where it is
+cartridge**: a signed employee file you can share or send to another studio, where it is
 **re-hired already specialized**.
 
 <p class="acx-figure" markdown="1">
@@ -167,12 +169,17 @@ makes the studio smarter; every shared cartridge makes the whole ecosystem smart
 
 !!! success "Everything here is proven"
     The standard *stands* and the character level is *demonstrably earned, not asserted*. The
-    [Proofs](proofs.md) page shows the verbatim output of 113 passing tests, an export→verify→strip→tamper
-    round-trip, and a full level-issuance run — all reproducible with `node --experimental-sqlite`.
+    [Proofs](proofs.md) page links every headline claim to the conformance suite, an
+    export→verify→strip→tamper round-trip, and a full level-issuance run — all reproducible with
+    `node --experimental-sqlite`.
 
 ## Where to start
 
 - New here? Read the [Overview](concepts/overview.md), then the [cartridge model](concepts/cartridge-model.md).
+- Want to discover something useful? [Explore the static Exchange](exchange/) and inspect its identity,
+  status, dependencies, and lineage before download.
+- Want to make it yours? [Open Studio](exchange/studio/) to remix a workflow or Agent Graph locally, then
+  sign it with the CLI.
 - Want to run it? Jump to the [CLI reference](reference/cli.md) and the [Proofs](proofs.md).
 - Want to share a team? Start with the signed [`ship-a-feature`](format/loops-cal.md) workflow, then run
   `acx workflow lint`, `sign`, `verify`, and `ready`.
@@ -183,7 +190,7 @@ makes the studio smarter; every shared cartridge makes the whole ecosystem smart
 - Building a host? Start with [Loading a cartridge](lifecycle/loading.md) and
   [Harness requirements](format/harness-requirements.md).
 - Want the whole normative spec? It lives in `SPEC.md` in the repository; the
-  [Conformance](reference/conformance.md) page summarizes the 16 MUST items.
+  [Conformance](reference/conformance.md) page summarizes the 17 MUST items.
 
 !!! note "Status"
     **v0.1 public draft.** The normative core, strict schemas, signed workflow profile, registry gate,

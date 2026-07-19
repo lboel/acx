@@ -154,7 +154,16 @@ CREATE TABLE capabilities (    -- SPEC §6.1 capability records (ROM zone)
 
 ## `sqlar`: skills and knowledge as files
 
-The `sqlar` table is the **exact stock SQLite Archive schema** — no zone column, no extra fields — so any SQLite binary can extract it. Zoning is carried entirely by the file-name prefix: [`zoneOf`](https://github.com/agentibus/agent-cartridge) classifies `rom/…` and `save/…` and rejects any unprefixed name (test: `§12.2 sqlar names must be zone-prefixed`).
+The `sqlar` table is the **exact stock SQLite Archive schema** — no zone column, no extra fields — so any
+SQLite binary can extract it. Zoning is carried entirely by the file-name prefix:
+[`zoneOf`](https://github.com/agentibus/agent-cartridge) classifies `rom/…` and `save/…` and rejects any
+unprefixed name.
+
+Every stored name is also an extraction-safety boundary: it must be a relative path of at least two
+non-empty ASCII segments, start with exactly `rom` or `save`, and use only
+`[A-Za-z0-9][A-Za-z0-9._-]{0,127}` per segment. Absolute paths, `.`, `..`, empty segments, backslashes,
+NUL, and platform-specific or traversal forms are invalid. `acx spec` checks every live SQLAR row before
+a cartridge can be accepted.
 
 - Skills live at `rom/skills/<name>/SKILL.md` with agentskills.io frontmatter.
 - Knowledge lives under `rom/knowledge/…`.

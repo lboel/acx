@@ -11,7 +11,7 @@ for the registry.
 - **Keep `SPEC.md`, `schemas/`, and the code consistent.** If you change the format, update all three and
   add/adjust a test.
 - **English only, and legally neutral.** The "collectible cartridge" framing must never reference a
-  trademarked franchise. Use cartridge / exchange / roster / trade / collect.
+  trademarked franchise. Use cartridge / exchange / roster / share / remix.
 - **Never commit private keys.** `acx export` writes signing keys *outside* the cartridge; they are
   git-ignored.
 
@@ -38,8 +38,10 @@ signing recomputes object hashes from live content — never trust `objects.oid`
 
 ## Sharing a cartridge or template
 
-See [`registry/README.md`](./registry/README.md) — fork, add your cartridge under
-`registry/cartridges/<publisher>/<name>/` or a signed workflow under `registry/cals/`, and open a PR. CI
-verifies every signed artifact and rejects unsigned, tampered, invalid, or structurally unclean
-ones. Use `acx share … --dry-run` before writing registry files, or invoke the bundled
-`$acx-share-agent` skill for an agent-guided, reviewable submission.
+See [`registry/README.md`](./registry/README.md) — fork, prepare one artifact under its immutable
+publisher/id/version path, regenerate `registry/index.json`, build the static Exchange, and open a focused
+PR. CI compares the proposal with the exact base commit, refuses replacement/deletion/rename of an
+accepted release, independently verifies every live artifact, resolves Agent Graph dependencies, and
+rejects unsigned, tampered, invalid, or structurally unclean bytes. Use `acx share … --dry-run` before
+writing registry files, or invoke the bundled `$acx-share-agent` skill for an agent-guided, reviewable
+submission.

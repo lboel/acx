@@ -73,7 +73,23 @@ export function scrubOrThrow(cartridge, { forbidLiterals = [] } = {}) {
   })
   // Also scan capability records (they live in a table, not sqlar).
   const caps = cartridge.db.prepare('SELECT json FROM capabilities').all().map((r) => JSON.parse(r.json))
-  const items = collectScanItems({ records: [...records, ...caps], files })
+  const publicMetaKeys = [
+    'acx.publisher_id',
+    'acx.agent_name',
+    'acx.provider',
+    'acx.model',
+    'acx.role',
+    'acx.description',
+    'acx.license',
+    'acx.authors',
+    'acx.tags',
+    'acx.homepage',
+  ]
+  const publicMeta = Object.fromEntries(publicMetaKeys.map((key) => [key, cartridge.getMeta(key)]))
+  const items = collectScanItems({
+    records: [...records, ...caps, { id: 'public-cartridge-meta', ...publicMeta }],
+    files,
+  })
   const result = scrub(items, { forbidLiterals })
   if (result.blocked) {
     const err = new Error('scrub gate blocked export: ' + result.findings.filter((f) => f.ruleId !== 'home-path').map((f) => `${f.ruleId}@${f.field}`).join(', '))

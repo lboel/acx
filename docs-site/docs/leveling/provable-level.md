@@ -260,4 +260,4 @@ That is what "senior" earns you here: not a label, but a credential that fails c
 
 ---
 
-*See also:* [capabilities](../format/capabilities.md) · [signing & trust](../format/signing-trust.md) · [the cartridge as agent-OS](../concepts/agent-os.md) · [loop & context policy](../format/loop-context.md) · [distribution](../lifecycle/distribution.md) · [all 10 proofs](../proofs.md).
+*See also:* [capabilities](../format/capabilities.md) · [signing & trust](../format/signing-trust.md) · [the cartridge as agent-OS](../concepts/agent-os.md) · [loop & context policy](../format/loop-context.md) · [distribution](../lifecycle/distribution.md) · [proof suite](../proofs.md).

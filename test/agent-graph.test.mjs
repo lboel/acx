@@ -179,6 +179,7 @@ export function agentGraphFixture() {
         kind: 'acx-workflow',
         description: 'Research and challenge evidence before a product decision.',
         workflowRef: {
+          publisherId: 'io.github.lboel',
           id: 'research-council',
           version: '1.0.0',
           digest: 'sha256:3300ea74052dc7f76aa81f79cd37b269267b2f06b4ae4710480dc73d62102ed8',
@@ -192,6 +193,7 @@ export function agentGraphFixture() {
         kind: 'acx-workflow',
         description: 'Design, build, and review the selected product increment.',
         workflowRef: {
+          publisherId: 'io.github.lboel',
           id: 'ship-a-feature',
           version: '1.0.0',
           digest: 'sha256:588424a9ec12483ce13f28e81e9d0833777676bbd2c0c0686bbc27bb58f93dee',
@@ -233,6 +235,48 @@ test('acx.agent-graph/1 accepts fuzzy prose with hard reference invariants', () 
   assert.deepEqual(validatePublishableAgentGraph(graph), [])
   assert.equal(graph.routes[0].weight, 1)
   assert.equal(graph.routes[0].relationship, 'directs')
+})
+
+test('agent graph lineage is closed, signed metadata with safe parent sources', () => {
+  const graph = agentGraphFixture()
+  graph.lineage = {
+    parents: [{
+      artifactType: 'agent-graph',
+      publisherId: 'io.github.upstream',
+      id: 'product-delivery',
+      version: '0.8.0',
+      digest: `sha256:${'d'.repeat(64)}`,
+      relation: 'remix',
+      source: 'https://github.com/upstream/acx/blob/main/product-delivery.agent-graph.json',
+    }],
+  }
+  assert.deepEqual(validatePublishableAgentGraph(graph), [])
+  graph.lineage.parents[0].source = 'javascript:alert(1)'
+  graph.lineage.parents[0].extra = true
+  const issues = validateAgentGraphStructure(graph)
+  assert.ok(issues.some((issue) => issue.includes('absolute HTTPS URL without credentials')))
+  assert.ok(issues.some((issue) => issue.includes("unknown property 'extra'")))
+})
+
+test('agent graph signing rejects self-lineage but permits an older version', () => {
+  const graph = agentGraphFixture()
+  graph.lineage = {
+    parents: [{
+      artifactType: 'agent-graph',
+      publisherId: 'io.github.acxtest',
+      id: graph.id,
+      version: graph.version,
+      digest: `sha256:${'e'.repeat(64)}`,
+      relation: 'supersedes',
+    }],
+  }
+  const key = generateSigningKey()
+  assert.throws(
+    () => signAgentGraph(graph, key, { publisherId: 'io.github.acxtest' }),
+    /collides with the artifact's own registry identity/,
+  )
+  graph.lineage.parents[0].version = '0.9.0'
+  assert.doesNotThrow(() => signAgentGraph(graph, key, { publisherId: 'io.github.acxtest' }))
 })
 
 test('information cycles are valid because routes do not execute task loops', () => {
@@ -418,9 +462,11 @@ test('publication profile rejects incomplete discovery metadata', () => {
 test('publication profile requires pinned ACX loops and rejects secret-like metadata', () => {
   const graph = agentGraphFixture()
   delete graph.loops[0].workflowRef.digest
+  delete graph.loops[1].workflowRef.publisherId
   graph.description += ' token ghp_' + 'A1b2C3d4E5f6G7h8I9j0K1l2M3n4O5p6Q7r8'
   const issues = validatePublishableAgentGraph(graph)
   assert.ok(issues.some((issue) => issue.includes('workflowRef.digest is required')))
+  assert.ok(issues.some((issue) => issue.includes('workflowRef.publisherId is required')))
   assert.ok(issues.some((issue) => issue.includes('secret-like public metadata')))
 })
 

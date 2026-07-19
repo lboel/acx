@@ -94,7 +94,7 @@ The ROM zone (signed, immutable, shareable) = all of `cartridge` (minus save key
 
 ### C.5 OCI distribution wrapper
 
-The `.acx` file is pushed as one immutable blob inside an **OCI Image Manifest v1.1.0**:
+The `.acx` file is pushed as one immutable blob inside an **OCI Image Manifest v1.1.1**:
 
 ```json
 {
@@ -119,4 +119,4 @@ The `.acx` file is pushed as one immutable blob inside an **OCI Image Manifest v
 }
 ```
 
-Per OCI 1.1.0, top-level `artifactType` MUST be set when `config.mediaType` is the empty value `application/vnd.oci.empty.v1+json` (digest `sha256:44136fa3…aff8a`, size 2). A single layer carries the whole database — no tar, no gzip; the media type `application/vnd.acx.cartridge.layer.v1+sqlite` names it. The layer digest is over the frozen snapshot bytes and guarantees transport integrity of that snapshot only; the DSSE `rom-manifest-hash` guarantees ROM semantics across re-materialization — the two are intentionally distinct. Harness/Gitness `dbPutManifestV2` stores the manifest row, the empty config blob, and the SQLite layer blob byte-for-byte without validating `artifactType`/config/layers, so cartridges distribute with **zero registry change** and verify with stock cosign/oras. The DSSE signature and each VC/Open-Badge attestation SHOULD also be attached as separate referring manifests via the **OCI Referrers API** (`subject` pointing at the cartridge manifest digest), with the `sha256-<digest>` fallback tag mandated where Referrers is unsupported.
+Under OCI Image Specification 1.1.x, top-level `artifactType` MUST be set when `config.mediaType` is the empty value `application/vnd.oci.empty.v1+json` (digest `sha256:44136fa3…aff8a`, size 2). A single layer carries the whole database — no tar, no gzip; the media type `application/vnd.acx.cartridge.layer.v1+sqlite` names it. The layer digest is over the frozen snapshot bytes and guarantees transport integrity of that snapshot only; the DSSE `rom-manifest-hash` guarantees ROM semantics across re-materialization — the two are intentionally distinct. Harness/Gitness `dbPutManifestV2` stores the manifest row, the empty config blob, and the SQLite layer blob byte-for-byte without validating `artifactType`/config/layers, so cartridges distribute with **zero registry change** and verify with stock cosign/oras. The DSSE signature and each VC/Open-Badge attestation SHOULD also be attached as separate referring manifests via the **OCI Referrers API** (`subject` pointing at the cartridge manifest digest), with the `sha256-<digest>` fallback tag mandated where Referrers is unsupported.

@@ -9,7 +9,8 @@ The cartridge is a self-contained, signed harness — the agent-OS image (see [T
 
 ## The manifest layout
 
-Per [SPEC §11](https://acx.dev), the `.acx` file is pushed as a single blob inside an **OCI Image Manifest v1.1.0**:
+Per [SPEC §11](https://acx.dev), the `.acx` file is pushed as a single blob inside an **OCI Image
+Manifest v1.1.1**:
 
 | Field | Value |
 | --- | --- |
@@ -18,7 +19,8 @@ Per [SPEC §11](https://acx.dev), the `.acx` file is pushed as a single blob ins
 | `layers[0].mediaType` | `application/vnd.acx.cartridge.layer.v1+sqlite` |
 | `layers[0].digest` | the digest of the frozen `.acx` bytes (uncompressed, **no tar**) |
 
-Because `config.mediaType` is the empty value, OCI 1.1.0 requires `artifactType` to be set — which is exactly what tags the manifest as a cartridge.
+Because `config.mediaType` is the empty value, OCI Image Specification 1.1.x requires `artifactType` to
+be set — which is exactly what tags the manifest as a cartridge.
 
 Layer annotations SHOULD carry `vnd.acx.rom-manifest-hash` and `vnd.acx.spec-version` so a registry browser can read the ROM identity without pulling the blob.
 
@@ -92,7 +94,7 @@ Harness/Gitness `dbPutManifestV2` stores the manifest row, the empty config blob
     Because the whole distribution path is stock OCI, cartridges inherit the existing supply-chain ecosystem for free: content-addressed pull, mirroring, retention, and signature verification all work through tools your CI already runs. The ACX-specific meaning lives entirely in the media types and the DSSE/VC payloads — never in the registry.
 
 !!! example "The held-out re-run, made portable"
-    A cartridge carries the same regression discipline Lilian Weng frames for harnesses — *"candidates are accepted only if they have no regression on both held-in and held-out data"* ([Harness Engineering for Self-Improvement](https://lilianweng.github.io/posts/2026-07-04-harness/), 2026-07-04). The ACX [provable level](../leveling/provable-level.md) turns that acceptance rule into a cryptographic, independently-issued credential, and OCI distribution is how that credential travels **bound to the ROM digest it was earned against** — attach it as a referrer, and any consumer resolves the capability as `verified` without trusting the seller.
+    A cartridge carries the same regression discipline Lilian Weng frames for harnesses — *"candidates are accepted only if they have no regression on both held-in and held-out data"* ([Harness Engineering for Self-Improvement](https://lilianweng.github.io/posts/2026-07-04-harness/), 2026-07-04). The ACX [provable level](../leveling/provable-level.md) turns that acceptance rule into a cryptographic, independently-issued credential, and OCI distribution is how that credential travels **bound to the ROM digest it was earned against** — attach it as a referrer, and any consumer can resolve the capability without trusting the publisher's claim alone.
 
 ## Related
 

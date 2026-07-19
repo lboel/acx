@@ -8,7 +8,7 @@ _form teams_, and _run workflows_, packed into one `.acx` file and exchangeable 
 `single-file SQLite + LanceDB` · `ed25519 / DSSE signed` · `provable level` ·
 `OCI-distributable` · `zero-dependency reference impl`
 
-[Documentation](./docs-site) · [Spec](./SPEC.md) · [For AI agents](./AGENTS.md) · [Contributing](./CONTRIBUTING.md) · License: Apache-2.0
+[Explore Exchange](https://acx.dev/exchange/) · [Remix in Studio](https://acx.dev/exchange/studio/) · [Documentation](./docs-site) · [Spec](./SPEC.md) · [For AI agents](./AGENTS.md) · [Contributing](./CONTRIBUTING.md) · License: Apache-2.0
 
 <sub>The standard is **ACX** (Agent Cartridge eXchange): a cartridge file is `.acx`, the CLI is `acx`, media types are `application/vnd.acx.*`. It pairs with **AGENTIBUS**, the studio that produces and levels up ACX cartridges.</sub>
 
@@ -21,7 +21,7 @@ memory, runtime contract, loop/context policy, and a **cryptographically provabl
 one portable, signable, distributable artifact. Software engineering is the flagship use case, but the
 format is task-general: any agent that has skills, accumulates knowledge, and runs a loop fits. An agent
 that leveled up in one environment moves to another **unchanged**, keeps learning in the field, and can be
-shared, sold, collected, and traded.
+shared, verified, collected, and remixed.
 
 ### Four ideas
 
@@ -37,15 +37,15 @@ shared, sold, collected, and traded.
   context, who can direct whom, where reports return, and where separate loops meet.
 - **🔧 Build workflows.** Compose agents into **Conditional Agentic Loops** — what happens next, under
   which structured conditions, and where execution stops — through `acx workflow` (with `acx cal` as a
-  compatibility alias) or in a visual drag-and-drop builder (`acx builder`). Generate a whole team from an
+  compatibility alias) or in the local-first static Studio (`acx builder`). Generate a whole team from an
   existing project with `acx init --from-code`.
 
-One signed file distributes over git, an OCI registry, or a live exchange — verifiable with stock tooling,
-rejected if tampered.
+Signed artifacts distribute over git, an OCI registry, or the static Exchange — verifiable from the
+downloaded bytes and rejected if tampered.
 
-The container and schemas are 100% open; the *value* — the signed level attestation, the verified
-capability evidence, the field-learned memory — is the identity-bound, revocable asset carried inside that
-open envelope. **Open envelope, priced contents.**
+The container and schemas are 100% open; signed level attestations, verified capability evidence, and
+field-learned memory are identity-bound, revocable assets carried inside that open envelope. ACX itself
+defines no payments, entitlements, or licensing enforcement.
 
 > **Status: v0.1 public draft.** The normative spec ([`SPEC.md`](./SPEC.md)), schemas, reference
 > implementation, signed workflow and Agent Graph examples, and conformance suite are ready for public review. The
@@ -77,8 +77,9 @@ node --experimental-sqlite src/cli.mjs workflow inspect my-loop.signed.cal.json
 node --experimental-sqlite src/cli.mjs workflow ready my-loop.signed.cal.json --cartridges ./roster
 ```
 
-Try the bundled, signed examples: `registry/cals/ship-a-feature.cal.json` (engineering review loop) and
-`registry/cals/research-council.cal.json` (parallel research, challenge, synthesis).
+Try the bundled, signed examples:
+`registry/cals/io.github.lboel/ship-a-feature/1.0.0.cal.json` (engineering review loop) and
+`registry/cals/io.github.lboel/research-council/1.0.0.cal.json` (parallel research, challenge, synthesis).
 
 The same team can publish a separate Agent Graph without baking reporting and implicit knowledge flow into
 tasks. Validate, sign, and inspect it with `acx graph`:
@@ -89,9 +90,11 @@ node --experimental-sqlite src/cli.mjs graph sign product-delivery.agent-graph.j
   --publisher io.github.you --out product-delivery.signed.agent-graph.json
 node --experimental-sqlite src/cli.mjs graph verify product-delivery.signed.agent-graph.json
 node --experimental-sqlite src/cli.mjs graph inspect product-delivery.signed.agent-graph.json
+node --experimental-sqlite src/cli.mjs graph digest product-delivery.signed.agent-graph.json
 ```
 
-Try the bundled signed graph at `registry/graphs/product-delivery.agent-graph.json`: a product-owner seat
+Try the bundled signed graph at
+`registry/graphs/io.github.lboel/product-delivery/1.0.0.agent-graph.json`: a product-owner seat
 directs delivery, developers report status and evidence back, research and delivery loops export distinct
 knowledge, and the product owner stewards their bounded convergence.
 
@@ -110,14 +113,14 @@ key or writing to GitHub without human authority.
 ## Everything in one file
 
 A cartridge is a single **SQLite** database (`application_id` `ACX1`), openable by the stock `sqlite3`
-CLI. Like a game cartridge it has an immutable **ROM** (the signed, shareable/sellable core) and a mutable
+CLI. Like a game cartridge it has an immutable **ROM** (the signed, shareable core) and a mutable
 **SAVE** (local field learning — never signed). Field learning can never mutate the ROM, and a
 `strip-to-ROM` re-export **proves it by hash equality**.
 
 ```mermaid
 flowchart TB
   subgraph ACX["cartridge.acx — one SQLite file"]
-    subgraph ROM["ROM zone — signed, immutable, shareable / sellable"]
+    subgraph ROM["ROM zone — signed, immutable, shareable"]
       SK["skills/ (agentskills.io SKILL.md)"]
       CAP["capabilities (task × stack × evidence)"]
       HR["harness-requirements (tools a host must provide)"]
@@ -145,7 +148,7 @@ re-indexed on import, so the file is portable across engines.
 | Layer | What it is | Docs |
 |---|---|---|
 | **Skills** | `SKILL.md` bundles (agentskills.io format), extractable by stock `sqlite3`. | `docs-site/docs/format/skills.md` |
-| **Capabilities** | The sellable claim: *"great at building DAGs with Airflow + Snowflake"*, evidence-backed; maps to an A2A AgentCard skill. | `docs-site/docs/format/capabilities.md` |
+| **Capabilities** | The portable claim: *"great at building DAGs with Airflow + Snowflake"*, evidence-backed; maps to an A2A AgentCard skill. | `docs-site/docs/format/capabilities.md` |
 | **Memory** | Two tiers — transferable (ROM) vs field-learned (SAVE) — with a fail-closed scrub gate; vectors as a real **LanceDB** dataset. | `docs-site/docs/format/memory.md`, `docs-site/docs/format/packages.md` |
 | **Harness requirements** | The machine-readable contract of MCP tools / binaries a host must provide to boot the cartridge. | `docs-site/docs/format/harness-requirements.md` |
 | **Loop + context policy** | The agent's harness as signed data (informed by Lilian Weng's harness engineering). | `docs-site/docs/format/loop-context.md` |
@@ -180,8 +183,8 @@ participants are referenced **by content hash** (`romDigest`) or staffed **by ro
 - The optional `integrity` block signs the RFC-8785/JCS canonical workflow digest with Ed25519 in a
   DSSE/in-toto envelope. Editing a task, condition, team slot, or limit after signing is detected.
 
-Build loops on the command line (`acx workflow`) or visually (`acx builder` opens a drag-and-drop editor
-whose drafts stay outside the signed registry until you explicitly sign them).
+Build loops on the command line (`acx workflow`) or in the same local-first Studio shipped by the static
+Exchange (`acx builder` serves it locally; export remains a browser download and signing stays in the CLI).
 Generate a whole agent set from your codebase with `acx init --from-code`. `acx cal` remains an alias for
 `acx workflow ready`.
 
@@ -224,17 +227,28 @@ correlations. The reference CLI validates and shares this contract; it does not 
 
 ## Sharing & distribution
 
-Three transports distribute signed ACX artifacts — each verifies integrity and refuses tampering:
+Three transports distribute signed ACX artifacts. The artifact verifier, not the transport, decides
+integrity:
 
-- **Git registry** (`registry/`) — fork, add a cartridge under `cartridges/<publisher>/<name>/`, a
-  workflow under `cals/`, or an Agent Graph under `graphs/`, then open a PR; CI verifies every signed
-  artifact and regenerates the index.
+- **Git registry** (`registry/`) — fork, add a cartridge under
+  `cartridges/<publisher>/<id>/<version>/cartridge.acx`, a
+  workflow under `cals/<publisher>/<id>/<version>.cal.json`, or an Agent Graph under
+  `graphs/<publisher>/<id>/<version>.agent-graph.json`, then open a PR; CI verifies every signed artifact
+  and regenerates the index.
 - **OCI** — the `.acx` ships as one layer in an OCI image manifest (`artifactType application/vnd.acx.cartridge.v1`),
   attestations attached via the Referrers API, verifiable with stock `cosign`/`oras`.
-- **HTTP exchange** (`platform/`) — a live browse / verify / trade gallery.
+- **Static Exchange** (`platform/static/`) — a dependency-free discover → inspect → verify → download →
+  remix → export → PR surface, built entirely as HTML, CSS, JavaScript, JSON, and downloadable artifacts.
 
-The static [Share ACX](https://acx.dev/share/) page turns these paths into a 60-second, human-readable
-flow with copyable commands and the agent-native PR route.
+[Explore the Exchange](https://acx.dev/exchange/), [remix locally in Studio](https://acx.dev/exchange/studio/),
+or follow the [Share ACX](https://acx.dev/share/) PR path. The static browser verifies signed workflow and
+Agent Graph JSON; download a cartridge and run `acx verify` plus `acx spec` locally before loading it.
+
+Published agents, workflows, and Agent Graphs use the immutable identity
+`artifact type + publisherId + id + version + digest`. Cartridges bind id and SemVer in signed ROM
+metadata; any changed artifact gets a new SemVer and path. Signed `lineage` preserves fork/remix ancestry,
+the status ledger records deprecation or supersession without mutating old bytes, and Agent Graph workflow
+dependencies pin publisher, id, version, and digest.
 
 ## The `acx` CLI
 
@@ -246,14 +260,14 @@ npx agent-cartridge@latest <command>               # after the npm release
 | | | |
 |---|---|---|
 | `acx ls` | roster overview | `acx workflow lint` | validate a portable workflow |
-| `acx inspect` | meta, skills, caps, memory | `acx builder` | visual CAL/RAC editor |
+| `acx inspect` | meta, skills, caps, memory | `acx builder` | serve the local static Studio |
 | `acx verify` | cartridge trust taxonomy | `acx workflow sign/verify` | sign or verify a shared workflow |
 | `acx spec` | validate package spec + LanceDB schema | `acx lance` | materialize a real LanceDB dataset |
 | `acx check` | harness preflight (tools/binaries/skills) | `acx workflow ready` | staff team slots from cartridges |
 | `acx load` | verify + install skills into a host | `acx level` | earn a provable level |
 | `acx init [--from-code]` | scaffold an agent / team | `acx export` | package + sign a cartridge |
 | `acx graph lint/sign/verify` | validate and sign team information architecture | `acx graph inspect/digest` | inspect or hash an Agent Graph |
-| `acx share agent/workflow/graph` | prepare a verified registry PR | `acx builder` | visual workflow authoring |
+| `acx share agent/workflow/graph` | prepare a verified registry PR | `acx builder` | local-first workflow/graph authoring |
 
 Agents drive it from [`AGENTS.md`](./AGENTS.md), the
 [agent reference](docs-site/docs/reference/for-agents.md), and
@@ -265,9 +279,11 @@ Agents drive it from [`AGENTS.md`](./AGENTS.md), the
 git clone https://github.com/lboel/acx.git
 cd acx                                           # Node ≥ 22, zero dependencies
 
-npm test                                          # 113 conformance, graph, workflow, and sharing tests
+npm test                                          # conformance, graph, workflow, registry, and sharing tests
 node --experimental-sqlite scripts/smoke.mjs      # export → verify → strip → tamper
 node --experimental-sqlite scripts/prove-level.mjs   # earn + verify a provable level
+node --experimental-sqlite tools/build-registry-index.mjs
+node --experimental-sqlite tools/build-static-exchange.mjs  # -> dist/exchange/
 
 # make a cartridge from the bundled sample, then inspect / check / load it
 node --experimental-sqlite src/cli.mjs export examples/sample-agent-package my.acx --publisher io.github.you
@@ -289,8 +305,8 @@ src/               zero-dependency reference implementation (node:sqlite + node:
 schemas/           JSON Schemas for every block
 examples/          a bundled sample agent-package
 tools/             the git-registry indexer + the optional LanceDB materializer
-platform/          the HTTP exchange + the visual loop builder
-registry/          the git registry (cartridges + signed workflows + Agent Graphs + templates + trust)
+platform/          the static Exchange, browser Studio, and noncanonical local reference code
+registry/          immutable artifacts + templates + lifecycle ledger + deterministic discovery index
 docs-site/         the documentation site (Zensical)
 AGENTS.md          how AI agents install and drive the tool
 ```
@@ -303,8 +319,17 @@ Build the docs site locally:
 cd docs-site && uv venv && uv pip install zensical && .venv/bin/zensical serve
 ```
 
-It hosts statically (GitHub Pages workflow included). Start with **Overview**, then the **cartridge model**,
-**how agents level up**, **loop engineering (CAL)**, and **team information architecture (Agent Graph)**.
+Build the deployable docs plus Exchange:
+
+```bash
+cd docs-site && .venv/bin/zensical build && cd ..
+node --experimental-sqlite tools/build-registry-index.mjs
+node --experimental-sqlite tools/build-static-exchange.mjs --out docs-site/site/exchange
+```
+
+The combined output hosts statically (GitHub Pages workflow included). Start with **Explore Exchange**,
+then the **cartridge model**, **loop engineering (CAL)**, and **team information architecture (Agent
+Graph)**.
 
 ## Contributing & license
 
@@ -324,11 +349,12 @@ npm test
 npm run smoke
 node --experimental-sqlite scripts/prove-level.mjs
 node --experimental-sqlite tools/build-registry-index.mjs
+node --experimental-sqlite tools/build-static-exchange.mjs
 npm pack --dry-run
 cd docs-site && .venv/bin/zensical build
 ```
 
 The repository-root ACX workflow runs the suite/proofs, verifies every published cartridge, workflow, and
-Agent Graph, rebuilds the registry index, checks the npm package, and builds the documentation. Confirm npm name
-ownership immediately before release; publishing and production docs deployment require the maintainer's
-registry/hosting credentials.
+Agent Graph, rebuilds the registry index, builds the static Exchange, checks the npm package, and builds
+the documentation. Confirm npm name ownership immediately before release; publishing and production docs
+deployment require the maintainer's registry/hosting credentials.

@@ -15,13 +15,18 @@ request. A CI gate cryptographically verifies every signed artifact before it ca
 
 | Path | What it is |
 | --- | --- |
-| `cartridges/<publisher>/<name>/cartridge.acx` | A signed Agent Cartridge, namespaced by the publisher's reverse-DNS id (e.g. `io.github.ridgeworks/ada-ridge/`) |
-| `cartridges/<publisher>/<name>/README.md` | The cartridge's card: what it does, stack, how it was trained |
-| `templates/` | Agent-package templates — plain directories you can copy, edit, and `export` into your own cartridge |
-| `cals/<id>.cal.json` | A signed `acx.cal/1` agent-team workflow, portable across rosters |
-| `graphs/<id>.agent-graph.json` | A signed `acx.agent-graph/1` communication, reporting, knowledge-stewardship, and loop-convergence graph |
-| `trust-registry.json` | **Public keys only** (`{ keys: [{ keyid, publisherId, algorithm, publicKeyPem }] }`). Never a private key. |
-| `index.json` | **Generated — do not edit.** `acx.registry-index/1`, rebuilt deterministically by CI from verified cartridges, workflows, and Agent Graphs |
+| `cartridges/<publisher>/<id>/<version>/cartridge.acx` | A signed Agent Cartridge at an immutable publisher/id/version coordinate |
+| `cartridges/<publisher>/<id>/<version>/README.md` | A generated, non-authoritative discovery card for that exact release |
+| `cals/<publisher>/<id>/<version>.cal.json` | A signed `acx.cal/1` agent-team workflow release |
+| `graphs/<publisher>/<id>/<version>.agent-graph.json` | A signed `acx.agent-graph/1` information-architecture release |
+| `templates/<id>/` | An indexed, unsigned agent-package starting point that recipients inspect and export themselves |
+| `status.json` | A separate lifecycle projection for active, deprecated, revoked, or superseded immutable releases |
+| `index.json` | **Generated — do not edit.** `acx.registry-index/1`, rebuilt deterministically from independently verified live bytes |
+
+The universal signed-artifact coordinate is
+`(artifactType, publisherId, id, version, digest)`. Paths bind the first four values; the generated index
+binds the digest. An existing coordinate is never overwritten: publish a new SemVer and, when relevant,
+record lifecycle or successor information in `status.json`.
 
 ## Browse
 
@@ -31,9 +36,9 @@ into the index. Cartridge cards include name, publisher, role, trust status, ROM
 (when present) the independently attested level. To inspect one locally (Node ≥ 22, zero dependencies):
 
 ```bash
-node --experimental-sqlite src/cli.mjs inspect registry/cartridges/io.github.ridgeworks/ada-ridge/cartridge.acx
-node --experimental-sqlite src/cli.mjs verify  registry/cartridges/io.github.ridgeworks/ada-ridge/cartridge.acx --registry registry/trust-registry.json
-node --experimental-sqlite src/cli.mjs spec    registry/cartridges/io.github.ridgeworks/ada-ridge/cartridge.acx
+node --experimental-sqlite src/cli.mjs inspect registry/cartridges/io.github.ridgeworks/ada-ridge/1.0.0/cartridge.acx
+node --experimental-sqlite src/cli.mjs verify  registry/cartridges/io.github.ridgeworks/ada-ridge/1.0.0/cartridge.acx
+node --experimental-sqlite src/cli.mjs spec    registry/cartridges/io.github.ridgeworks/ada-ridge/1.0.0/cartridge.acx
 ```
 
 `spec` prints the cartridge's clean package spec (`acx.package-spec/1`, SPEC §7.7): a
@@ -43,15 +48,15 @@ self-describing before you trust anything inside it.
 To inspect and verify a workflow:
 
 ```bash
-node --experimental-sqlite src/cli.mjs workflow inspect registry/cals/ship-a-feature.cal.json
-node --experimental-sqlite src/cli.mjs workflow verify registry/cals/ship-a-feature.cal.json --registry registry/trust-registry.json
+node --experimental-sqlite src/cli.mjs workflow inspect registry/cals/io.github.lboel/ship-a-feature/1.0.0.cal.json
+node --experimental-sqlite src/cli.mjs workflow verify registry/cals/io.github.lboel/ship-a-feature/1.0.0.cal.json
 ```
 
 To browse the information architecture joining reusable loops:
 
 ```bash
-node --experimental-sqlite src/cli.mjs graph inspect registry/graphs/product-delivery.agent-graph.json
-node --experimental-sqlite src/cli.mjs graph verify  registry/graphs/product-delivery.agent-graph.json --registry registry/trust-registry.json
+node --experimental-sqlite src/cli.mjs graph inspect registry/graphs/io.github.lboel/product-delivery/1.0.0.agent-graph.json
+node --experimental-sqlite src/cli.mjs graph verify  registry/graphs/io.github.lboel/product-delivery/1.0.0.agent-graph.json
 ```
 
 ## Push a cartridge
@@ -68,16 +73,21 @@ node --experimental-sqlite src/cli.mjs graph verify  registry/graphs/product-del
 3. **Preview and prepare the canonical paths**:
 
    ```bash
-   node --experimental-sqlite src/cli.mjs share agent <name>.acx --slug <name> --dry-run
-   node --experimental-sqlite src/cli.mjs share agent <name>.acx --slug <name>
+   node --experimental-sqlite src/cli.mjs share agent <name>.acx --dry-run
+   node --experimental-sqlite src/cli.mjs share agent <name>.acx
    ```
 
-   This re-verifies the signed bytes and package specification, then writes only
-   `registry/cartridges/<publisher>/<name>/cartridge.acx` and a generated discovery `README.md`.
-4. **Optionally add your public key** to `trust-registry.json` (keyid, publisherId, algorithm,
-   PEM public key). With your key registered, verifiers see `trusted`; without it the cartridge
-   still verifies as `portable` (valid signature, publisher not yet in the registry).
-5. **Open a pull request.** CI verifies your cartridge and regenerates `index.json`.
+   This re-verifies the signed bytes and PackageSpec, rejects SAVE data, binds the ROM-declared
+   publisher/id/version, and writes
+   `registry/cartridges/<publisher>/<id>/<version>/cartridge.acx` plus its generated discovery card.
+   `--slug <id>` is optional and, when supplied, must equal the signed immutable artifact id.
+4. **Open a pull request.** Commit no `.key.pem` file. CI verifies the cartridge and requires the
+   committed deterministic `index.json` to match a fresh build.
+
+A self-contained signature proves integrity and possession of its embedded key, so an otherwise valid
+artifact can be exchanged as `portable`. It does **not** prove control of the claimed publisher namespace.
+That upgrade requires a separately governed ACX trust registry with an active key, namespace proof,
+validity window, and revocation status; it is not created implicitly by adding a file to this directory.
 
 ## Push a workflow
 
@@ -85,9 +95,10 @@ node --experimental-sqlite src/cli.mjs graph verify  registry/graphs/product-del
 node --experimental-sqlite src/cli.mjs workflow lint team.cal.json --publish
 node --experimental-sqlite src/cli.mjs workflow sign team.cal.json \
   --publisher io.github.yourhandle \
-  --out registry/cals/team.cal.json
-node --experimental-sqlite src/cli.mjs workflow verify registry/cals/team.cal.json
-node --experimental-sqlite src/cli.mjs share workflow registry/cals/team.cal.json --dry-run
+  --out team.signed.cal.json
+node --experimental-sqlite src/cli.mjs workflow verify team.signed.cal.json
+node --experimental-sqlite src/cli.mjs share workflow team.signed.cal.json --dry-run
+node --experimental-sqlite src/cli.mjs share workflow team.signed.cal.json
 ```
 
 Commit the signed JSON, but never its private `.key.pem`. CI rejects unsigned workflows, content or
@@ -112,7 +123,7 @@ node --experimental-sqlite src/cli.mjs share graph product-delivery.signed.agent
 ```
 
 The share command re-verifies the signed bytes and prepares the canonical
-`registry/graphs/<graph-id>.agent-graph.json` path. `graph sign` writes a private
+`registry/graphs/<publisher>/<id>/<version>.agent-graph.json` path. `graph sign` writes a private
 `*.key.pem` beside its output when no key is supplied: keep that key outside git. CI rejects unsigned or
 tampered graphs, invalid publisher bindings, secret-like metadata, unknown fields, dangling
 actor/knowledge/loop references, digest-unpinned ACX workflow loops, and unbounded convergence.
@@ -126,13 +137,16 @@ without explicit human authority.
 
 ## The verification gate
 
-Every push runs the index builder:
+Every pull request first checks accepted history and then runs the index builder:
 
 ```bash
+node tools/check-registry-immutability.mjs --base <full-base-commit-sha>
 node --experimental-sqlite tools/build-registry-index.mjs
 ```
 
-For **every** cartridge under `cartridges/` it opens the file read-only, evaluates the trust
+The history-aware check allows new canonical releases but rejects modification, deletion, or rename of
+an already accepted signed-artifact path. For **every** cartridge under `cartridges/`, the index builder
+then opens the file read-only, evaluates the trust
 taxonomy (signature verification against the recomputed ROM manifest), and validates the
 package spec. Any cartridge that is `tampered`, has an `invalid` signature, or carries an
 unclean spec is **rejected** — the build exits non-zero and the PR cannot merge, so `index.json`
@@ -153,8 +167,8 @@ dispatches agents, or reads knowledge from a referenced locator.
 Templates are unsigned starting points, not cartridges: a plain agent-package directory
 (persona, skills, loop policy, seed memories) that others copy and `export` under their own
 publisher id. Add one under `templates/<template-name>/` with a `README.md` describing what it
-is for, and open a PR. Templates are reviewed like any code contribution; they are not indexed
-or signature-checked.
+is for, and open a PR. Templates are reviewed like any code contribution and indexed as explicitly
+unsigned editable source; they are never presented as signature-verified cartridges.
 
 ## How this fits with the other channels
 
@@ -165,4 +179,13 @@ ways to move it:
   with human review plus the CI verification gate.
 - **OCI** — registry-grade distribution: the `.acx` is one layer in an OCI image manifest,
   pushable to any container registry.
-- **HTTP exchange** (`platform/`) — a live browse/verify/trade UI over the same cartridges.
+- **Static Exchange** (`platform/static/`) — a browse, verify, download, remix, and share surface built
+  entirely into files by `node --experimental-sqlite tools/build-static-exchange.mjs`; deploy the output
+  directory to GitHub Pages, any object store, CDN, or ordinary static file host.
+
+## Legacy paths
+
+Unversioned paths such as `cartridges/<publisher>/<id>/cartridge.acx`,
+`cals/<id>.cal.json`, and `graphs/<id>.agent-graph.json` are not accepted publication coordinates.
+Keep historical copies outside `registry/`; verify them locally and re-export or re-sign them with a
+stable id and SemVer before proposing them as a new immutable release.

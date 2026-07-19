@@ -14,13 +14,20 @@
 - Full agent instructions: /reference/for-agents/  (and AGENTS.md at the repo root)
 - Workflow fast path: `acx workflow lint flow.cal.json --publish`; `acx workflow sign flow.cal.json --publisher io.github.you`; `acx workflow verify flow.signed.cal.json`; `acx workflow ready flow.signed.cal.json --cartridges ./roster`.
 - Agent Graph fast path: `acx graph lint team.agent-graph.json --publish`; `acx graph sign team.agent-graph.json --publisher io.github.you`; `acx graph verify team.signed.agent-graph.json`; `acx graph inspect team.signed.agent-graph.json`.
+- Explore: `/exchange/`; remix an unsigned local workflow or Agent Graph draft: `/exchange/studio/`.
 - Share fast path: `acx share agent agent.acx --slug agent --dry-run`, `acx share workflow flow.cal.json --dry-run`, or `acx share graph team.agent-graph.json --dry-run`; then prepare, rebuild `registry/index.json`, test, and open a reviewed PR.
 - Self-share skill: `skills/acx-share-agent/SKILL.md`.
 - Commands: `ls, inspect, verify, spec, check, load, workflow, graph, cal, init, export, strip, level, builder, share`.
 - Rule: always `acx verify` before `acx load`; the tool never executes cartridge content; RAC is descriptions only.
+- Registry rule: identity is artifact type + publisher + id + SemVer + digest; changed bytes get a new
+  version. Preserve signed lineage, resolve graph workflow dependencies exactly, and show status warnings.
+- Browser boundary: workflows and Agent Graphs can be JCS/Ed25519 verified in the static app; cartridges,
+  levels, capabilities, and namespace ownership require their dedicated verifier paths.
 
 ## Core docs
 - Share agents, workflows, and teams: /share/
+- Static artifact discovery: /exchange/
+- Local-first remix Studio: /exchange/studio/
 - Overview: /concepts/overview/
 - The cartridge model (ROM/SAVE): /concepts/cartridge-model/
 - The studio (a company of agents): /concepts/studio/
@@ -30,7 +37,7 @@
 - Container (single-file SQLite): /format/container/
 - Signing & trust (ed25519 + DSSE/in-toto): /format/signing-trust/
 - Skills (agentskills.io SKILL.md): /format/skills/
-- Capabilities & the sellable claim: /format/capabilities/
+- Capabilities & portable claims: /format/capabilities/
 - Memory partition (transferable vs field-learned): /format/memory/
 - Package specification & LanceDB schema: /format/packages/
 - Harness requirements: /format/harness-requirements/
@@ -45,11 +52,11 @@
 - Creating agents & agent sets: /lifecycle/init-agent-set/
 - Loading a cartridge: /lifecycle/loading/
 - Distribution (OCI): /lifecycle/distribution/
-- The exchange (browse/verify/trade): /lifecycle/exchange/
+- The static Exchange (discover/verify/remix): /lifecycle/exchange/
 - Sharing over git: /lifecycle/sharing-git/
 
 ## Reference
 - CLI reference: /reference/cli/
 - Conformance: /reference/conformance/
 - JSON schemas & media types: /reference/schemas/
-- Proofs (verbatim test output): /proofs/
+- Proofs and reproducible commands: /proofs/

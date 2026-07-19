@@ -31,6 +31,8 @@ function writePackage(dir, a) {
   const manifest = {
     schemaVersion: '1.1', packageVersion: '2.0', exportedAt: '2026-07-16T00:00:00.000Z', exportedFrom: 'agentibus',
     originInstanceId: 'seed', originInstanceLabel: 'seed', agentId: 'seed-' + a.name.toLowerCase().replace(/\W+/g, '-'),
+    artifactId: a.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
+    artifactVersion: '1.0.0',
     sourceFingerprint: `${a.provider}:${a.model}:${a.role}:2:${a.techStack.slice(0, 3).join('+')}`,
     name: a.name, provider: a.provider, model: a.model, role: a.role, careerTier: 'mid', level: 6, xp: 0, skillPoints: 2,
     completedProjects: 4, stats: { intelligence: 6, speed: 6, quality: 6, creativity: 6, endurance: 6, teamwork: 6 },

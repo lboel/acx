@@ -115,9 +115,7 @@
 ✔ workflow verification upgrades a namespace-proven publisher to trusted (0.85ms)
 ✔ workflow verification fails closed for a key-compromise revocation (0.594667ms)
 ✔ workflow lint separates portable structure checks from roster readiness (0.269709ms)
-ℹ tests 113
 ℹ suites 0
-ℹ pass 113
 ℹ fail 0
 ℹ cancelled 0
 ℹ skipped 0

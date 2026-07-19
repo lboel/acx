@@ -1,175 +1,197 @@
-# Cartridge Exchange
+# ACX Exchange
 
-A zero-dependency **reference exchange** for `.acx` agent cartridges. Run it
-locally to **browse** a roster, **verify** signatures and trust status,
-**acquire** (download) cartridges, and **publish** (upload) your own — all
-served from a single `node:http` process with no external dependencies.
+ACX Exchange is a zero-dependency, statically hostable catalog for portable agents, team workflows,
+Agent Graphs, and starter templates. It turns the Git-reviewed ACX registry into plain HTML, CSS,
+JavaScript, JSON, and artifact files. There is no account system, database, upload endpoint, or runtime
+agent execution.
 
-It is the companion demo to the `agent-cartridge` reference implementation: it
-reuses `../src` to read and verify cartridges, and renders everything as
-server-side HTML with a cartridge theme.
+The public sharing loop is:
 
-> **This never runs an agent.** The Exchange only reads cartridge metadata and
-> verifies cryptographic signatures. It does not, and cannot, execute a
-> cartridge. See [Security model](#security-model).
+**discover → inspect → verify → download → remix → sign locally → publish by PR → share**
 
----
+> **The Exchange never runs an agent or workflow.** It displays signed discovery metadata and offers
+> local verification. Downloaded artifacts remain inert until a user deliberately loads them elsewhere.
 
-## What it is
+## Build the static Exchange
 
-The Exchange is a small trading floor for cartridges:
-
-- **Browse** a gallery (the *roster*) ranked by verified level and trust.
-- **Inspect** any cartridge's skills, capabilities, memory zones, and level
-  credential on a detail page.
-- **Verify** each cartridge's signature and SPEC §4.5 trust taxonomy status.
-- **Acquire** a cartridge by downloading the raw `.acx` file.
-- **Publish** your own cartridge by uploading it — it is verified on the way in,
-  and tampered uploads are rejected.
-
-It is intentionally minimal: an in-memory catalog on disk, server-rendered
-pages, and a handful of endpoints. It is a *reference implementation*, not a
-production service (see [Not production](#not-production)).
-
-## Quickstart
-
-Requires **Node >= 22** (for the built-in `node:sqlite`). Run everything with
-the `--experimental-sqlite` flag.
+Requires Node 22 or newer.
 
 ```bash
-# 1. Seed the catalog with a sample roster
-node --experimental-sqlite platform/seed.mjs
-
-# 2. Serve the Exchange
-node --experimental-sqlite platform/server.mjs
+npm run build:registry
+npm run build:exchange -- --site-url https://acx.dev/exchange/
 ```
 
-Then open:
+The first command verifies every registry artifact and deterministically regenerates
+`registry/index.json`. The second writes the deployable site to `dist/exchange/`.
 
-```
-http://localhost:8787
-```
-
-Override the port with the `PORT` environment variable:
+`--site-url` sets canonical URLs plus Open Graph/Twitter metadata and the ACX social share card on
+pre-rendered artifact pages. Omit it for a rehost-neutral local build, or use the final subpath for
+another host:
 
 ```bash
-PORT=9000 node --experimental-sqlite platform/server.mjs
+npm run build:exchange -- --site-url https://example.org/community/acx/
 ```
 
-Seeding writes a handful of signed sample cartridges into `platform/catalog/`.
-Some of the roster carries an independently issued **level credential**; the
-rest are shown at their declared level only. The catalog directory is the
-Exchange's entire persistence — deleting it resets the floor.
-
-## Visual workflow builder
-
-The same package includes a local visual authoring surface for ACX Workflows:
+Preview the result with any static file server. For example:
 
 ```bash
-node --experimental-sqlite src/cli.mjs builder --port 8799
+python3 -m http.server 8787 --directory dist/exchange
 ```
 
-Open `http://localhost:8799`. The builder validates the full publication profile and local roster,
-including metadata, bounds, safety/approval intent, completion contracts, and terminal reachability.
-It saves unsigned drafts under `platform/builder/drafts/`; publishing is always an explicit CLI signing
-step, so the browser never silently creates or retains a publishing key.
+Then open `http://localhost:8787/`. JavaScript modules require HTTP(S); opening `index.html` directly via
+`file:` is not a supported preview mode.
 
-## Endpoints
+## What the build contains
 
-| Method     | Path              | Purpose                                                                                     |
-| ---------- | ----------------- | ------------------------------------------------------------------------------------------- |
-| `GET`      | `/`               | Roster gallery — all cartridges, ranked by verified level then trust.                       |
-| `GET`      | `/c/:id`          | Cartridge detail page (skills, capabilities, memory, level, verification).                  |
-| `GET`      | `/api/cartridges` | JSON index of the full catalog.                                                             |
-| `GET`      | `/download/:id`   | Serves the raw `.acx` file (`content-type: application/vnd.acx.cartridge`, as attachment).  |
-| `GET`      | `/verify/:id`     | Re-verifies the cartridge and renders its trust status.                                     |
-| `GET`      | `/publish`        | Publish form / upload instructions.                                                         |
-| `POST`     | `/publish`        | Accepts an uploaded `.acx` (raw body), verifies it, and adds it to the catalog if accepted. |
+| Output | Purpose |
+| --- | --- |
+| `index.html` | Searchable, filterable Exchange |
+| `studio/` | Local-first workflow and Agent Graph draft/remix Studio |
+| `data/index.json` | Static catalog with safe discovery cards and download paths |
+| `data/artifacts/` | Allowlisted artifact bytes and template bundles |
+| `artifacts/<type>/<slug>/index.html` | Pre-rendered, shareable detail pages with canonical/social metadata |
+| `manifest.json` | Deterministic output inventory with byte sizes and SHA-256 digests |
 
-`:id` is always sanitized to a safe slug before it touches the filesystem (see
-below).
+The build copies only paths admitted by the verified registry index. It binds workflow and Agent Graph
+paths to their publisher/id/version coordinates, re-verifies signed JSON with the browser-compatible
+verifier, rejects traversal and symbolic links, and allowlists static and template file types.
 
-## Security model
+The entire directory can be deployed to GitHub Pages, Cloudflare Pages, Netlify, S3-compatible object
+storage, or any ordinary static host. No serverless function or environment variable is required at
+runtime.
 
-The Exchange is built so that hosting untrusted cartridges is safe.
+## Trust shown in the UI
 
-> ### The Exchange never executes a cartridge
->
-> - **No execution, ever.** The server only opens a cartridge read-only, reads
->   its metadata, and verifies signatures via `../src`. A cartridge is data, not
->   a program to the Exchange.
-> - **Signatures are verified.** Every cartridge is run through the SPEC §4.5
->   trust taxonomy (`local` / `trusted` / `portable` / `legacy` / `tampered`).
->   Status and a human summary are shown on the gallery and detail pages.
-> - **Uploads are untrusted and verified on publish.** A `POST /publish` upload
->   is inspected before it is accepted. Anything that verifies as **tampered**,
->   or whose credential status is **invalid**, is **rejected** — this is the C1
->   content-integrity check. Rejections bounce back to the publish page with the
->   reason.
-> - **SQLite-magic check on upload.** The upload must begin with the
->   `SQLite format 3` magic bytes (and be at least 100 bytes) or it is refused
->   with `400` before any parsing.
-> - **8 MB upload cap.** The request body is streamed and aborted with `413`
->   the moment it exceeds 8 MB.
-> - **Path-traversal-safe ids.** Every `:id` and upload id is lowercased and
->   stripped to `[a-z0-9._-]` (max 64 chars), and the resolved catalog path is
->   asserted to stay inside the catalog directory. Traversal attempts cannot
->   escape `platform/catalog/`.
+The Exchange deliberately separates different claims:
 
-Uploaded bytes are staged in a temp file, verified, and only copied into the
-catalog if they pass. The temp file is removed either way.
+- A **portable signature** proves that the displayed workflow or Agent Graph bytes were signed by the
+  included Ed25519 key. It does not prove that the signer controls the claimed publisher namespace.
+- **Trusted publisher** status additionally requires registry key resolution and namespace proof.
+- Embedded agent levels and capability `verified` flags remain **claims** until issuer keys, revocation
+  state, ROM binding, and referenced evidence resolve successfully.
+- `.acx` agents are SQLite containers. Browsers can compare copied bytes and index hashes, but full
+  cartridge/ROM verification uses the ACX CLI.
+- Templates are unsigned editable source. Inspect every file before export.
 
-## Publishing your own cartridge
-
-Make a cartridge with the reference CLI, then upload it. From the repository
-root:
+For a downloaded agent:
 
 ```bash
-# 1. Build a signed .acx from an agent-package directory
-node --experimental-sqlite src/cli.mjs export ./my-agent-package ./my-agent.acx \
-  --publisher io.github.yourname
-
-# 2. (optional) Inspect / verify it locally first
-node --experimental-sqlite src/cli.mjs verify ./my-agent.acx
-
-# 3. Publish it to a running Exchange (raw body upload)
-curl -X POST http://localhost:8787/publish \
-  -H 'x-cartridge-id: my-agent' \
-  --data-binary @./my-agent.acx
+acx verify agent.acx
+acx spec agent.acx
+acx load agent.acx --print-only
 ```
 
-The `x-cartridge-id` header sets the catalog id (sanitized to a safe slug); omit
-it to get an auto-generated `upload-xxxx` id. On success the response redirects
-to the new detail page at `/c/:id`. If the cartridge is tampered, unreadable,
-too large, or not a SQLite file, publish is refused with the reason.
+For signed JSON:
 
-No agent-package handy? Use the bundled sample under
-`examples/sample-agent-package/` (resolved by `src/paths.mjs`), or run
-`platform/seed.mjs` to populate a full roster.
+```bash
+acx workflow verify team.cal.json
+acx graph verify product.agent-graph.json
+```
 
-## How it fits together
+The browser verifier for workflows and Agent Graphs recomputes the RFC 8785/JCS digest, verifies the
+Ed25519 DSSE signature, and checks the signed in-toto identity binding locally. It does not contact a
+trust service or grant runtime authority.
 
-| File           | Role                                                                       |
-| -------------- | -------------------------------------------------------------------------- |
-| `catalog.mjs`  | Read + verify + summarize `.acx` files; rank the roster; inspect uploads.  |
-| `views.mjs`    | Server-rendered HTML (gallery, detail, publish pages) with cartridge theme.|
-| `server.mjs`   | `node:http` server, routing, upload handling, and all safety checks.       |
-| `seed.mjs`     | Seeds `platform/catalog/` with a varied sample roster.                     |
-| `catalog/`     | On-disk catalog directory (the Exchange's only persistence).               |
+## Discover and share
 
-## Not production
+Each built artifact has a stable pre-rendered detail page under
+`artifacts/<type>/<slug>/`. The Exchange's Share action uses that page when available, so links have
+useful titles and descriptions even before the JavaScript catalog loads.
 
-This is a **reference implementation** meant to demonstrate the cartridge
-format and trust model — not a hardened service. In particular:
+The catalog includes all accepted versions. `latest` is derived per publisher/id using SemVer; older
+versions remain discoverable. Lifecycle state comes from the exact-digest `registry/status.json` ledger:
+an artifact may be active, deprecated, withdrawn, or superseded without rewriting its signed bytes.
 
-- **In-memory / on-disk catalog only** — the catalog is just the `catalog/`
-  directory; there is no database of record, indexing, or backup.
-- **No authentication or authorization** — anyone who can reach the port can
-  publish or download.
-- **No rate limiting** — beyond the 8 MB body cap, there is no throttling.
-- **No persistence or availability guarantees** — deleting `catalog/` resets
-  everything; there is no migration or durability story.
+Publishing is PR-only:
 
-Do not expose it to untrusted networks or treat it as a real registry. It exists
-so you can browse, collect, and trade cartridges against the reference
-implementation and see the verification pipeline in action.
+1. Fork `lboel/acx`.
+2. Verify and prepare one artifact with `acx share`.
+3. Regenerate the registry and static Exchange.
+4. Review the exact diff and open a focused pull request.
+5. After CI, human review, merge, and deployment, share the generated Exchange detail URL.
+
+The bundled `$acx-share-agent` skill makes that process safe for an agent to prepare on its own:
+
+```bash
+node --experimental-sqlite skills/acx-share-agent/scripts/render-pr-body.mjs \
+  workflow ./team.cal.json
+```
+
+The script emits a ready-to-paste PR body and the deterministic post-merge
+`https://acx.dev/exchange/artifacts/.../` URL. It does not commit, push, open, or merge a pull request.
+
+## Canonical immutable coordinates
+
+Registry publication uses:
+
+```text
+registry/cartridges/<publisher>/<id>/<version>/cartridge.acx
+registry/cals/<publisher>/<id>/<version>.cal.json
+registry/graphs/<publisher>/<id>/<version>.agent-graph.json
+```
+
+Every published signed-artifact coordinate is immutable. Changed bytes require a new SemVer; even
+`--force` cannot replace an existing coordinate. Pull-request CI also refuses modification, deletion, or
+rename of an accepted canonical artifact path relative to the exact base commit.
+
+An Agent Graph loop that references an ACX workflow pins the exact dependency:
+
+```json
+{
+  "workflowRef": {
+    "publisherId": "io.github.example",
+    "id": "ship-a-feature",
+    "version": "1.2.0",
+    "digest": "sha256:…"
+  }
+}
+```
+
+The registry build rejects missing and digest-mismatched dependencies. A remix records its signed parent
+coordinate and digest in `lineage.parents[]`; lineage describes provenance and never transfers trust,
+credentials, or permissions.
+
+## Remix locally in Studio
+
+The static Studio at `/studio/` creates and imports workflow or Agent Graph drafts entirely in the
+browser. Importing a signed artifact removes its old integrity block and adds immutable remix lineage
+before editing. The Studio can export JSON or copy a CLI handoff, but it never handles a publishing key
+and never signs on the user's behalf.
+
+Finish a draft locally:
+
+```bash
+acx workflow lint draft.cal.json --publish
+acx workflow sign draft.cal.json --publisher io.github.yourname --out team.cal.json
+acx share workflow team.cal.json --dry-run
+```
+
+Use the equivalent `acx graph` commands for an Agent Graph. Keep every generated `*.key.pem` outside git.
+
+## Share an agent safely
+
+Agent publication must contain ROM only. `acx share agent` rejects the cartridge when any SAVE-zone
+memory, files, objects, or vectors are present.
+
+```bash
+acx export ./my-agent-package ./my-agent.acx --publisher io.github.yourname
+acx verify ./my-agent.acx
+acx spec ./my-agent.acx
+acx share agent ./my-agent.acx --dry-run
+acx share agent ./my-agent.acx
+```
+
+Never commit the generated private key. The signed cartridge is authoritative; its generated README and
+Exchange card are discovery metadata.
+
+## Local Studio server
+
+The CLI can serve the exact static Studio shipped in the Exchange:
+
+```bash
+acx builder --port 8799
+```
+
+It has no write endpoint or server-side draft store. The browser exports unsigned local JSON downloads;
+linting, signing, registry preparation, and publication remain explicit CLI and pull-request steps. The
+public Exchange intentionally has no upload route; use a reviewed registry PR for publication.

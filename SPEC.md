@@ -8,15 +8,15 @@
 
 ## 1. Abstract & Design Goals
 
-An **Agent Cartridge** (file extension `.acx`) is a single, self-describing SQLite database that packages an AI agent — its skills, capability claims, memory, runtime contract, loop/context policy, and cryptographically provable competence level — into one portable, signable, distributable artifact. Software engineering is the flagship use case, but the format is **task-general**: any agent that has skills, accumulates knowledge, and runs a loop is expressible. The format lets an agent that **learned and leveled up** in one environment be shared, sold, verified, and re-hosted in another with deterministic integrity guarantees and no host lock-in — and lets cartridges **reference each other to form teams and run multi-agent workflows** (§14). An **ACX Workflow** is the complementary, readable `.cal.json` exchange artifact: it carries a team contract, bounded task graph, context requirements, safety declarations, discovery metadata, and an optional cryptographic signature. An **ACX Agent Graph** is a separate, readable `.agent-graph.json` exchange artifact for the team's information architecture (§16): who owns context, who may direct whom, where reports return, and where separate loops meet. The four capabilities the standard is built around are: *learn* (the memory partition, §7), *self-improve / level up* (the provable level, §10), *form teams* (hash-referenced participants, §14, and information architecture, §16), and *build workflows* (Conditional Agentic Loops, §14).
+An **Agent Cartridge** (file extension `.acx`) is a single, self-describing SQLite database that packages an AI agent — its skills, capability claims, memory, runtime contract, loop/context policy, and cryptographically provable competence level — into one portable, signable, distributable artifact. Software engineering is the flagship use case, but the format is **task-general**: any agent that has skills, accumulates knowledge, and runs a loop is expressible. The format lets an agent that **learned and leveled up** in one environment be shared, verified, remixed, and re-hosted in another with deterministic integrity guarantees and no host lock-in — and lets cartridges **reference each other to form teams and run multi-agent workflows** (§14). An **ACX Workflow** is the complementary, readable `.cal.json` exchange artifact: it carries a team contract, bounded task graph, context requirements, safety declarations, discovery metadata, and an optional cryptographic signature. An **ACX Agent Graph** is a separate, readable `.agent-graph.json` exchange artifact for the team's information architecture (§16): who owns context, who may direct whom, where reports return, and where separate loops meet. A static **ACX Exchange** is the discovery and remix surface over those signed artifacts (§17); it is not a trust root, execution host, payment system, or entitlement service. The four capabilities the standard is built around are: *learn* (the memory partition, §7), *self-improve / level up* (the provable level, §10), *form teams* (hash-referenced participants, §14, and information architecture, §16), and *build workflows* (Conditional Agentic Loops, §14).
 
 The standard is governed by five design goals:
 
 1. **Portable.** Identity, trust, and behavior bind to a reverse-DNS publisher and a content-addressed manifest — never to a hostname-derived `instanceId`. A cartridge verifies and runs unchanged across machines, orgs, and hosts.
 2. **Codebase-agnostic base, but field-learning.** Every memory artifact is partitioned into a **TRANSFERABLE** tier (generalizable expertise, signed, shareable) and a **FIELD-LEARNED** tier (codebase-specific, pseudonymously namespaced, quarantined). An agent keeps learning in the field without contaminating or invalidating its shareable core.
-3. **Shareable / sellable.** The immutable **ROM zone** is the shareable/sellable core; the mutable **SAVE zone** holds local learning. A `strip-to-ROM` re-export proves, by hash equality, that field learning never mutated the core.
+3. **Shareable and remixable.** The immutable **ROM zone** is the shareable core; the mutable **SAVE zone** holds local learning. A `strip-to-ROM` re-export proves, by hash equality, that field learning never mutated the core.
 4. **Provable level.** An agent's level is never self-asserted. It is a W3C Verifiable Credential 2.0 embedding an Open Badges 3.0 achievement, issued by an independent verifier only after held-out re-execution, TrueSkill σ-gated, revocable, and bound to the ROM digest.
-5. **Open envelope, priced contents.** The container format, schemas, and descriptive layer are 100% open and unencumbered. The *value* — the signed level attestation, the verified capability evidence, and field-learned memory — is the sellable, revocable, identity-bound asset carried inside a fully open envelope.
+5. **Open envelope, valuable contents.** The container format, schemas, and descriptive layer are 100% open and unencumbered. Signed level attestations, verified capability evidence, and field-learned memory remain revocable, identity-bound assets inside that open envelope. Commercial terms, payments, licensing enforcement, and entitlements are deliberately outside the ACX core.
 
 The cartridge deliberately reuses AGENTIBUS' proven hash-of-hashes signing discipline, two-key idempotent memory merge, `MissionRule`/`OperatorCommandReport` contracts, `ResourceLimits`, `SkillDomain`/`CareerTier` enums, and the self-describing embedding-engine tag, wrapping them in open standards (SQLite, sqlar, sqlite-vec, OCI, DSSE, in-toto, VC 2.0, Open Badges 3.0, A2A, purl, agentskills.io, MCP) rather than reinventing them.
 
@@ -27,7 +27,7 @@ The cartridge deliberately reuses AGENTIBUS' proven hash-of-hashes signing disci
 The key words **MUST**, **MUST NOT**, **REQUIRED**, **SHALL**, **SHOULD**, **SHOULD NOT**, **MAY**, and **OPTIONAL** are to be interpreted as described in [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119) and [RFC 8174](https://www.rfc-editor.org/rfc/rfc8174) when, and only when, they appear in all capitals.
 
 - **Cartridge / `.acx`** — a single SQLite ≥ 3.37 database branded with `application_id` = `0x41435831` ("ACX1"), media type `application/vnd.acx.cartridge`.
-- **ROM zone** — the signed, immutable, shareable/sellable core: `cartridge` meta (minus SAVE keys), `sqlar` rows under `rom/`, `memory` rows with `zone='rom'`, plus `objects`/`signatures`/`attestations`.
+- **ROM zone** — the signed, immutable, shareable core: `cartridge` meta (minus SAVE keys), `sqlar` rows under `rom/`, `memory` rows with `zone='rom'`, plus `objects`/`signatures`/`attestations`.
 - **SAVE zone** — the mutable, unsigned, codebase-fingerprinted field-learning store: `memory` rows with `zone='save'` and `sqlar` rows under `save/`.
 - **Object** — a canonicalized, content-addressed unit (`objects` table) whose `oid = 'sha256:'||hex(sha256(canonical_bytes))`. Objects make signing deterministic independent of physical byte layout.
 - **ROM integrity manifest** — the RFC 8785-canonicalized list of ROM objects that is hashed to `manifest_hash` and DSSE/Ed25519-signed. This is the single signed digest; it is **the** `packageHash` of this format (§4).
@@ -38,6 +38,13 @@ The key words **MUST**, **MUST NOT**, **REQUIRED**, **SHALL**, **SHOULD**, **SHO
 - **ACX Agent Graph** — a signed or unsigned `.agent-graph.json` information architecture that answers
   **who owns context, who can direct whom, where reports return, and where separate loops meet** (§16).
   It is declarative metadata, not an execution plan or permission grant.
+- **Registry coordinate** — the immutable tuple
+  `(artifactType, publisherId, id, version, digest)` used for every published agent, workflow, or Agent
+  Graph (§17).
+- **Lineage** — signed parent references carried inside a workflow or Agent Graph to preserve attribution
+  across a fork, remix, derivation, or superseding publication (§17.3).
+- **Status ledger** — a separate, git-reviewed advisory document that can deprecate, withdraw, or
+  supersede an immutable registry coordinate without rewriting the signed artifact (§17.5).
 
 **Model.** A cartridge is authored against an exploded directory, materialized as one `.acx` file (working/runtime container), and distributed as one layer inside an OCI Image Manifest (distribution wrapper). ROM is signed once; SAVE mutates locally; vectors are always rebuilt by the consumer.
 
@@ -81,7 +88,8 @@ CREATE TABLE cartridge (
   value TEXT NOT NULL
 ) WITHOUT ROWID;
 -- Required keys: acx.spec_version, acx.cartridge_id (reverse-DNS + uuid),
--- acx.created_at, acx.embedding_engine (id + dim), acx.rom_manifest_hash,
+-- acx.artifact_id, acx.artifact_version (SemVer), acx.created_at,
+-- acx.embedding_engine (id + dim), acx.rom_manifest_hash,
 -- acx.vec0_format, acx.save_codebase_fingerprint (nullable).
 
 CREATE TABLE sqlar (        -- EXACT stock SQLite Archive schema (sqlite3 -A extracts it)
@@ -139,7 +147,7 @@ CREATE TABLE attestations (
 ) WITHOUT ROWID;
 ```
 
-`sqlar` **MUST** remain byte-for-byte at the stock schema (no zone column) so `sqlite3 file.acx -A` still extracts it; ROM/SAVE zoning for files is carried by the `rom/` vs `save/` name prefix and mirrored in `objects.zone`.
+`sqlar` **MUST** remain byte-for-byte at the stock schema (no zone column) so `sqlite3 file.acx -A` still extracts it; ROM/SAVE zoning for files is carried by the `rom/` vs `save/` name prefix and mirrored in `objects.zone`. Every stored `sqlar.name` **MUST** be a relative portable path of at least two non-empty ASCII segments: the first is exactly `rom` or `save`, and every segment matches `^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$`. Absolute paths, empty/`.`/`..` segments, backslashes, NUL, and any other traversal or platform-specific form **MUST** be rejected before extraction or activation.
 
 ### 3.3 Integrity — sign a manifest, never the file
 
@@ -232,7 +240,8 @@ Skills travel wholly in the **ROM zone** (signed, immutable). They are the vendo
 
 ### 5.1 Layout
 
-Every skill is a directory rooted at `skills/<name>/`, stored as `sqlar` rows (Deflate; `sz==length(data)` = uncompressed). `<name>` **MUST** equal the frontmatter `name`.
+Every skill is a directory rooted at `rom/skills/<name>/`, stored as `sqlar` rows (Deflate;
+`sz==length(data)` = uncompressed). `<name>` **MUST** equal the frontmatter `name`.
 
 ```
 skills/<name>/SKILL.md          # REQUIRED
@@ -258,7 +267,7 @@ CREATE TABLE acx_skill (
   name           TEXT PRIMARY KEY,   -- == frontmatter name
   description    TEXT NOT NULL,       -- Level-1 payload (<=1024)
   license        TEXT, compatibility TEXT, skill_version TEXT,
-  sqlar_path     TEXT NOT NULL,       -- 'skills/<name>/SKILL.md'
+  sqlar_path     TEXT NOT NULL,       -- 'rom/skills/<name>/SKILL.md'
   body_tokens    INTEGER,
   content_sha256 TEXT NOT NULL,       -- sha256 of UNCOMPRESSED SKILL.md bytes
   resources      TEXT NOT NULL,       -- JSON inventory (§5.5)
@@ -285,7 +294,7 @@ CREATE TABLE acx_skill (
 
 ---
 
-## 6. Capability Records & the Sellable Claim (block Capability — normative)
+## 6. Capability Records & Portable Claims (block Capability — normative)
 
 ### 6.1 Purpose and placement
 
@@ -303,7 +312,8 @@ Every record **MUST** carry `schemaVersion: "acx.capability/1"` and:
 - `evidenceRefs` (REQUIRED; non-empty for `verified:true`) — each `{ kind: "level-attestation"|"memory-artifact"|"trajectory", ref }`. Proficiency is only as good as what `evidenceRefs` resolves to.
 - `sampleCount` (≥ 0, REQUIRED), `lastDemonstratedAt` (RFC 3339, REQUIRED), `license` (OPTIONAL SPDX expression, default `LicenseRef-acx-proprietary`), `createdAt`/`updatedAt` (REQUIRED).
 
-A `verified:false` record **MAY** be published (self-declared tier) but consumers **MUST** render it as unproven and **MUST NOT** let it satisfy a re-run-gated purchase — preserving the open-envelope / priced-contents split.
+A `verified:false` record **MAY** be published (self-declared tier) but consumers **MUST** render it as
+unproven and **MUST NOT** let it satisfy a proof-gated staffing, ranking, or policy requirement.
 
 ### 6.3 A2A AgentCard mapping
 
@@ -359,6 +369,16 @@ ids (`acx.cartridge-meta/1`, `acx.memory-record.v1`, `acx.lance-memory/1`, `acx.
 consumer **MUST** be able to validate that every `required` artifact is present and conforms to its
 schema without guessing (`acx spec <file>` does exactly this).
 
+`acx.package-spec/1` is a closed profile, not an open inventory. Its top level **MUST** contain exactly
+`schemaVersion`, `cartridgeId`, `specVersion`, `embeddingEngine`, and `artifacts`;
+`cartridgeId`, `specVersion`, and the closed `{id,dim}` embedding-engine object **MUST** exactly match the
+signed cartridge metadata. `artifacts` **MUST** contain exactly eight entries — one each for `identity`,
+`memory-baseline`, `memory-vectors`, `skills`, `capabilities`, `harness`, `loop-context`, and `level` —
+using the fixed role-specific kind, schema, required flag, locator, and policy fields defined by
+`schemas/package-spec.schema.json`. Unknown fields or roles and duplicate, missing, or altered role
+profiles **MUST** fail validation. Every `sqlar` row is additionally subject to the portable-path rule in
+§3.2; a syntactically valid package manifest never makes an unsafe archive path acceptable.
+
 The optional vector payload has a **fixed, normative LanceDB schema**, `acx.lance-memory/1`, pinned in
 `rom/schema/lance-memory.json` (ROM-signed) and pointed to by `acx.lance_schema`. The `memories` table
 **MUST** use exactly these columns: `id, zone, portable, artifact_fingerprint, codebase_fingerprint,
@@ -390,7 +410,11 @@ identical in JS and Python, so the materialized `vector` column matches on-impor
 
 ### 8.1 Placement
 
-A cartridge **MUST** embed exactly one **harness-requirements manifest** at `sqlar` path `manifest/harness-requirements.json`, media type `application/vnd.acx.harness-requirements.v1+json`, `schemaVersion: "acx.harness.v1"`, ROM-zone, covered by the ROM integrity manifest. A host **MUST** refuse activation if it fails signature verification or its `schemaVersion` is unrecognized.
+A cartridge **MUST** embed exactly one **harness-requirements manifest** at `sqlar` path
+`rom/manifest/harness-requirements.json`, media type
+`application/vnd.acx.harness-requirements.v1+json`, `schemaVersion: "acx.harness.v1"`, ROM-zone,
+covered by the ROM integrity manifest. A host **MUST** refuse activation if it fails signature
+verification or its `schemaVersion` is unrecognized.
 
 ### 8.2 Tool-role contracts
 
@@ -519,7 +543,7 @@ Held-out slice is never revealed (only its digest is public); post-cutoff time-s
 
 ## 11. OCI Distribution (blocks C, Identity, Provable — normative)
 
-The `.acx` file is pushed as one immutable blob inside an **OCI Image Manifest v1.1.0** with top-level `artifactType: application/vnd.acx.cartridge.v1`, `config` = the empty descriptor `application/vnd.oci.empty.v1+json` (digest `sha256:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a`, size 2), and a single layer of media type `application/vnd.acx.cartridge.layer.v1+sqlite` (uncompressed, no tar) whose digest equals the frozen `.acx` bytes. Per OCI 1.1.0, `artifactType` **MUST** be set when `config.mediaType` is the empty value.
+The `.acx` file is pushed as one immutable blob inside an **OCI Image Manifest v1.1.1** with top-level `artifactType: application/vnd.acx.cartridge.v1`, `config` = the empty descriptor `application/vnd.oci.empty.v1+json` (digest `sha256:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a`, size 2), and a single layer of media type `application/vnd.acx.cartridge.layer.v1+sqlite` (uncompressed, no tar) whose digest equals the frozen `.acx` bytes. Under OCI Image Specification 1.1.x, `artifactType` **MUST** be set when `config.mediaType` is the empty value.
 
 Two integrity guarantees are intentionally distinct: the **OCI layer digest** guarantees transport integrity of one frozen snapshot; the **DSSE rom-manifest-hash** guarantees ROM semantics across re-materialization (the on-disk file legitimately diverges once SAVE rows are written). Layer annotations SHOULD carry `vnd.acx.rom-manifest-hash` and `vnd.acx.spec-version`.
 
@@ -542,14 +566,17 @@ Harness/Gitness `dbPutManifestV2` stores the manifest row, empty config blob, an
 A conformant Agent Cartridge and its tooling **MUST**:
 
 1. Be a single SQLite ≥ 3.37 file with `application_id = 1094932529` (offset 68) and a valid packed `user_version` (offset 60).
-2. Use the verbatim DDL of §3.2, keeping `sqlar` at the stock schema and zoning files by `rom/`/`save/` prefix.
+2. Use the verbatim DDL of §3.2, keeping `sqlar` at the stock schema and accepting only portable,
+   traversal-safe `rom/` or `save/` paths.
 3. Sign only the ROM integrity manifest (§3.3) — never raw container bytes — with a DSSE/in-toto envelope (`payloadType application/vnd.in-toto+json`), Ed25519, `keyid = ed25519:<hex sha256(DER SPKI)>`, `subject.digest.sha256 = manifest_hash`.
 4. Keep private keys out of the cartridge and out of git; publish trust as a public-keys-only registry.
 5. Bind trust to `publisherId` (reverse-DNS, DNS-TXT or GitHub-OIDC proven) + `keyid`, never to `instanceId`.
 6. Evaluate the trust taxonomy `tampered/legacy/portable/trusted/local` in the §4.5 order.
 7. Store skills wholly in ROM with six-key agentskills.io frontmatter, a re-derivable `acx_skill` index whose `content_sha256` matches the manifest, and host-superset fields only in a reverse-DNS `ext` namespace.
 8. Partition every memory record with `portable` + `codebaseFingerprint`, reject malformed tier combinations, run the fail-closed scrub gate before signing, strip TRANSFERABLE identity and quarantine FIELD-LEARNED records on export, and never re-project foreign field-learned memory.
-9. Ship an always-present JSON memory baseline, tag vectors with an embedding-engine id, and re-index (never trust) foreign vectors on import.
+9. Ship the closed `acx.package-spec/1` eight-role profile with cartridge identity and embedding-engine
+   metadata matched exactly, plus an always-present JSON memory baseline; tag vectors with an
+   embedding-engine id and re-index (never trust) foreign vectors on import.
 10. Merge idempotently by two-key dedupe (`id`, then 10-char `artifactFingerprint`).
 11. Embed exactly one signed harness-requirements manifest declaring the four required roles (`acx:execute`, `acx:dispatch`, `acx:memory.write`, `acx:search`) with capability scopes and an MCP `minProtocolRevision` floor; refuse activation (without mutating SAVE) via the §8.5 handshake when unmet.
 12. Carry exactly one ROM-zone loop-context policy evaluated as data, with all vendor/effort/KV-cache/summarization specifics confined to an ignorable `hints` object; enforce host `resource-limits.yaml` precedence over cartridge `budget` defaults.
@@ -562,8 +589,12 @@ A conformant Agent Cartridge and its tooling **MUST**:
     distinct loops, secret-scanned public metadata, and metadata-only knowledge declarations; when signed,
     verify the RFC-8785/JCS digest and DSSE/in-toto publisher binding, and never interpret the graph or its
     signature as a runtime permission grant (§16).
+17. Publish agents, workflows, and Agent Graphs under immutable publisher/id/version coordinates; verify
+    all live artifact digests before indexing, preserve signed lineage, resolve pinned dependencies, apply
+    the advisory status ledger without rewriting artifacts, and keep browser-only verification verdicts
+    distinct from cartridge, namespace, level, and capability verification (§17).
 
-**Versioning & extension policy.** Every stored artifact **MUST** be versioned: `schemaVersion` (`acx.skill/1`, `acx.capability/1`, `acx.harness.v1`, `acx.loop-context-policy/1`, `acx.cal/1`, `acx.workflow-signature/1`, `acx.agent-graph/1`, `acx.agent-graph-signature/1`, memory-record v1), workflow and Agent Graph SemVer `version`, `user_version`/`application_id` (SQLite), and `artifactType` vN (OCI). No unversioned published files. `spec_MAJOR` bumps break readers; `spec_MINOR` is additive. Extension points are namespaced: reverse-DNS keys in `acx_skill.ext`, `cal.extensions`, and Agent Graph `extensions`; reverse-DNS-prefixed `taskType` tokens; `x-`-prefixed capability scopes; A2A `AgentExtension` for capability records; and `acx:` JSON-LD terms in credentials. Recognizing hosts consume their namespaces; all others **MUST** ignore unknown namespaces without error.
+**Versioning & extension policy.** Every stored artifact **MUST** be versioned: `schemaVersion` (`acx.skill/1`, `acx.capability/1`, `acx.harness.v1`, `acx.loop-context-policy/1`, `acx.cal/1`, `acx.workflow-signature/1`, `acx.agent-graph/1`, `acx.agent-graph-signature/1`, memory-record v1), cartridge identity metadata `acx.artifact_id` + SemVer `acx.artifact_version`, workflow and Agent Graph SemVer `version`, `user_version`/`application_id` (SQLite), and `artifactType` vN (OCI). No unversioned published files. `spec_MAJOR` bumps break readers; `spec_MINOR` is additive. Extension points are namespaced: reverse-DNS keys in `acx_skill.ext`, `cal.extensions`, and Agent Graph `extensions`; reverse-DNS-prefixed `taskType` tokens; `x-`-prefixed capability scopes; A2A `AgentExtension` for capability records; and `acx:` JSON-LD terms in credentials. Recognizing hosts consume their namespaces; all others **MUST** ignore unknown namespaces without error.
 
 ---
 
@@ -574,7 +605,7 @@ A conformant Agent Cartridge and its tooling **MUST**:
 | Container & Integrity | ACX ROM Integrity Manifest (DSSE payload) | `https://acx.dev/schema/rom-manifest.v1.json` |
 | Identity, Signing & Trust | ACX Trust Registry (public keys only) — with `$defs` DsseEnvelope, InTotoStatement, CartridgePredicate, NamespaceProof, TrustedKey | `https://acx.dev/schema/trust-registry/v1` |
 | Skill Bundle | ACX Skill Index Descriptor (`acx_skill` row) | `https://acx.dev/schemas/skill-descriptor/1` |
-| Capability & Sellable-Claim | CapabilityRecord | `https://acx.dev/schema/capability/1` |
+| Capability & Portable Claim | CapabilityRecord | `https://acx.dev/schema/capability/1` |
 | Memory Partition | AcxMemoryRecord | `https://acx.dev/schema/memory-record.v1.json` |
 | Harness Requirements | AcxHarnessRequirements (with `$defs` harnessCompliance, toolRoleContract, capabilityScope, fsScopes, netScopes) | `https://acx.dev/schemas/harness-requirements.v1.json` |
 | Loop + Context Policy | ACX Loop + Context Policy (with `$defs` MissionRule, ResourceLimits, RetrievalStrategy, ContextCategory) | `https://acx.dev/schemas/loop-context-policy/1` |
@@ -584,8 +615,10 @@ A conformant Agent Cartridge and its tooling **MUST**:
 | Multi-agent Workflow | ACX Workflow / Conditional Agentic Loop | `https://acx.dev/schema/cal.v1.json` |
 | Cartridge Workflow Participation | ACX CAL Skill Set | `https://acx.dev/schema/cal-skillset.v1.json` |
 | Agent Information Architecture | ACX Agent Graph | `https://acx.dev/schema/agent-graph.v1.json` |
+| Registry Discovery | ACX Registry Index | `https://acx.dev/schema/registry-index.v1.json` |
+| Registry Lifecycle | ACX Registry Status Ledger | `https://acx.dev/schema/registry-status.v1.json` |
 
-All schemas are JSON Schema draft 2020-12. Media-type registry (RFC 6838 vendor tree): `application/vnd.acx.cartridge`, `application/vnd.acx.cartridge.v1`, `application/vnd.acx.cartridge.layer.v1+sqlite`, `application/vnd.acx.rom-manifest.v1+json`, `application/vnd.acx.workflow.v1+json`, `application/vnd.acx.agent-graph.v1+json`, `application/vnd.in-toto+json`, `application/vnd.dsse.envelope.v1+json`, `application/vnd.acx.trust-registry.v1`, `application/vnd.acx.harness-requirements.v1+json`, `application/vnd.acx.harness-compliance.v1+json`, `application/vnd.acx.loop-context-policy.v1+json`, `application/vnd.acx.level-attestation.v1`, `application/vnd.acx.benchmark.v1`, `application/vc`.
+All schemas are JSON Schema draft 2020-12. Media-type registry (RFC 6838 vendor tree): `application/vnd.acx.cartridge`, `application/vnd.acx.cartridge.v1`, `application/vnd.acx.cartridge.layer.v1+sqlite`, `application/vnd.acx.rom-manifest.v1+json`, `application/vnd.acx.workflow.v1+json`, `application/vnd.acx.agent-graph.v1+json`, `application/vnd.acx.registry-index.v1+json`, `application/vnd.acx.registry-status.v1+json`, `application/vnd.in-toto+json`, `application/vnd.dsse.envelope.v1+json`, `application/vnd.acx.trust-registry.v1`, `application/vnd.acx.harness-requirements.v1+json`, `application/vnd.acx.harness-compliance.v1+json`, `application/vnd.acx.loop-context-policy.v1+json`, `application/vnd.acx.level-attestation.v1`, `application/vnd.acx.benchmark.v1`, `application/vc`.
 
 ### Resolved contradictions (summary)
 
@@ -619,7 +652,9 @@ published to an exchange or registry **MUST** additionally carry:
 - a valid `integrity` signature under §14.5.
 
 `extensions` is a reverse-DNS-keyed object. Consumers **MUST** ignore namespaces they do not recognize.
-The tuple `(id, version, digest)` is the immutable workflow identity; the human name is not an identifier.
+The tuple `(publisherId, id, version, digest)` is the immutable published workflow identity; the human
+name is not an identifier. `publisherId` is read from the verified `integrity` block and **MUST** match
+the registry path (§17.1).
 
 ### 14.2 Team contract
 
@@ -761,8 +796,9 @@ ignore namespaces they do not recognize. Before publication, all public metadata
 fail-closed secret scan. Credential-like values, private keys, tokens, and other secret-like metadata
 **MUST** be rejected; pinned sha256 workflow digests are identifiers and are excluded from that scan.
 
-The tuple `(id, version, digest)` is the immutable published graph identity. Human-readable names,
-descriptions, and fuzzy selectors are not identifiers.
+The tuple `(publisherId, id, version, digest)` is the immutable published graph identity. Human-readable
+names, descriptions, and fuzzy selectors are not identifiers. `publisherId` is read from the verified
+`integrity` block and **MUST** match the registry path (§17.1).
 
 ### 16.2 Actors: logical seats, not pinned identities
 
@@ -857,9 +893,9 @@ A `LoopBinding` identifies one loop whose information crosses the team graph. It
 a `kind` (`acx-workflow` | `external` | `informal`), a description, and at least one knowledge id in
 `imports` or `exports`.
 
-An `acx-workflow` binding **MUST** carry a `workflowRef` with a CAL id. In a structural draft, its SemVer
-version and sha256 digest are OPTIONAL; a published Agent Graph **MUST** include both. Other loop kinds
-**MUST NOT** carry `workflowRef`.
+An `acx-workflow` binding **MUST** carry a `workflowRef` with a CAL id. In a structural draft, its
+publisher id, SemVer version, and sha256 digest are OPTIONAL; a published Agent Graph **MUST** include all
+three. Other loop kinds **MUST NOT** carry `workflowRef`.
 
 Optional `actorBindings` map an Agent Graph actor id to one or more CAL participant aliases. These
 bindings connect the responsibility graph to a workflow without copying its nodes, conditions, RAC,
@@ -982,4 +1018,186 @@ public discovery profile. `sign` requires the publishable profile and produces
 
 `share graph` is fail-closed: it accepts only a signed, publishable `.agent-graph.json` whose publisher
 binding verifies, preserves the authoritative artifact bytes, and prepares
-`registry/graphs/<id>.agent-graph.json`. `--dry-run` **SHOULD** be used before writing a registry diff.
+`registry/graphs/<publisherId>/<id>/<version>.agent-graph.json`. `--dry-run` **SHOULD** be used before
+writing a registry diff. `--force` **MUST NOT** replace different bytes at an existing registry
+coordinate; changed content requires a new SemVer.
+
+---
+
+## 17. ACX Registry, Static Exchange & Remix Protocol
+
+The ACX registry is the reviewable source of published artifacts. The static ACX Exchange is a generated,
+read-only discovery application over that registry. Neither is a trust root: consumers verify downloaded
+bytes, and a registry listing never upgrades a publisher claim, level, capability, dependency, or
+permission by itself.
+
+The reference sharing loop is:
+
+```text
+discover → inspect → verify → download → remix → export → sign → pull request → verify again
+```
+
+Every transition is intentionally linkable and repeatable. A static host needs only files, HTTP range
+support for efficient cartridge downloads is OPTIONAL, and no server-side JavaScript or database is
+required.
+
+### 17.1 Coordinates, paths & immutable bytes
+
+A published agent, workflow, or Agent Graph **MUST** have one registry coordinate:
+
+```text
+(artifactType, publisherId, id, version, digest)
+```
+
+`artifactType` is `agent`, `workflow`, or `agent-graph`; `publisherId` is the signed reverse-DNS publisher
+claim; `id` is the stable artifact id; `version` is SemVer; and `digest` is the verified ROM digest for a
+cartridge or canonical JCS digest for a workflow or Agent Graph. A published cartridge **MUST** carry its
+id and version in ROM-bound `acx.artifact_id` and `acx.artifact_version` metadata. The coordinate
+identifies bytes, not a display name or mutable tag.
+
+The canonical git paths are:
+
+```text
+registry/cartridges/<publisherId>/<id>/<version>/cartridge.acx
+registry/cals/<publisherId>/<id>/<version>.cal.json
+registry/graphs/<publisherId>/<id>/<version>.agent-graph.json
+```
+
+A registry builder **MUST** reject a path whose publisher, id, or version disagrees with the verified
+artifact. The publication gate **MUST** compare a proposal with the accepted base registry (or use an
+equivalent write-once store) and reject modification, deletion, or rename of an existing canonical
+artifact path, even when a caller requests an overwrite. Correcting or changing published content
+requires a new SemVer and therefore a new path. Current-byte validation and history-aware immutability are
+both required: git history can establish that a path already existed, but it never substitutes for
+cryptographic verification of the live artifact bytes.
+
+The generated `acx.registry-index/1` is a deterministic discovery projection. It **MUST** carry the full
+coordinate, canonical path, safe display metadata, verification summary, lifecycle status, and whether
+an entry is the latest SemVer for its `(artifactType, publisherId, id)` series. A client **MUST NOT**
+interpret `latest` as a mutable identity or silently replace a pinned version with it.
+
+### 17.2 SemVer meaning
+
+Publishers **MUST** increment:
+
+- MAJOR when consumers, staffing logic, task semantics, required context, reporting responsibilities, or
+  knowledge routing can no longer rely on the previous contract;
+- MINOR for backward-compatible additions such as optional participants, routes, knowledge modules, or
+  discovery metadata; and
+- PATCH for backward-compatible corrections that still change signed bytes.
+
+Build metadata does not create precedence under SemVer. Registry builders **MUST** preserve every
+published version, compare versions with SemVer rules, and expose a latest-version convenience pointer
+without rewriting old entries. A status-ledger `superseded` relationship is explicit and does not follow
+from version ordering alone.
+
+### 17.3 Signed remix lineage
+
+A workflow or Agent Graph **MAY** carry `lineage`. When present, it is part of the canonical signed
+document and **MUST** contain one to eight parent references. Each parent carries:
+
+- `artifactType`, `publisherId`, `id`, optional SemVer `version`, and required sha256 `digest`;
+- `relation`: `fork`, `remix`, `derived-from`, or `supersedes`; and
+- an OPTIONAL absolute HTTPS `source` without embedded credentials.
+
+Lineage preserves attribution and makes remix networks traversable; it does not delegate publisher
+identity, namespace control, trust, copyright permission, or runtime authority. A verifier **MUST** reject
+duplicate parents and a parent coordinate that collides with the child artifact's own coordinate. A
+remix tool **MUST** remove the parent's `integrity`, assign a new id/version/publisher at signing time,
+retain a digest-pinned lineage parent, and require a new signature. It **MUST NOT** copy or expose a
+private key.
+
+### 17.4 Pinned dependencies and loop convergence
+
+A published Agent Graph binding of `kind:"acx-workflow"` **MUST** pin
+`workflowRef.publisherId`, `workflowRef.id`, `workflowRef.version`, and `workflowRef.digest`. The registry
+builder **MUST** resolve that exact workflow coordinate and recompute its digest. A missing coordinate or
+digest mismatch **MUST** fail publication; a builder **MUST NOT** silently resolve a different publisher,
+version, or `latest` entry.
+
+This dependency pin is what lets an Agent Graph join several CAL loops without copying their tasks. The
+graph describes fuzzy seats, knowledge stewardship, direction, reporting returns, and bounded convergence;
+each CAL remains the authoritative task graph. Resolving a dependency proves only that the referenced
+bytes exist and verify. It does not staff the loop, grant permissions, or prove the declared knowledge is
+available.
+
+### 17.5 Lifecycle status without mutation
+
+`registry/status.json` is a separate `acx.registry-status/1` advisory ledger. Each entry **MUST** be keyed
+by the complete artifact coordinate and may mark it `deprecated`, `withdrawn`, or `superseded`, with a
+reason and recording time. `superseded` **MUST** identify a successor coordinate. An advisory URL, when
+present, **MUST** be absolute HTTPS.
+
+The ledger **MUST NOT** modify the artifact, its signature, or its original registry entry. Registry
+builders **MUST** validate the ledger, reject duplicate status identities, and copy the resolved status
+into the generated index. Exchanges **MUST** display non-active status before download and SHOULD link the
+reason or successor. Consumers **MUST** apply their own policy; status is registry advice, not
+cryptographic revocation. Key and credential revocation remain governed by §§4 and 10.
+
+### 17.6 Static build and browser verification boundary
+
+A static Exchange build **MUST**:
+
+1. use the validated registry index as its artifact allowlist;
+2. reject traversal, symbolic-link escapes, unsafe file types, and paths outside the canonical layout;
+3. independently re-verify every live allowlisted artifact before copying it: signed JSON identity,
+   digest, and signature bindings; and read-only cartridge trust, ROM-only state, clean package profile,
+   ROM-bound publisher/id/version, and ROM digest;
+4. copy authoritative artifact bytes without modification;
+5. emit relative application/data/download links so the output works at an origin root, a subpath, or
+   `file:`-like local preview where the browser permits fetches;
+6. emit deterministic discovery data and a build manifest with sha256 digests for output files;
+7. render useful no-JavaScript metadata and artifact detail pages; and
+8. contain no signing key, upload endpoint, server credential, executable cartridge content, or
+   requirement for a runtime backend.
+
+A browser **MAY** recompute the RFC-8785/JCS digest and verify Ed25519 DSSE/in-toto signatures for
+workflow and Agent Graph JSON using WebCrypto. The UI **MUST** describe a valid unknown signer as
+`portable`, not `trusted`, unless a separately verified trust registry and namespace proof are applied.
+
+Browser code cannot safely parse and fully verify arbitrary SQLite cartridges using the zero-dependency
+reference implementation. The static Exchange **MUST NOT** claim that an `.acx` is verified merely
+because its download digest matches the generated index. It **MUST** direct consumers to download and run
+`acx verify` plus `acx spec` locally. Likewise, a signed level is proven only after credential signature,
+issuer, revocation, evidence, and ROM binding resolve; a capability's stored `verified` boolean is never
+an independent proof.
+
+### 17.7 Discovery, remix, export and pull-request sharing
+
+The static Exchange **SHOULD** make the complete loop reachable without an account:
+
+- **discover** agents, workflows, Agent Graphs, and editable templates with filters and stable detail
+  links;
+- **inspect** publisher, SemVer, digest, status, requirements, dependencies, and signed lineage;
+- **verify** JSON artifacts in the browser where §17.6 permits, and show the exact CLI verification
+  command for every artifact;
+- **download** the authoritative bytes;
+- **remix** a workflow or Agent Graph as an unsigned local draft, with integrity removed and signed
+  lineage added;
+- **export** or copy that draft without a network write; then
+- **sign and submit** it locally through `acx share ... --dry-run` and an ordinary pull request.
+
+Browser drafts SHOULD remain in memory by default and MAY use explicitly requested local storage. A
+static editor **MUST NOT** retain private keys, sign on behalf of a publisher, write directly to the
+registry, or imply that an unsigned draft is publishable. The PR gate **MUST** rerun publication
+validation, signature verification, dependency resolution, status validation, registry-index generation,
+and tests against the submitted bytes.
+
+### 17.8 Namespace and commerce boundaries
+
+A signature binds a `publisherId` claim to bytes. It does not prove control of that namespace. A registry
+or Exchange **MUST NOT** label a publisher `trusted` without the §4.3 namespace proof and §4.4 key
+lifecycle checks. GitHub usernames, DNS labels, display names, repository paths, popularity, stars, and
+download counts are not namespace proofs.
+
+ACX defines portable artifacts, integrity, discovery, lineage, and exchange mechanics. It does not define
+prices, payments, custody, refunds, tax, licensing enforcement, access entitlements, or buyer/seller
+identity. A service **MAY** build those functions around ACX, but **MUST NOT** represent an exchange
+listing, download, or signature as evidence that payment occurred or usage rights were granted.
+
+### 17.9 Registry and Exchange conformance
+
+A conformant registry and static Exchange **MUST** satisfy §§17.1, 17.4, 17.5, 17.6, and 17.8. Support for
+browser remix authoring is OPTIONAL; when offered, it **MUST** satisfy §§17.3 and 17.7. A consumer that
+uses the index for discovery **MUST** still verify the selected artifact bytes at the appropriate trust
+boundary before loading, staffing, or operationalizing them.

@@ -1,11 +1,17 @@
 # From hire to cartridge and back
 
-The whole lifecycle in one loop: an agent **emerges** inside a studio, gets **cast** onto a project, is **dispatched** to a station and **works**, **levels up** and **returns** — its memory merging back so *the company gets smarter* — then you **export** it as a signed `.acx` cartridge, optionally **mint a provable level**, **share or sell** it, and another studio **imports** it and **re-hires** an agent that arrives *pre-specialized*. Every turn of the loop makes the ecosystem smarter.
+The whole lifecycle in one loop: an agent **emerges** inside a studio, gets **cast** onto a project, is
+**dispatched** to a station and **works**, **levels up** and **returns** — its memory merging back so *the
+company gets smarter* — then you **export** it as a signed `.acx` cartridge, optionally **mint a provable
+level**, **share or publish** it, and another studio **imports** it and **re-hires** an agent that arrives
+*pre-specialized*. Every turn of the loop makes the ecosystem smarter.
 
 This page is the connective tissue between the two halves of the standard:
 
 - **AGENTIBUS is the runtime.** Emergence, casting/staffing, dispatch, stations, guardrails, XP, and merge-back are all *live studio machinery* — they happen inside one running company. See [The studio](../concepts/studio.md) and [The agent OS](../concepts/agent-os.md).
-- **The cartridge is the portable artifact.** The `.acx` file is the frozen, signed, sellable form of a studio employee — the thing that *crosses studios*. A station is where an agent works; a cartridge is what you hand to someone else's stations.
+- **The cartridge is the portable artifact.** The `.acx` file is the frozen, signed, shareable form of a
+  studio employee — the thing that *crosses studios*. A station is where an agent works; a cartridge is
+  what you hand to someone else's stations.
 
 !!! note "Two words, two layers"
     **Dispatch** and **stations** are AGENTIBUS-internal: an agent is queued to a live VS Code window and does real work there. **Export / import** cross the studio boundary: the agent's transferable core is serialized into a single signed file that boots on *any* conforming host. Keep the distinction in mind — the loop below is really *one company's runtime loop wrapped in a portability envelope*.
@@ -28,7 +34,7 @@ flowchart TB
       direction TB
       X["⑤ EXPORT .acx<br/><small>ROM = transferable core (signed) · SAVE = field-learned (quarantined)</small>"]
       P["⑥ MINT PROVABLE LEVEL<br/><small>independent held-out re-run → σ-gated VC</small>"]
-      S["⑦ SHARE / SELL<br/><small>OCI artifact · marketplace</small>"]
+      S["⑦ SHARE / PUBLISH<br/><small>git · static Exchange · OCI</small>"]
       X --> P --> S
     end
 
@@ -164,15 +170,23 @@ Anti-fake by construction: **no self-issuance** (issuer ≠ subject), **ROM-dige
 !!! note "Weng's acceptance rule, made cryptographic"
     Lilian Weng frames harness self-improvement so that *"candidates are accepted only if they have no regression on both held-in and held-out data"* ([Harness Engineering for Self-Improvement](https://lilianweng.github.io/posts/2026-07-04-harness/), 2026-07-04). The provable level turns exactly that acceptance rule into an *independently issued, ROM-bound credential*.
 
-## ⑦ Share or sell it on the marketplace
+## ⑦ Share or publish it through an exchange
 
-A stripped, re-signed ROM (optionally carrying a level VC) ships as **one immutable layer in a stock OCI image manifest** (`artifactType application/vnd.acx.cartridge.v1`). It distributes and verifies through any existing OCI registry with **zero registry code change**; the DSSE signature and each level attestation travel as OCI **referrers**, verifiable with off-the-shelf `cosign` / `oras`. This is the substrate for a **marketplace of specialized agents** — signed, identity-bound, and independently level-graded.
+A stripped, re-signed ROM (optionally carrying a level VC) ships as **one immutable layer in a stock OCI
+image manifest** (`artifactType application/vnd.acx.cartridge.v1`). It distributes and verifies through
+any existing OCI registry with **zero registry code change**; the DSSE signature and each level attestation
+travel as OCI **referrers**, verifiable with off-the-shelf `cosign` / `oras`. The same artifact can be
+discovered through the static Exchange and reviewed through the git registry. ACX defines no checkout,
+payment, or entitlement semantics.
 
 - Standard detail: [Distribution (OCI)](distribution.md) — the manifest layout, referrers, and example `oras`/`cosign` commands.
 
 ## ⑧ Another studio imports it and re-hires the agent
 
-The buyer's host **imports** the `.acx`: it brand-checks the header, verifies the ROM signature (`local` / `trusted` / `portable` / `legacy` / `tampered`), negotiates the four tool-roles, loads skills, ingests the transferable ROM memory, and — because the embedding engine may differ — **re-indexes vectors from the JSON baseline**. The SAVE zone starts empty; the codebase fingerprint is derived locally.
+The recipient's host **imports** the `.acx`: it brand-checks the header, verifies the ROM signature
+(`local` / `trusted` / `portable` / `legacy` / `tampered`), negotiates the four tool-roles, loads skills,
+ingests the transferable ROM memory, and — because the embedding engine may differ — **re-indexes vectors
+from the JSON baseline**. The SAVE zone starts empty; the codebase fingerprint is derived locally.
 
 At that point the loop **closes**: the imported cartridge becomes an employee in a *different* studio, and step ① runs again — except the agent is no longer a Lv.1 intern. It arrives **pre-specialized**: its skills, capabilities, loop policy, and (if minted) its independently verified level are already loaded. It gets cast (②), dispatched (③), levels up on the new codebase (④), and can be re-exported (⑤) — now carrying learnings from *two* companies' worth of work.
 
@@ -192,7 +206,7 @@ That is the ecosystem flywheel: **a station is where an agent works; a cartridge
 | ④ | Level up + return (merge-back) | AGENTIBUS runtime | [The studio](../concepts/studio.md) · [memory](../format/memory.md) |
 | ⑤ | Export `.acx` (ROM + SAVE) | Cartridge artifact | [cartridge model](../concepts/cartridge-model.md) · [container](../format/container.md) · [signing & trust](../format/signing-trust.md) · [loading](loading.md) |
 | ⑥ | Mint provable level | Cartridge artifact | [provable level](../leveling/provable-level.md) |
-| ⑦ | Share / sell | Cartridge artifact | [distribution](distribution.md) |
+| ⑦ | Share / publish | Cartridge artifact | [distribution](distribution.md), [static Exchange](exchange.md) |
 | ⑧ | Import + re-hire | Boundary crossing | [loading](loading.md) |
 
 ## Related

@@ -2,7 +2,9 @@
 
 The consolidated index of every normative JSON Schema in the Agent Cartridge standard (SPEC §13) and the RFC 6838 vendor-tree media types that name each artifact on the wire.
 
-All 13 schemas use [JSON Schema **draft 2020-12**](https://json-schema.org/draft/2020-12/schema). The `$id` is the stable, canonical identifier a validator resolves — it is a URL *namespace*, not a fetch target. The physical files ship in the repo under `schemas/`.
+All schemas use [JSON Schema **draft 2020-12**](https://json-schema.org/draft/2020-12/schema). The `$id`
+is the stable, canonical identifier a validator resolves — it is a URL *namespace*, not a fetch target.
+The physical files ship in the repo under `schemas/`.
 
 !!! note "`$id` vs. file path"
     The `$id` (e.g. `https://acx.dev/schema/rom-manifest.v1.json`) is what an in-toto predicate or a `$ref` points at. The file on disk (`schemas/container-amp-integrity.schema.json`) is what you validate against. Every normative schema now uses the single `https://acx.dev/` namespace.
@@ -16,7 +18,7 @@ Each row maps a **format block** to its schema **title**, canonical **`$id`**, a
 | [Container & Integrity](../format/container.md) | ACX ROM Integrity Manifest (DSSE payload) | `https://acx.dev/schema/rom-manifest.v1.json` | `container-amp-integrity.schema.json` |
 | [Identity, Signing & Trust](../format/signing-trust.md) | ACX Trust Registry (public keys only) | `https://acx.dev/schema/trust-registry/v1` | `identity-signing-trust.schema.json` |
 | [Skill Bundle](../format/skills.md) | ACX Skill Index Descriptor (`acx_skill` row) | `https://acx.dev/schemas/skill-descriptor/1` | `skill-bundle.schema.json` |
-| [Capability & Sellable-Claim](../format/capabilities.md) | CapabilityRecord | `https://acx.dev/schema/capability/1` | `capability-sellable-claim.schema.json` |
+| [Capability record](../format/capabilities.md) | CapabilityRecord | `https://acx.dev/schema/capability/1` | `capability-sellable-claim.schema.json` |
 | [Memory Partition](../format/memory.md) | AcxMemoryRecord | `https://acx.dev/schema/memory-record.v1.json` | `memory-partition.schema.json` |
 | [Package Spec](../format/packages.md) | ACX Package Spec (`acx.package-spec/1`) | `https://acx.dev/schema/package-spec.v1.json` | `package-spec.schema.json` |
 | [LanceDB Memory](../format/packages.md) | ACX LanceDB Memory Schema (`acx.lance-memory/1`) | `https://acx.dev/schema/lance-memory.v1.json` | `lance-memory.schema.json` |
@@ -26,6 +28,8 @@ Each row maps a **format block** to its schema **title**, canonical **`$id`**, a
 | [Workflow participation](../format/loops-cal.md) | ACX CAL Skill Set (`acx.cal-skillset/1`) | `https://acx.dev/schema/cal-skillset.v1.json` | `cal-skillset.schema.json` |
 | [ACX Agent Graph](../format/agent-graph.md) | ACX Agent Graph — knowledge, reporting, and loop convergence (`acx.agent-graph/1`) | `https://acx.dev/schema/agent-graph.v1.json` | `agent-graph.schema.json` |
 | [Provable Character Level](../leveling/provable-level.md) | AcxLevelCredential | `https://acx.dev/schema/level-credential.v1.json` | `provable-character-level.schema.json` |
+| [Registry discovery](../lifecycle/sharing-git.md) | ACX Registry Index (`acx.registry-index/1`) | `https://acx.dev/schema/registry-index.v1.json` | `registry-index.schema.json` |
+| [Registry lifecycle](../lifecycle/sharing-git.md) | ACX Registry Status Ledger (`acx.registry-status/1`) | `https://acx.dev/schema/registry-status.v1.json` | `registry-status.schema.json` |
 
 ### Top-level `required` and `$defs`
 
@@ -38,7 +42,7 @@ The nested `$defs` are the reusable sub-schemas the standard reuses across the e
 | Skill Index Descriptor | `name`, `description`, `sqlar_path`, `content_sha256`, `resources`, `schema_version` | — |
 | CapabilityRecord | `schemaVersion`, `id`, `taskType`, `stack`, `domain`, `proficiency`, `evidenceRefs`, `sampleCount`, `lastDemonstratedAt`, `createdAt`, `updatedAt` | — |
 | AcxMemoryRecord | `id`, `title`, `summary`, `sourceType`, `portable`, `codebaseFingerprint`, `repoId`, `repoLabel`, `projectLabel`, `timestamp`, `impact`, `xpAwarded`, `tags`, `artifactFingerprint`, `zone` | — |
-| ACX Package Spec | `schemaVersion`, `artifacts` | — |
+| ACX Package Spec | `schemaVersion`, `cartridgeId`, `specVersion`, `embeddingEngine`, `artifacts` | eight closed role profiles: `identity`, `memoryBaseline`, `memoryVectors`, `skills`, `capabilities`, `harness`, `loopContext`, `level` |
 | ACX LanceDB Memory Schema | `schemaVersion`, `format`, `table`, `embeddingEngine`, `distanceMetric`, `columns` | — |
 | AcxHarnessRequirements | `schemaVersion`, `mcp`, `model`, `requiredTools` | `harnessCompliance`, `toolRoleContract`, `capabilityScope`, `fsScopes`, `netScopes` |
 | Loop + Context Policy | `schemaVersion`, `loop`, `context` | `MissionRule`, `ResourceLimits`, `RetrievalStrategy`, `ContextCategory` |
@@ -46,6 +50,8 @@ The nested `$defs` are the reusable sub-schemas the standard reuses across the e
 | ACX CAL Skill Set | `schemaVersion`, `plays` | `play`, `reference` |
 | ACX Agent Graph | `schemaVersion`, `id`, `actors`, `knowledge`, `routes`, `limits` | `actor`, `selector`, `knowledgeModule`, `route`, `trigger`, `expectation`, `loopBinding`, `convergencePoint`, `graphLimits`, `integrity` |
 | AcxLevelCredential | `@context`, `type`, `issuer`, `validFrom`, `credentialSubject`, `credentialStatus`, `proof` | — |
+| ACX Registry Index | `schemaVersion`, `generatedAt`, artifact counts and collections | artifact discovery-card definitions |
+| ACX Registry Status Ledger | `schemaVersion`, `updatedAt`, `entries` | `identity`, `statusEntry` |
 
 !!! tip "Validate locally"
     The schemas are plain files — point any draft-2020-12 validator at them. The reference implementation is zero-dependency (Node ≥ 22 `node:sqlite` + `node:crypto`); the test suite asserts real artifacts against these schemas, e.g. *"§8 harness-requirements manifest matches its schema (requiredTools, no forbidden keys)"* and *"§7.6 stored memory payload carries schema-required zone + artifactFingerprint"* (see [Proofs](../proofs.md)).
@@ -68,6 +74,8 @@ Media types live in the RFC 6838 vendor tree (`application/vnd.acx.*`) plus thre
 | `application/vnd.acx.loop-context-policy.v1+json` | The loop + context policy document | [Loop + Context](../format/loop-context.md) |
 | `application/vnd.acx.workflow.v1+json` | A signed, shareable `acx.cal/1` agent-team workflow | [Loop engineering](../format/loops-cal.md) |
 | `application/vnd.acx.agent-graph.v1+json` | A signed team information architecture: knowledge ownership, reporting routes, and loop convergence | [Agent Graph](../format/agent-graph.md) |
+| `application/vnd.acx.registry-index.v1+json` | Deterministic registry discovery projection | [Sharing over git](../lifecycle/sharing-git.md) |
+| `application/vnd.acx.registry-status.v1+json` | Advisory lifecycle status keyed by immutable artifact identity | [Sharing over git](../lifecycle/sharing-git.md) |
 | `application/vnd.acx.level-attestation.v1` | An independent verifier's level attestation | [Provable Level](../leveling/provable-level.md) |
 | `application/vnd.acx.benchmark.v1` | A sealed benchmark with held-out slice | [Provable Level](../leveling/provable-level.md) |
 | `application/vc` | The W3C VC 2.0 / Open Badges 3.0 level credential | [Provable Level](../leveling/provable-level.md) |

@@ -1,8 +1,13 @@
 # The cartridge model (ROM / SAVE)
 
-A cartridge is a single `.acx` file split into two zones — a **signed, immutable ROM** you can share or sell, and a **mutable, codebase-specific SAVE** that field learning writes to — where stripping the SAVE away is *provably* a no-op on the ROM.
+A cartridge is a single `.acx` file split into two zones — a **signed, immutable ROM** you can share and
+verify, and a **mutable, codebase-specific SAVE** that field learning writes to — where stripping the SAVE
+away is *provably* a no-op on the ROM.
 
-The name is deliberate. Think of a game cartridge: a masked ROM chip that ships identical to every buyer, plus a battery-backed SAVE that records *your* playthrough. The ROM is what the publisher signed; the SAVE is what your codebase taught it. The whole point of the `.acx` format is to make that boundary cryptographic rather than aspirational.
+The name is deliberate. Think of a game cartridge: a masked ROM chip that ships identically to every
+recipient, plus a battery-backed SAVE that records *your* playthrough. The ROM is what the publisher
+signed; the SAVE is what your codebase taught it. The whole point of the `.acx` format is to make that
+boundary cryptographic rather than aspirational.
 
 !!! abstract "The one-sentence claim"
     ROM is the signed core; SAVE is local memory; and `strip-to-ROM` re-export reproduces the **exact same signed `manifest_hash`** — so you can prove, by hash equality, that field learning never touched the thing you signed.
@@ -15,7 +20,8 @@ This page covers the metaphor in depth, the two zones and what lives in each, an
 
 Every attempt to package a "specialized agent" runs into one tension:
 
-- A **base** worth sharing must be **codebase-agnostic**. If it carries your repo names, your paths, or your private conventions, it is neither shareable nor sellable.
+- A **base** worth sharing must be **codebase-agnostic**. If it carries your repo names, your paths, or
+  your private conventions, it is not safely portable.
 - A base worth *using* accumulates **field-learned specificity**. An agent that has debugged your monorepo for three months knows things no generic base could — and that knowledge is intrinsically about *your* codebase.
 
 These two goals pull in opposite directions. Most formats resolve it by picking one: either a frozen distributable with no learning, or a personal memory store that can never be safely shared. The cartridge model refuses the choice by **partitioning** rather than collapsing.
@@ -32,7 +38,7 @@ The resolution: **`portable` is a property of every record, and it decides the z
 flowchart TB
   subgraph ACX["one .acx file (SQLite, application_id ACX1)"]
     direction TB
-    subgraph ROM["🔒 ROM zone — signed, immutable, shareable/sellable"]
+    subgraph ROM["🔒 ROM zone — signed, immutable, shareable"]
       direction LR
       R1["cartridge meta<br/>(minus SAVE keys)"]
       R2["sqlar rows under rom/<br/>(SKILL.md bundles, knowledge .md)"]
@@ -53,7 +59,7 @@ flowchart TB
 
 ### What lives in ROM
 
-The ROM zone is "the signed, immutable, shareable/sellable core" (SPEC §2). It comprises:
+The ROM zone is "the signed, immutable, shareable core" (SPEC §2). It comprises:
 
 | Content | Where it lives | Notes |
 |---|---|---|
@@ -152,10 +158,10 @@ And the test suite pins the invariant twice — once as a property and once on a
         # status: warning / portable  — signature valid, signer not in your trust registry
         ```
 
-    === "Run all 10 proofs"
+    === "Run the proof suite"
 
         ```bash
-        npm test          # 113 tests, 0 fail
+        npm test          # current suite, 0 fail
         node --experimental-sqlite scripts/smoke.mjs
         ```
 
@@ -170,7 +176,7 @@ Put the pieces together and the tension from the top of the page dissolves:
 ```mermaid
 flowchart LR
   A["Publisher authors<br/>codebase-agnostic core"] -->|"export + sign<br/>(scrub gate, fail-closed)"| B["ROM<br/>signed manifest_hash"]
-  B -->|"share / sell / distribute<br/>(OCI layer)"| C["You import"]
+  B -->|"share / publish / distribute<br/>(OCI layer)"| C["You import"]
   C -->|"field learning writes<br/>portable:false records"| D["SAVE<br/>codebase-fingerprinted"]
   D -->|"acx strip"| E["ROM re-export"]
   E -->|"manifest_hash EQUAL"| B
@@ -180,7 +186,10 @@ flowchart LR
 
 - **Specificity accumulates without contaminating the base.** Field learning writes `portable: false` records into SAVE, each carrying `"cbf1_" + HMAC-SHA-256(installationSalt, canonicalRepoIdentity)` truncated to 40 hex chars (SPEC §7.2). The salt is a ≥ 256-bit org-scoped secret held *outside* the bundle and never exported, so the fingerprint is dictionary-resistant and non-correlatable across orgs — that non-correlatability *is* the quarantine boundary. Even when you opt in with `--include-field-learned`, foreign records stay quarantined under their imported fingerprint and MUST NOT be re-projected onto your codebase (SPEC §7.4).
 
-- **The boundary is auditable at any moment.** Because strip-to-ROM reproduces the signed hash, anyone holding your working `.acx` can re-derive the exact bytes the publisher signed and confirm the signature still covers them — regardless of how much your local agent has learned. The ROM you can sell and the memory you field-learned coexist in one file, with a hash proving they never leaked into each other.
+- **The boundary is auditable at any moment.** Because strip-to-ROM reproduces the signed hash, anyone
+  holding your working `.acx` can re-derive the exact bytes the publisher signed and confirm the signature
+  still covers them — regardless of how much your local agent has learned. The ROM you can share and the
+  memory you field-learned coexist in one file, with a hash proving they never leaked into each other.
 
 !!! note "This is the harness's held-out discipline, one layer down"
     Weng notes that "candidates are accepted only if they have no regression on both held-in and held-out data." The cartridge applies the same "prove it, don't assert it" instinct to *state*: the ROM is accepted as unchanged only if a mechanical re-derivation reproduces the signed digest. The [provable level](../leveling/provable-level.md) makes the analogous claim about *capability* — a level is issued only after an independent re-run on a sealed held-out slice, bound to the ROM digest.

@@ -45,8 +45,8 @@ information architecture in `.agent-graph.json`.
 | `acx export <agent-package-dir> <out.acx> --publisher <reverse-dns>` | Package + sign a cartridge. Writes the private key to `<out>.key.pem` **outside** the cartridge. | 0 |
 | `acx strip <file.acx> <out.acx>` | Remove SAVE zone; print the ROM hash-equality proof. | non-0 if mismatch |
 | `acx level <file.acx>` | Run the demo benchmark with an independent verifier and issue a level credential. | 0 |
-| `acx builder [--port 8799]` | Launch the visual CAL/RAC builder; saves unsigned drafts outside the registry. | (serves) |
-| `acx share agent <file.acx> --slug <slug> [--dry-run]` | Verify and prepare an agent plus discovery card under `registry/`. | non-0 if unsafe |
+| `acx builder [--port 8799]` | Serve the same static Studio shipped with the Exchange. It has no server-side writes; exports are unsigned local downloads. | (serves) |
+| `acx share agent <file.acx> [--slug <slug>] [--dry-run]` | Verify and prepare a versioned agent plus discovery card under `registry/`. | non-0 if unsafe |
 | `acx share workflow <file.cal.json> [--dry-run]` | Verify and prepare a signed workflow under `registry/cals/`. | non-0 if unsafe |
 | `acx share graph <file.agent-graph.json> [--dry-run]` | Verify and prepare a signed Agent Graph under `registry/graphs/`. | non-0 if unsafe |
 
@@ -61,7 +61,8 @@ information architecture in `.agent-graph.json`.
 - **Sharing a workflow?** → `acx workflow sign ...`, then share the one `.cal.json` file; recipients run `acx workflow verify` before staffing it.
 - **Sharing team information architecture?** → `acx graph sign ...`, then `acx share graph ... --dry-run`;
   recipients verify the one `.agent-graph.json` file before mapping its logical actors.
-- **Sharing an agent?** → push the `.acx` cartridge to the git registry (`registry/`), an OCI registry, or the HTTP exchange (`platform/`).
+- **Sharing an agent?** → push the `.acx` cartridge to the git registry (`registry/`), an OCI registry, or
+  rebuild and deploy the static Exchange (`platform/static/` + `tools/build-static-exchange.mjs`).
 - **Submitting yourself through a PR?** → read `skills/acx-share-agent/SKILL.md`, run the dry-run, then prepare and review the focused registry diff.
 
 ## Safety rules (MUST follow)
@@ -89,7 +90,7 @@ information architecture in `.agent-graph.json`.
 ## Prove it works (reproducible)
 
 ```bash
-npm test                                              # 113 conformance, graph, workflow, and sharing tests
+npm test                                              # full conformance, graph, workflow, registry, and sharing suite
 node --experimental-sqlite scripts/smoke.mjs          # export → verify → strip → tamper
 node --experimental-sqlite scripts/prove-level.mjs    # earn + verify a provable level
 ```

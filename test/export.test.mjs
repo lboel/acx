@@ -2,7 +2,7 @@
 // full conformance chain (sign -> trust -> strip -> tamper) on the artifact.
 import { test, after, before } from 'node:test'
 import assert from 'node:assert/strict'
-import { existsSync, copyFileSync, mkdtempSync, writeFileSync } from 'node:fs'
+import { existsSync, copyFileSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { randomBytes } from 'node:crypto'
@@ -13,6 +13,7 @@ import { buildCapability } from '../src/builders.mjs'
 import { evaluateTrust, emptyTrustRegistry } from '../src/trust.mjs'
 import { stripToRom } from '../src/strip.mjs'
 import { buildRomManifest } from '../src/sign.mjs'
+import { readCard } from '../src/load.mjs'
 import { tmpAcxPath, trustedRegistry, cleanup } from './helpers.mjs'
 
 import { SAMPLE_PACKAGE_DIR } from '../src/paths.mjs'
@@ -47,11 +48,50 @@ test('export produces a valid .acx with ROM objects, a skill index, and capabili
   // purl normalization happened (airflow -> pkg:pypi/apache-airflow)
   const dag = caps.find((c) => c.taskType === 'build-dag')
   assert.ok(dag.stack.includes('pkg:pypi/apache-airflow'))
+  const card = readCard(cart)
+  assert.equal(card.id, 'scenario-research-designer')
+  assert.equal(card.discovery.id, 'scenario-research-designer')
+  assert.equal(card.discovery.version, '1.0.0')
+  assert.equal(card.discovery.license, 'Apache-2.0')
+  assert.ok(card.discovery.description.length >= 20)
+  assert.ok(card.discovery.tags.length >= 1)
+  const boundSources = new Set(cart.romObjects().map((object) => object.source_ref))
+  assert.ok(boundSources.has('cartridge:acx.description'))
+  assert.ok(boundSources.has('cartridge:acx.artifact_id'))
+  assert.ok(boundSources.has('cartridge:acx.artifact_version'))
   cart.close()
 })
 
 test('exported cartridge id embeds the publisher + slug', () => {
   assert.match(cartridgeId, /^io\.github\.agentibus\/scenario-research-designer@/)
+})
+
+test('explicit artifactId is the ROM-bound id and cartridge identity slug', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'acx-explicit-id-'))
+  writeFileSync(join(dir, 'manifest.json'), JSON.stringify({
+    name: 'Human Friendly Agent Name',
+    artifactId: 'stable-machine-id',
+    artifactVersion: '2.3.4',
+    role: 'backend_dev',
+    techStack: ['typescript'],
+    description: 'A portable backend agent with an explicit stable registry identity.',
+    exportedAt: '2026-01-01T00:00:00.000Z',
+    vectorEngine: 'local-hash-128',
+  }))
+  writeFileSync(join(dir, 'memory-records.json'), '[]')
+  const output = tmpAcxPath('explicit-id.acx')
+  const result = exportPackageToCartridge({
+    packageDir: dir,
+    outPath: output,
+    key,
+    publisherId: 'io.github.agentibus',
+    installationSalt: randomBytes(32),
+  })
+  assert.match(result.cartridgeId, /^io\.github\.agentibus\/stable-machine-id@/)
+  assert.equal(result.cart.getMeta('acx.artifact_id'), 'stable-machine-id')
+  assert.equal(result.cart.getMeta('acx.artifact_version'), '2.3.4')
+  assert.ok(result.cart.romObjects().some((object) => object.source_ref === 'cartridge:acx.artifact_id'))
+  result.cart.close()
 })
 
 test('field-learned records are quarantined by default (no repoId leaks into ROM memory)', () => {
@@ -114,6 +154,77 @@ test('§7.5 scrub gate FAILS CLOSED: export is blocked when a portable record ca
     () => exportPackageToCartridge({ packageDir: dir, outPath: badOut, key, publisherId: 'io.github.agentibus', installationSalt: randomBytes(32) }),
     /scrub gate blocked export/,
   )
+})
+
+test('public discovery metadata is validated, scrubbed, and ROM-bound before export', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'acx-bad-discovery-'))
+  writeFileSync(join(dir, 'manifest.json'), JSON.stringify({
+    name: 'Leaky Discovery Agent',
+    role: 'backend_dev',
+    techStack: ['typescript'],
+    artifactVersion: '1.2.3',
+    description: 'Portable backend agent with api_key=super-secret-value embedded.',
+    exportedAt: '2026-01-01T00:00:00.000Z',
+    vectorEngine: 'local-hash-128',
+  }))
+  writeFileSync(join(dir, 'memory-records.json'), '[]')
+  const badOut = tmpAcxPath('leaky-discovery.acx')
+  assert.throws(
+    () => exportPackageToCartridge({
+      packageDir: dir,
+      outPath: badOut,
+      key,
+      publisherId: 'io.github.agentibus',
+      installationSalt: randomBytes(32),
+    }),
+    /scrub gate blocked export/,
+  )
+
+  const invalid = JSON.parse(readFileSync(join(dir, 'manifest.json'), 'utf8'))
+  invalid.description = 'A safe public description for a reusable backend agent.'
+  invalid.artifactVersion = 'latest'
+  writeFileSync(join(dir, 'manifest.json'), JSON.stringify(invalid))
+  assert.throws(
+    () => exportPackageToCartridge({
+      packageDir: dir,
+      outPath: badOut,
+      key,
+      publisherId: 'io.github.agentibus',
+      installationSalt: randomBytes(32),
+    }),
+    /artifactVersion must be SemVer/,
+  )
+
+  invalid.artifactVersion = '1.2.3'
+  invalid.artifactId = '../unsafe'
+  writeFileSync(join(dir, 'manifest.json'), JSON.stringify(invalid))
+  assert.throws(
+    () => exportPackageToCartridge({
+      packageDir: dir,
+      outPath: badOut,
+      key,
+      publisherId: 'io.github.agentibus',
+      installationSalt: randomBytes(32),
+    }),
+    /artifactId must be a lowercase registry slug/,
+  )
+
+  invalid.artifactId = 'safe-artifact-id'
+  for (const malformedVersion of ['01.0.0', '1.0.0-01', '1.0.0-alpha..1', '1.0.0+build..1']) {
+    invalid.artifactVersion = malformedVersion
+    writeFileSync(join(dir, 'manifest.json'), JSON.stringify(invalid))
+    assert.throws(
+      () => exportPackageToCartridge({
+        packageDir: dir,
+        outPath: badOut,
+        key,
+        publisherId: 'io.github.agentibus',
+        installationSalt: randomBytes(32),
+      }),
+      /artifactVersion must be SemVer/,
+      malformedVersion,
+    )
+  }
 })
 
 test('rebuilding the ROM manifest from the stored objects reproduces the signed hash', () => {

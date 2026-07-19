@@ -1,135 +1,240 @@
-# The exchange: browse, verify, trade
+---
+title: Static Exchange
+description: Discover, verify, download, remix, export, and publish signed ACX agents, workflows, and Agent Graphs without a backend.
+---
 
-The **Cartridge Exchange** is the marketplace layer of the standard: a trading post where signed, capability-bearing, level-attested `.acx` cartridges are browsed, verified, acquired, and published — without any host ever executing the code it is inspecting.
+<div class="acx-exchange-hero" markdown="1">
+<span class="acx-eyebrow">ACX EXCHANGE · STATIC BY DESIGN</span>
 
-A cartridge is a self-contained, signed harness — the agent-OS image (see [The agent OS](../concepts/agent-os.md)). Everything the exchange needs to make a trade *trustworthy* is already sealed inside the file: the [DSSE signature](../format/signing-trust.md), the [declared and provable levels](../leveling/provable-level.md), and the [capability records](../format/capabilities.md). The exchange doesn't add trust — it *reads and checks* the trust the cartridge already carries. That is what lets strangers trade agents safely.
+# Find a better agent loop. Verify it. Make it yours.
 
-!!! note "Where this sits in the loop"
-    In the [company loop](company-loop.md), a cartridge is the frozen, sellable form of a studio employee — "the thing that crosses studios." The exchange is *where it crosses*. One studio [exports](company-loop.md) an agent to a signed `.acx`, publishes it here; another studio browses the roster, verifies it, acquires it, and re-hires a pre-specialized agent. The exchange is the connective tissue between two studios that never share a runtime.
+Browse agents, workflows, Agent Graphs, and editable starters without an account or runtime backend. The
+Exchange ships as ordinary HTML, CSS, JavaScript, JSON, and artifact files, so it works on GitHub Pages,
+an object store, a CDN, or a project subpath.
 
-## What the reference exchange is (and is not)
+<div class="acx-actions">
+<a class="acx-button acx-button--primary" href="../exchange/">Explore the Exchange</a>
+<a class="acx-button" href="../exchange/studio/">Open remix Studio</a>
+<a class="acx-button acx-button--quiet" href="sharing-git/">Publish through a PR</a>
+</div>
+</div>
 
-The bundled exchange in `platform/` is a **zero-dependency reference implementation**: a neutral trading post to prove the trust model end to end, not a production registry.
+## One public loop, end to end
 
-- It reuses the reference implementation directly — `platform/catalog.mjs` opens each `.acx` **read-only** through `src/container.mjs` and runs `evaluateTrust` from `src/trust.mjs`.
-- `platform/views.mjs` server-renders plain HTML (the cartridge theme); `platform/server.mjs` is a single `node:http` server; `platform/seed.mjs` seeds a starter roster.
-- Same runtime rule as the rest of the project: **Node ≥ 22 builtins only** (`node:sqlite`, `node:crypto`, `node:http`), run with `--experimental-sqlite`.
+<div class="acx-exchange-flow" aria-label="Discover, inspect, verify, download, remix, export, and publish">
+<div><span>01</span><strong>Discover</strong><small>filter safe index cards</small></div>
+<div><span>02</span><strong>Inspect</strong><small>identity, status, lineage</small></div>
+<div><span>03</span><strong>Verify</strong><small>recompute before trust</small></div>
+<div><span>04</span><strong>Download</strong><small>authoritative bytes</small></div>
+<div><span>05</span><strong>Remix</strong><small>unsigned local draft</small></div>
+<div><span>06</span><strong>Export</strong><small>JSON or CLI handoff</small></div>
+<div><span>07</span><strong>Publish</strong><small>signed, reviewed PR</small></div>
+</div>
 
-```bash
-node --experimental-sqlite platform/seed.mjs      # seed a roster into platform/catalog/
-node --experimental-sqlite platform/server.mjs    # -> http://localhost:8787  (PORT to override)
+The useful viral loop is not “copy a screenshot.” It is a reproducible chain where each recipient can
+understand the artifact quickly, verify the bytes independently, preserve attribution, change the design,
+and publish a new immutable version.
+
+```text
+stable detail link
+  → verified download
+  → remix with signed parent lineage
+  → local signature
+  → focused pull request
+  → new stable detail link
 ```
 
-!!! tip "Neutral trading language"
-    The exchange is a general **Cartridge Exchange** — a roster you browse, verify, collect, and trade. It is not modeled on, and does not reference, any real trading-card game or franchise. The domain vocabulary is deliberately generic: *browse, roster, acquire, publish, trade*.
+## What is exchanged
 
-## The trade flow: publish → verify → list → acquire
-
-Every cartridge takes the same path. Publishing is *untrusted by default* — the file is verified on the way in, and only an intact, validly-signed cartridge is ever listed. Acquisition serves the exact bytes that were verified.
-
-```mermaid
-flowchart LR
-    subgraph PUB["Publisher (untrusted)"]
-      U["POST /publish<br/><small>.acx upload</small>"]
-    end
-    subgraph EX["Cartridge Exchange"]
-      direction TB
-      G1{"SQLite magic?<br/><small>'SQLite format 3'</small>"}
-      G2{"≤ 8 MB?"}
-      V["inspectUpload()<br/><small>evaluateTrust · read-only</small>"]
-      G3{"trust ≠ tampered<br/>& proof valid?"}
-      C["catalog/&lt;id&gt;.acx<br/><small>path-sanitized id</small>"]
-      L["GET /  · roster gallery<br/><small>ranked by provable level, then trust</small>"]
-    end
-    subgraph ACQ["Collector"]
-      D["GET /download/:id<br/><small>application/vnd.acx.cartridge</small>"]
-    end
-
-    U --> G1
-    G1 -- no --> R1["400 rejected"]
-    G1 -- yes --> G2
-    G2 -- no --> R2["413 too large"]
-    G2 -- yes --> V --> G3
-    G3 -- tampered / invalid --> R3["/publish?msg=rejected…"]
-    G3 -- acceptable --> C --> L
-    L --> D
-```
-
-The reject path is the important one. A cartridge whose signed [ROM manifest](../format/signing-trust.md) no longer matches its live bytes is classified `tampered` by `evaluateTrust`, and `inspectUpload` refuses it — it never reaches the catalog directory, so it can never be listed or acquired.
-
-## Endpoints
-
-All routes are served by `platform/server.mjs` on `http://localhost:8787` (set `PORT` to change).
-
-| Method | Path | Purpose |
+| Artifact | What travels | What the browser can establish |
 | --- | --- | --- |
-| `GET` | `/` | Roster gallery — every catalog cartridge, ranked by provable level, then trust tier, then name |
-| `GET` | `/c/:id` | Detail page for one cartridge (metadata, skills, capabilities, trust verdict, level) |
-| `GET` | `/api/cartridges` | The full catalog as JSON |
-| `GET` | `/download/:id` | Serves the raw `.acx`, `Content-Type: application/vnd.acx.cartridge` |
-| `GET` | `/verify/:id` | Re-verifies a listed cartridge and renders the verdict |
-| `GET` | `/publish` | The upload form |
-| `POST` | `/publish` | Accepts an untrusted `.acx`; verifies before listing (see below) |
+| Agent cartridge | One signed `.acx` SQLite file: skills, portable memory, capability claims, policies, attestations | Download hash and discovery metadata only; use the CLI for full SQLite, ROM, package, level, and capability verification |
+| Workflow | One signed `.cal.json`: roles, bounded tasks, structured conditions, required context, safety declarations | JCS digest, Ed25519 DSSE/in-toto signature, and publisher claim |
+| Agent Graph | One signed `.agent-graph.json`: fuzzy seats, knowledge stewards, direction, reports, loop bindings, convergence | JCS digest, Ed25519 DSSE/in-toto signature, publisher claim, and pinned workflow references |
+| Template | Diffable unsigned source material for an agent package | File digest and manifest shape; never signature trust |
 
-The gallery ranking (`platform/catalog.mjs`, `listCatalog`) sorts by `level.acxLevel` descending, then a trust rank (`local > trusted > portable > legacy > tampered`), then name — so a cartridge with a real [provable level](../leveling/provable-level.md) rises to the top, and the cartridge's own cryptographic properties, not a popularity metric, determine its standing.
+The Exchange does not execute any artifact. Opening a card, verifying JSON, downloading bytes, or creating
+a draft never dispatches an agent, evaluates a workflow, follows a route, or resolves private knowledge.
 
-## Security model
+## The identity that survives sharing
 
-!!! danger "The exchange never executes a cartridge — it only reads and verifies"
-    This is the load-bearing property of the whole trading post. Read `platform/catalog.mjs` and `platform/server.mjs` and you will find **no code path that runs, boots, evals, or dispatches** an uploaded cartridge. Every cartridge is opened **read-only** as a SQLite database; the only operations are *reading metadata* and *verifying the ed25519 DSSE signature over the recomputed ROM manifest*. Uploads are untrusted, and a **tampered** cartridge is **rejected on publish** — never listed, never served.
+Every published agent, workflow, or Agent Graph is addressed by:
 
-The upload path enforces defense in depth, all in `server.mjs`:
-
-- **8 MB upload cap** — the request stream is destroyed with `413` the moment it exceeds `MAX_UPLOAD`.
-- **SQLite-magic check** — the first 15 bytes must be `SQLite format 3` (per the [container format](../format/container.md)); anything else is `400`.
-- **Path-traversal sanitization** — the incoming id is run through `safeId` (lowercased, non-`[a-z0-9._-]` collapsed, leading/trailing dots stripped, capped at 64 chars) and the resolved path is asserted to stay inside `CATALOG_DIR`. A crafted id can never write outside the catalog.
-- **Verify-before-list** — `inspectUpload` calls `evaluateTrust`; a file is `acceptable` only when `trust !== 'tampered'` and the proof status is not `invalid`. Rejected uploads are deleted from the temp dir and never enter the catalog.
-
-!!! warning "The C1 integrity guarantee is what makes the reject real"
-    A tampered cartridge is caught because the ROM manifest is **recomputed from live bytes**, never read from a self-declared column — the [C1 fix](../format/signing-trust.md) at the heart of `buildRomManifest`. Rewrite one signed sqlar object, or flip a capability's `verified` flag, and the recomputed content address no longer matches the signed manifest; `evaluateTrust` returns `tampered`; the exchange returns you to `/publish` with a rejection message. Without C1, a marketplace could be poisoned by a cartridge that *claims* its own integrity. With it, the claim is checked against the bytes. See [Signing & trust](../format/signing-trust.md) and the [container format](../format/container.md) for the mechanism.
-
-## Relationship to OCI distribution
-
-The exchange and [OCI distribution](distribution.md) are **two front doors to the same signed artifact**, at different levels of production-readiness.
-
-=== "Reference exchange (this page)"
-    A simple, file-based trading post. Cartridges live as plain `.acx` files in `platform/catalog/`; the server is `node:http`; verification is inline. Zero dependencies, zero external services — ideal for browsing the trust model, demos, and local trading. It serves the *raw* `.acx` bytes at `/download/:id`.
-
-=== "OCI registry (production)"
-    In production the same frozen `.acx` bytes ship as **one immutable layer inside a stock OCI image manifest** (`artifactType application/vnd.acx.cartridge.v1`) and distribute through any existing OCI registry, verifiable with stock `cosign`/`oras`. See [Distribution (OCI)](distribution.md).
-
-!!! note "Same file, same signature, either path"
-    Whether a collector pulls a cartridge from this reference exchange or from an OCI registry, they receive **the identical signed bytes** and run **the identical `evaluateTrust` check** locally before booting it. The trust decision lives in the cartridge, not in the transport — so the transport is free to be as simple as a file server or as production-grade as a registry. OCI push itself is *specified in [SPEC §11](https://acx.dev) and host-side* — scoped out of the zero-dependency reference implementation — while this exchange is the runnable, in-repo distribution surface.
-
-## Try it
-
-```bash
-# 1. seed a starter roster of signed cartridges
-node --experimental-sqlite platform/seed.mjs
-
-# 2. run the exchange
-node --experimental-sqlite platform/server.mjs
-# -> Cartridge Exchange on http://localhost:8787
-
-# 3. browse the roster, open a detail page, inspect the JSON
-open http://localhost:8787
-curl -s http://localhost:8787/api/cartridges | head
-
-# 4. acquire a cartridge (raw .acx bytes)
-curl -s http://localhost:8787/download/<id> -o acquired.acx
-
-# 5. publish one back — verified before it is ever listed
-curl -s -X POST --data-binary @acquired.acx \
-     -H 'x-cartridge-id: my-agent' \
-     http://localhost:8787/publish -i
+```text
+artifact type + publisher id + artifact id + SemVer + digest
 ```
 
-Try step 5 with a **tampered** cartridge (mutate one signed byte after export) and the exchange bounces you to `/publish?msg=rejected…` — the C1 check doing its job at the marketplace boundary.
+Agents, workflows, and Agent Graphs live at immutable paths:
+
+```text
+registry/cartridges/<publisher>/<id>/<version>/cartridge.acx
+registry/cals/<publisher>/<id>/<version>.cal.json
+registry/graphs/<publisher>/<id>/<version>.agent-graph.json
+```
+
+Changing signed bytes requires a new SemVer and a new path. An existing coordinate cannot be silently
+overwritten, including with `--force`. “Latest” is only a discovery shortcut; dependencies and lineage
+always pin a concrete digest. A cartridge carries `acx.artifact_id` and `acx.artifact_version` inside its
+signed ROM metadata; its coordinate digest remains the ROM digest.
+
+Signed `lineage.parents[]` records whether the new artifact is a `fork`, `remix`, `derived-from`, or
+`supersedes` publication. A parent reference carries the artifact type, publisher, id, optional version,
+and required sha256 digest. It preserves attribution, but it does not transfer namespace ownership,
+signature trust, license permission, or runtime authority.
+
+## Agent Graph: the information layer between loops
+
+**A CAL says what happens next. An Agent Graph says who owns the context, who can direct whom, where
+reports return, and where separate loops meet.**
+
+This is deliberately fuzzy in the useful places:
+
+- actors are logical seats selected by role, capability, tags, or prose rather than named machines;
+- knowledge modules describe intent, decisions, evidence, status, risk, and tacit context without
+  embedding the private content;
+- routes make direction, advice, reporting, review, approval, and escalation expectations visible;
+- loop bindings pin whole workflows without copying their task nodes; and
+- convergence points say which steward combines knowledge from at least two loops, under bounded waits
+  and rounds.
+
+The strict parts are references, return routes, dependency coordinates, direction conflicts, and bounds.
+That combination lets a Product Owner seat tell whichever developer agents are staffed what outcome is
+needed, while developers return status, evidence, risks, and blockers through an explicit reporting path.
+Research and delivery can remain separate CALs and still converge into one product decision.
+
+[Read the animated Agent Graph guide](../format/agent-graph.md) or open the
+[Studio](../exchange/studio/) to describe one in plain language first and add structure as it becomes
+useful.
+
+## Browser verification: precise boundaries
+
+The static app can recompute the canonical JCS digest and verify the Ed25519 DSSE/in-toto signature of a
+workflow or Agent Graph with WebCrypto. That proves that the JSON matches the signed digest and binds the
+publisher **claim** inside the artifact.
+
+It does **not** prove:
+
+- that the signer controls the claimed reverse-DNS or GitHub namespace;
+- that a workflow is safe to execute or locally staffable;
+- that an Agent Graph grants a real organizational permission;
+- that a cartridge's SQLite ROM, package specification, level credential, or capability evidence is
+  valid; or
+- that a license, payment, entitlement, or identity transaction occurred.
+
+A valid unknown signer is therefore shown as **portable**, not trusted. Namespace trust requires a
+verified trust-registry key and the DNS-TXT or GitHub-OIDC proof defined by the standard.
+
+For a cartridge, download first and verify locally:
+
+```bash
+acx verify downloaded-agent.acx
+acx spec downloaded-agent.acx
+acx load downloaded-agent.acx --print-only
+```
+
+For JSON artifacts, repeat the browser result with the CLI before operational use:
+
+```bash
+acx workflow verify downloaded.cal.json
+acx graph verify downloaded.agent-graph.json
+acx graph digest downloaded.agent-graph.json
+```
+
+`graph digest` hashes the unsigned JCS form — the entire document with only top-level `integrity` removed.
+It is the digest pinned by Agent Graph lineage and workflow dependencies.
+
+## Remix safely in Studio
+
+Studio is a local-first authoring surface included in the static build. It can start an Agent Graph or
+workflow from scratch, import a signed JSON artifact, and turn it into an unsigned remix:
+
+1. the parent's `integrity` block is removed;
+2. the parent publisher/id/version/digest is retained under signed `lineage`;
+3. the draft receives a new identity before signing;
+4. edits stay in browser memory unless you explicitly save locally; and
+5. export produces JSON and an exact CLI handoff, never a registry write.
+
+No private key belongs in a browser editor. Sign and verify the exported file locally:
+
+```bash
+acx graph lint my-remix.agent-graph.json --publish
+acx graph sign my-remix.agent-graph.json \
+  --publisher io.github.yourhandle \
+  --out my-remix.signed.agent-graph.json
+acx graph verify my-remix.signed.agent-graph.json
+acx share graph my-remix.signed.agent-graph.json --dry-run
+```
+
+The same sequence works with `workflow lint`, `workflow sign`, `workflow verify`, and `share workflow`.
+
+## Lifecycle status and dependency safety
+
+Published bytes remain immutable. The separate `registry/status.json` ledger can mark their digest-pinned
+identity `deprecated`, `withdrawn`, or `superseded`, with a reason and optional successor. The Exchange
+shows that warning before download. Status is registry advice, not cryptographic revocation; key and level
+credential revocation have their own verification paths.
+
+A published Agent Graph pins each ACX Workflow dependency by publisher, id, version, and digest. The
+registry build resolves that exact coordinate and fails on a missing or mismatched dependency. It never
+falls forward to “latest.” This keeps a graph's reporting and convergence architecture attached to the
+exact task loops its author reviewed.
+
+## Build it anywhere
+
+Build the validated registry projection and then the static app:
+
+```bash
+node --experimental-sqlite tools/build-registry-index.mjs
+node --experimental-sqlite tools/build-static-exchange.mjs
+# output: dist/exchange/
+```
+
+Choose any output directory and an optional public base URL for canonical/Open Graph metadata:
+
+```bash
+node --experimental-sqlite tools/build-static-exchange.mjs \
+  --out docs-site/site/exchange \
+  --site-url https://acx.dev/exchange/
+```
+
+All runtime links are relative, so copying the output directory to another host or subpath does not
+require a JavaScript rebuild. The optional `--site-url` affects share metadata, not routing.
+
+The build treats `registry/index.json` as an allowlist but never trusts it blindly. It independently
+re-verifies signed workflow/graph JSON and opens each cartridge read-only to check live ROM trust, its
+closed package profile, ROM-only publication state, publisher/id/version binding, and ROM digest. It then
+refuses traversal and symlink escapes, copies authoritative bytes unchanged, and writes `manifest.json`
+with output digests. Stable detail pages remain understandable without JavaScript and carry useful share
+metadata.
+
+## Publish the remix
+
+The browser never writes to the registry. Publication stays an ordinary reviewable git operation:
+
+```bash
+acx share graph my-remix.signed.agent-graph.json --dry-run
+acx share graph my-remix.signed.agent-graph.json
+node --experimental-sqlite tools/build-registry-index.mjs
+npm test
+git diff --check
+git diff -- registry/
+```
+
+The pull-request gate compares canonical artifact paths with the exact base commit, refuses modification,
+deletion, or rename of an accepted release, and then re-verifies live bytes, publication metadata,
+signatures, lineage, pinned dependencies, the status ledger, and the generated index. Human review
+decides namespace evidence, license fit, usefulness, and community policy.
+
+!!! info "Exchange is not commerce"
+    ACX defines artifact identity, integrity, discovery, remix lineage, and transport. The static Exchange
+    has no accounts, checkout, payments, custody, refunds, access entitlements, or licensing enforcement.
+    A separate service may add commerce, but an ACX listing or signature never proves a purchase or usage
+    right.
 
 ## See also
 
-- [From hire to cartridge and back](company-loop.md) — the full lifecycle; the exchange is where a cartridge leaves one studio and lands in another.
-- [Capabilities](../format/capabilities.md) — the `{taskType, stack, domain, proficiency}` records the roster surfaces, and why `verified:true` requires a resolvable attestation.
-- [Provable level](../leveling/provable-level.md) — the independently-issued credential that ranks a cartridge on the gallery and is bound to its ROM digest.
-- [Distribution (OCI)](distribution.md) — the production transport for the same signed bytes.
-- [Signing & trust](../format/signing-trust.md) — the DSSE envelope, the trust taxonomy, and the C1 integrity guarantee the exchange enforces on every publish.
+- [Share ACX](../share.md) — the short human and agent-native PR flow.
+- [Sharing over git](sharing-git.md) — immutable paths, index, status ledger, and CI contract.
+- [Agent Graph](../format/agent-graph.md) — fuzzy information architecture with hard invariants.
+- [Conditional Agentic Loops](../format/loops-cal.md) — bounded multi-agent task graphs.
+- [Signing & trust](../format/signing-trust.md) — what portable, trusted, and tampered mean.

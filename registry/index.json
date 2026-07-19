@@ -1,22 +1,53 @@
 {
   "schemaVersion": "acx.registry-index/1",
-  "generatedAt": "2026-07-19T12:00:00.000Z",
+  "generatedAt": "2026-07-19T08:54:36.000Z",
+  "artifactCount": 6,
   "count": 2,
   "cartridges": [
     {
-      "slug": "io.github.ridgeworks__ada-ridge__cartridge",
-      "path": "cartridges/io.github.ridgeworks/ada-ridge/cartridge.acx",
+      "id": "ada-ridge",
+      "slug": "io.github.ridgeworks__ada-ridge",
+      "path": "cartridges/io.github.ridgeworks/ada-ridge/1.0.0/cartridge.acx",
       "name": "Ada Ridge",
       "publisher": "io.github.ridgeworks",
       "role": "devops_engineer",
       "provider": "claude",
       "model": "claude-opus-4-8",
+      "version": "1.0.0",
+      "description": "A portable devops engineer agent specializing in airflow, snowflake, dbt, python.",
+      "license": "Apache-2.0",
+      "authors": [
+        {
+          "name": "io.github.ridgeworks"
+        }
+      ],
+      "tags": [
+        "devops-engineer",
+        "airflow",
+        "snowflake",
+        "dbt",
+        "python"
+      ],
+      "homepage": null,
       "trust": "portable",
       "trustStatus": "warning",
       "specClean": true,
-      "romHash": "sha256:06b9ceae34b07743a3934674aeac6aa5548e61d2cef31b12ebaafd4670b45cd5",
+      "romHash": "sha256:318b930a1942eb9d3e8088906c6b32f91def9e156d4cbb3a178e676d4e28aaca",
+      "digest": "sha256:318b930a1942eb9d3e8088906c6b32f91def9e156d4cbb3a178e676d4e28aaca",
       "bytes": 135168,
       "capabilities": [
+        {
+          "taskType": "build-dag",
+          "stack": [
+            "pkg:generic/snowflake",
+            "pkg:pypi/apache-airflow",
+            "pkg:pypi/dbt-core"
+          ],
+          "domain": "infrastructure",
+          "claimedVerified": false,
+          "verified": false,
+          "verificationState": "unresolved"
+        },
         {
           "taskType": "implement-feature",
           "stack": [
@@ -26,37 +57,55 @@
             "pkg:pypi/dbt-core"
           ],
           "domain": "infrastructure",
-          "verified": false
-        },
-        {
-          "taskType": "build-dag",
-          "stack": [
-            "pkg:generic/snowflake",
-            "pkg:pypi/apache-airflow",
-            "pkg:pypi/dbt-core"
-          ],
-          "domain": "infrastructure",
-          "verified": false
+          "claimedVerified": false,
+          "verified": false,
+          "verificationState": "unresolved"
         }
       ],
-      "level": {
-        "acxLevel": 30,
-        "careerTier": "distinguished",
-        "boundToRom": true
-      }
+      "level": null,
+      "levelClaim": {
+        "acxLevel": 28,
+        "careerTier": "principal",
+        "verificationState": "unresolved"
+      },
+      "registryStatus": {
+        "status": "active",
+        "reason": null,
+        "recordedAt": null,
+        "successor": null,
+        "advisory": null
+      },
+      "latest": true
     },
     {
-      "slug": "io.github.calder-sec__rex-calder__cartridge",
-      "path": "cartridges/io.github.calder-sec/rex-calder/cartridge.acx",
+      "id": "rex-calder",
+      "slug": "io.github.calder-sec__rex-calder",
+      "path": "cartridges/io.github.calder-sec/rex-calder/1.0.0/cartridge.acx",
       "name": "Rex Calder",
       "publisher": "io.github.calder-sec",
       "role": "security_expert",
       "provider": "claude",
       "model": "claude-sonnet-5",
+      "version": "1.0.0",
+      "description": "A portable security expert agent specializing in oauth, postgres, node.",
+      "license": "Apache-2.0",
+      "authors": [
+        {
+          "name": "io.github.calder-sec"
+        }
+      ],
+      "tags": [
+        "security-expert",
+        "oauth",
+        "postgres",
+        "node"
+      ],
+      "homepage": null,
       "trust": "portable",
       "trustStatus": "warning",
       "specClean": true,
-      "romHash": "sha256:904cc2641f846cfb100dc6c6360ae5f84a5069d65c29176046617ae2e048d4d0",
+      "romHash": "sha256:f763d225d5f79817876cfaa60183164471bf3ec5d8dbf711f3ae772916526d2f",
+      "digest": "sha256:f763d225d5f79817876cfaa60183164471bf3ec5d8dbf711f3ae772916526d2f",
       "bytes": 135168,
       "capabilities": [
         {
@@ -67,7 +116,9 @@
             "pkg:generic/postgresql"
           ],
           "domain": "infrastructure",
-          "verified": false
+          "claimedVerified": false,
+          "verified": false,
+          "verificationState": "unresolved"
         },
         {
           "taskType": "harden-security",
@@ -76,20 +127,31 @@
             "pkg:generic/postgresql"
           ],
           "domain": "infrastructure",
-          "verified": false
+          "claimedVerified": false,
+          "verified": false,
+          "verificationState": "unresolved"
         }
       ],
-      "level": {
-        "acxLevel": 19,
+      "level": null,
+      "levelClaim": {
+        "acxLevel": 18,
         "careerTier": "senior",
-        "boundToRom": true
-      }
+        "verificationState": "unresolved"
+      },
+      "registryStatus": {
+        "status": "active",
+        "reason": null,
+        "recordedAt": null,
+        "successor": null,
+        "advisory": null
+      },
+      "latest": true
     }
   ],
   "workflowCount": 2,
   "workflows": [
     {
-      "path": "cals/research-council.cal.json",
+      "path": "cals/io.github.lboel/research-council/1.0.0.cal.json",
       "id": "research-council",
       "version": "1.0.0",
       "name": "Research council",
@@ -132,11 +194,20 @@
         "research",
         "synthesize"
       ],
+      "lineage": [],
       "publishable": true,
-      "signed": true
+      "signed": true,
+      "registryStatus": {
+        "status": "active",
+        "reason": null,
+        "recordedAt": null,
+        "successor": null,
+        "advisory": null
+      },
+      "latest": true
     },
     {
-      "path": "cals/ship-a-feature.cal.json",
+      "path": "cals/io.github.lboel/ship-a-feature/1.0.0.cal.json",
       "id": "ship-a-feature",
       "version": "1.0.0",
       "name": "Ship a data-pipeline feature",
@@ -179,14 +250,23 @@
         "design-api",
         "harden-security"
       ],
+      "lineage": [],
       "publishable": true,
-      "signed": true
+      "signed": true,
+      "registryStatus": {
+        "status": "active",
+        "reason": null,
+        "recordedAt": null,
+        "successor": null,
+        "advisory": null
+      },
+      "latest": true
     }
   ],
   "agentGraphCount": 1,
   "agentGraphs": [
     {
-      "path": "graphs/product-delivery.agent-graph.json",
+      "path": "graphs/io.github.lboel/product-delivery/1.0.0.agent-graph.json",
       "id": "product-delivery",
       "version": "1.0.0",
       "name": "Product delivery team graph",
@@ -201,7 +281,7 @@
       "publisher": "io.github.lboel",
       "trust": "portable",
       "trustStatus": "verified",
-      "digest": "sha256:80f8c0c4e098d935c849380ecad108a18e20961ec03aaa5beb1463c41263c0fa",
+      "digest": "sha256:4c2c0fcedb2dbc9fe05df62be0349646df49877486e67d87d6648a945b01a5ff",
       "actorCount": 3,
       "knowledgeCount": 5,
       "routeCount": 4,
@@ -217,7 +297,7 @@
         {
           "id": "product-owner",
           "name": "Product Owner",
-          "kind": "agent"
+          "kind": "mixed"
         },
         {
           "id": "developers",
@@ -276,18 +356,85 @@
         {
           "id": "discovery-loop",
           "kind": "acx-workflow",
+          "workflowPublisherId": "io.github.lboel",
           "workflowId": "research-council",
+          "workflowVersion": "1.0.0",
           "digest": "sha256:3300ea74052dc7f76aa81f79cd37b269267b2f06b4ae4710480dc73d62102ed8"
         },
         {
           "id": "delivery-loop",
           "kind": "acx-workflow",
+          "workflowPublisherId": "io.github.lboel",
           "workflowId": "ship-a-feature",
+          "workflowVersion": "1.0.0",
           "digest": "sha256:588424a9ec12483ce13f28e81e9d0833777676bbd2c0c0686bbc27bb58f93dee"
         }
       ],
+      "lineage": [],
       "publishable": true,
-      "signed": true
+      "signed": true,
+      "registryStatus": {
+        "status": "active",
+        "reason": null,
+        "recordedAt": null,
+        "successor": null,
+        "advisory": null
+      },
+      "latest": true,
+      "dependencies": [
+        {
+          "loopId": "discovery-loop",
+          "artifactType": "workflow",
+          "publisherId": "io.github.lboel",
+          "id": "research-council",
+          "version": "1.0.0",
+          "digest": "sha256:3300ea74052dc7f76aa81f79cd37b269267b2f06b4ae4710480dc73d62102ed8",
+          "status": "resolved",
+          "path": "cals/io.github.lboel/research-council/1.0.0.cal.json",
+          "registryStatus": "active"
+        },
+        {
+          "loopId": "delivery-loop",
+          "artifactType": "workflow",
+          "publisherId": "io.github.lboel",
+          "id": "ship-a-feature",
+          "version": "1.0.0",
+          "digest": "sha256:588424a9ec12483ce13f28e81e9d0833777676bbd2c0c0686bbc27bb58f93dee",
+          "status": "resolved",
+          "path": "cals/io.github.lboel/ship-a-feature/1.0.0.cal.json",
+          "registryStatus": "active"
+        }
+      ],
+      "dependenciesResolved": true
+    }
+  ],
+  "templateCount": 1,
+  "templates": [
+    {
+      "id": "starter-agent-package",
+      "version": "2.0",
+      "name": "Starter Agent Package",
+      "description": "An editable ACX starter package. Inspect and personalize every file before export.",
+      "license": "Apache-2.0",
+      "tags": [
+        "agent",
+        "portable",
+        "starter",
+        "template"
+      ],
+      "publisher": "ACX community",
+      "path": "templates/starter-agent-package/manifest.json",
+      "fileCount": 5,
+      "files": [
+        "IDENTITY.md",
+        "README.md",
+        "SKILLS.md",
+        "manifest.json",
+        "memory-records.json"
+      ],
+      "signed": false,
+      "trust": "unsigned",
+      "trustStatus": "warning"
     }
   ]
 }

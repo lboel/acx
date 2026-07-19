@@ -8,6 +8,22 @@
   "agentId": "TODO-your-agent-id",
   "sourceFingerprint": "TODO:model-id:backend_dev:0:postgres+node",
   "name": "TODO Your Agent Name",
+  "artifactId": "todo-agent-id",
+  "artifactVersion": "1.0.0",
+  "description": "TODO: describe this portable agent, its audience, and its reusable strengths in 20-500 characters.",
+  "license": "Apache-2.0",
+  "authors": [
+    {
+      "name": "TODO Your Name",
+      "url": "https://github.com/TODO"
+    }
+  ],
+  "tags": [
+    "backend-dev",
+    "postgres",
+    "node"
+  ],
+  "homepage": "https://github.com/TODO",
   "provider": "TODO-provider",
   "model": "TODO-model-id",
   "role": "backend_dev",

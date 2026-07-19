@@ -18,7 +18,8 @@ A CAL connects multiple cartridges into a process, and its tasks assume things a
 }
 ```
 
-*(from the shipped sample, `registry/cals/ship-a-feature.cal.json`)*
+*(from the shipped sample,
+`registry/cals/io.github.lboel/ship-a-feature/1.0.0.cal.json`)*
 
 | Field | Type | Meaning |
 |---|---|---|
@@ -73,8 +74,14 @@ The `check` object says how a host (or a human) confirms the described knowledge
 Three reasons, each load-bearing:
 
 1. **Portability.** A CAL that embedded a wiki dump or `.tf` files would only be valid for one repo at one moment. A CAL that *describes* the required knowledge ("Terraform describing the network + IAM architecture") is reusable across any environment that can satisfy the check.
-2. **Safety / no data exfiltration.** RAC items travel inside CAL files and alongside cartridges that are designed to be shared and sold. Descriptions of infrastructure are shareable; the infrastructure code itself is not. This is the same posture as the [memory partition](memory.md)'s fail-closed scrub gate: the export path refuses to ship secrets, and the RAC schema refuses to even have a place to put them.
-3. **The open-envelope principle.** The whole standard splits a free, fully open descriptive layer from priced, protected contents (SPEC §1, goal 5; see [capabilities](capabilities.md)). RAC sits squarely in the descriptive layer: reading a CAL tells you *what knowledge a process needs* without leaking *what anyone knows*.
+2. **Safety / no data exfiltration.** RAC items travel inside CAL files and alongside cartridges designed
+   to be shared. Descriptions of infrastructure can travel; the infrastructure code itself cannot. This
+   is the same posture as the [memory partition](memory.md)'s fail-closed scrub gate: the export path
+   refuses to ship secrets, and the RAC schema refuses to even have a place to put them.
+3. **The open-envelope principle.** The standard keeps the descriptive layer fully open while protected
+   knowledge remains in its authoritative environment (SPEC §1, goal 5). RAC sits squarely in that
+   descriptive layer: reading a CAL tells you *what knowledge a process needs* without leaking *what
+   anyone knows*. ACX does not define payment or entitlement semantics.
 
 The same boundary, drawn as a picture:
 
@@ -108,10 +115,14 @@ An agent's field-learned, repo-specific memory (`portable: false`) is quarantine
 
 ## The readiness checklist, live
 
-`acx workflow ready` validates the structure, resolves participants, and prints the RAC checklist. Real output from the shipped sample (`acx cal` is the compatibility alias):
+`acx workflow ready` validates the structure, resolves participants, and prints the RAC checklist. The
+checklist shape from the shipped sample looks like this (`acx cal` is the compatibility alias; the final
+readiness verdict depends on the receiving roster's resolved proofs):
 
 ```console
-$ node --experimental-sqlite src/cli.mjs cal registry/cals/ship-a-feature.cal.json --cartridges registry/cartridges
+$ node --experimental-sqlite src/cli.mjs cal \
+    registry/cals/io.github.lboel/ship-a-feature/1.0.0.cal.json \
+    --cartridges registry/cartridges
 CAL: Ship a data-pipeline feature  (5 nodes, 3 participants)
 ...
 Required Available Context (RAC — descriptions only, confirm before running):
@@ -232,4 +243,5 @@ A cartridge's transferable memory records already carry OKF-shaped metadata — 
 - [Conditional agentic loops](loops-cal.md) — the full CAL model that RAC items live in: participants, nodes, structured conditions, the per-cartridge skill set.
 - [Generating an agent set from code](../lifecycle/init-agent-set.md) — `acx init` and `--from-code` end to end.
 - [Memory partition](memory.md) — transferable vs field-learned memory, the scrub gate, the fingerprint.
-- [Capabilities](capabilities.md) — the open-envelope / priced-contents split that RAC's descriptive-layer placement follows.
+- [Capabilities](capabilities.md) — the open descriptive layer and independently verified evidence that
+  RAC's placement follows.

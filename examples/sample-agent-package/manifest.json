@@ -8,6 +8,23 @@
   "agentId": "ga-scenario-research-designer-9ef2h3",
   "sourceFingerprint": "gemini:gemini-2.5-pro:designer:0:research+ux+benchmarking",
   "name": "Scenario Research Designer",
+  "artifactId": "scenario-research-designer",
+  "artifactVersion": "1.0.0",
+  "description": "A portable research-design agent for evidence synthesis, UX discovery, and scenario benchmarking.",
+  "license": "Apache-2.0",
+  "authors": [
+    {
+      "name": "ACX Contributors",
+      "url": "https://github.com/lboel/acx"
+    }
+  ],
+  "tags": [
+    "designer",
+    "research",
+    "ux",
+    "benchmarking"
+  ],
+  "homepage": "https://acx.dev/",
   "provider": "gemini",
   "model": "gemini-2.5-pro",
   "role": "designer",

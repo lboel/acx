@@ -2,6 +2,7 @@
 node_modules/
 docs-site/.venv/
 docs-site/site/
+dist/
 .playwright-mcp/
 
 # generated cartridges & keys (regenerate with the scripts / platform/seed.mjs)
@@ -11,6 +12,8 @@ examples/*.key.pem
 platform/catalog/*.acx
 platform/catalog/trust-registry.json
 platform/.seed-src/
+# Local migration backups are never part of the immutable public registry.
+registry/legacy/
 
 # misc
 *.log
