@@ -4,7 +4,7 @@ message: "If you use this standard or implementation, please cite it."
 type: software
 authors:
   - name: "The Agent Cartridge authors"
-version: "0.1.0-rc"
+version: "0.1.1-rc.1"
 license: Apache-2.0
 repository-code: "https://github.com/lboel/acx"
 url: "https://lboel.github.io/acx/"

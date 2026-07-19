@@ -38,12 +38,15 @@ test('documentation hero answers the three beginner artifact questions', () => {
   assert.match(home, /<span>Agent Graph<\/span>\s*<strong>Who must tell whom what\?<\/strong>/)
 })
 
-test('release metadata remains an undated candidate until the tag exists', () => {
+test('release metadata preserves v0.1.0 and leaves the patch candidate untagged', () => {
   const changelog = read('CHANGELOG.md')
   const citation = read('CITATION.cff')
+  const packageJson = JSON.parse(read('package.json'))
 
-  assert.match(changelog, /## 0\.1\.0 — release candidate \(untagged\)/)
-  assert.match(changelog, /release date remains unset until `v0\.1\.0` is/)
-  assert.match(citation, /version: "0\.1\.0-rc"/)
+  assert.match(changelog, /## 0\.1\.1-rc\.1 — release candidate \(untagged\)/)
+  assert.match(changelog, /## 0\.1\.0 — 2026-07-19/)
+  assert.match(changelog, /`v0\.1\.0` public draft/)
+  assert.match(citation, /version: "0\.1\.1-rc\.1"/)
   assert.doesNotMatch(citation, /^date-released:/m)
+  assert.equal(packageJson.version, '0.1.1-rc.1')
 })
