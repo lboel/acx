@@ -1,6 +1,6 @@
 {
   "name": "agent-cartridge",
-  "version": "0.1.0",
+  "version": "0.1.1-rc.1",
   "description": "ACX (Agent Cartridge eXchange) — the open standard + zero-dependency reference implementation for portable, self-improving AI agents that learn, level up, form teams, and run workflows.",
   "license": "Apache-2.0",
   "type": "module",

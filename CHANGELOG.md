@@ -5,6 +5,13 @@ artifact version tracks are explained in [`GOVERNANCE.md`](./GOVERNANCE.md#versi
 
 ## Unreleased
 
+No unreleased changes.
+
+## 0.1.1-rc.1 — release candidate (untagged)
+
+Candidate for the first patch after the `v0.1.0` public draft. It remains untagged until the release
+metadata and final version decision are approved.
+
 ### Changed
 
 - Reworked the README into a beginner-first path that distinguishes Agent Cartridges, bounded workflows,
@@ -21,10 +28,9 @@ artifact version tracks are explained in [`GOVERNANCE.md`](./GOVERNANCE.md#versi
 - Re-ran the conformance, smoke, signed-artifact, registry, standalone Exchange, documentation-link, and
   packed-npm-CLI release gates on the supported Node.js baseline.
 
-## 0.1.0 — release candidate (untagged)
+## 0.1.0 — 2026-07-19
 
-Candidate for the initial public-draft release. Its release date remains unset until `v0.1.0` is
-actually tagged from the reviewed release commit.
+Initial public-draft release.
 
 ### Added
 
