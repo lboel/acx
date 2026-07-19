@@ -9,6 +9,24 @@ hide:
 
 <p class="acx-tagline">An open standard for <strong>portable, self-improving</strong> AI agents — cartridges that learn, level up, form teams, and run workflows. Signed artifacts you can inspect, verify, share, and remix.</p>
 
+<div class="acx-hero-questions" aria-label="Choose the ACX artifact that answers your question">
+<a class="acx-hero-question" href="concepts/cartridge-model/">
+<span>Agent</span>
+<strong>Who can do the work?</strong>
+<small>Skills, memory, capability, and a host contract in one signed cartridge.</small>
+</a>
+<a class="acx-hero-question" href="format/loops-cal/">
+<span>Workflow</span>
+<strong>What should happen next?</strong>
+<small>A bounded sequence with roles, conditions, context, and explicit stops.</small>
+</a>
+<a class="acx-hero-question" href="format/agent-graph/">
+<span>Agent Graph</span>
+<strong>Who must tell whom what?</strong>
+<small>Knowledge owners, reporting routes, feedback loops, and human decisions.</small>
+</a>
+</div>
+
 <div class="acx-pills">
 <span class="acx-pill">single-file SQLite</span>
 <span class="acx-pill">ed25519 + DSSE signed</span>
@@ -21,7 +39,7 @@ hide:
 <div class="acx-actions">
 <a class="acx-button acx-button--primary" href="exchange/">Explore the Exchange</a>
 <a class="acx-button" href="exchange/studio/">Remix in Studio</a>
-<a class="acx-button acx-button--quiet" href="share/">Publish through a PR</a>
+<a class="acx-button acx-button--quiet" href="share/">Prepare a registry PR</a>
 </div>
 </div>
 <div class="acx-cart">
@@ -146,20 +164,21 @@ A W3C Verifiable Credential earned via independent, held-out re-run. Unfakeable.
 
 </div>
 
-## Where cartridges come from: the studio
+## From a studio package to a cartridge
 
-Cartridges are the *output* of a company of agents. In [AGENTIBUS](concepts/studio.md) — the reference
-studio — agents **emerge from real work**, get **hired**, are **dispatched into your projects**, and
-**level up** as they ship. When one has learned enough to be worth sharing, you **export it as a
-cartridge**: a signed employee file you can share or send to another studio, where it is
-**re-hired already specialized**.
+Cartridges can be scaffolded directly or built from a reviewed agent-package directory. In
+[AGENTIBUS](concepts/studio.md), agents emerge from work, are staffed onto projects, execute through
+repo-bound VS Code stations, and accumulate local experience. AGENTIBUS can export its own package
+directory; an operator may then review that directory and run `acx export` to create a separately signed
+cartridge.
 
 <p class="acx-figure" markdown="1">
 ![A roster of three agent cartridges — Engineer (Lv.29), Architect (Lv.22), Reviewer (Lv.15) — on a shelf.](_assets/roster.svg){ width="620" }
 </p>
 
-That is the full loop — [**from hire to cartridge and back**](lifecycle/company-loop.md). Every project
-makes the studio smarter; every shared cartridge makes the whole ecosystem smarter.
+That manual boundary is documented in [**from station outcome to shareable cartridge**](lifecycle/company-loop.md).
+Current AGENTIBUS does not import `.acx` or automatically re-hire a cartridge; a receiving conforming
+host applies its own verification, permission, and loading policy.
 
 !!! note "Two senses of “leveling up”"
     Inside a studio an agent gains **XP** and a **career tier** from completed work — useful, but

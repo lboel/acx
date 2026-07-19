@@ -11,10 +11,13 @@ a push or pull request.
 
 ## 1. Establish scope
 
-1. Resolve the repository root with `git rev-parse --show-toplevel`.
-2. Read `AGENTS.md`, `registry/README.md`, `registry/status.json`, and
+1. Resolve the ACX package root by locating the directory that contains `src/cli.mjs`, `SPEC.md`, and
+   `registry/`. Resolve the enclosing Git root separately with `git rev-parse --show-toplevel`.
+2. Read the ACX-root `AGENTS.md`, `registry/README.md`, `registry/status.json`, and
    [references/pr-contract.md](references/pr-contract.md).
-3. Confirm the target is the canonical `lboel/acx` repository or a fork of it.
+3. Confirm a configured remote points to the canonical `lboel/acx` repository or a fork of it. If ACX is
+   a subtree of a larger worktree, allow read-only verification and dry runs there, but prepare the actual
+   share branch in a clean standalone ACX clone. Never switch the larger repository's branch implicitly.
 4. Classify the input:
    - signed agent: `*.acx`;
    - signed workflow/team: `*.cal.json`;
@@ -26,6 +29,10 @@ a push or pull request.
      `acx graph sign`.
 5. Never add a `*.key.pem`, generic private-key PEM, `.env`, credential, SAVE-zone export, build output, or
    secret-bearing source file to git.
+
+From a source checkout, invoke the CLI as `node --experimental-sqlite src/cli.mjs`. An installed `acx`
+binary is an equivalent shorthand. The commands below use the source form so a clean clone needs no
+global installation or `npm install`.
 
 ## 2. Preserve provenance when remixing
 
@@ -46,9 +53,9 @@ build must resolve all four fields to the exact signed workflow.
 For an agent:
 
 ```bash
-acx verify path/to/agent.acx
-acx spec path/to/agent.acx
-acx share agent path/to/agent.acx --dry-run
+node --experimental-sqlite src/cli.mjs verify path/to/agent.acx
+node --experimental-sqlite src/cli.mjs spec path/to/agent.acx
+node --experimental-sqlite src/cli.mjs share agent path/to/agent.acx --dry-run
 ```
 
 The dry run must confirm that all SAVE-zone memory, files, objects, and vectors are empty. Public agents
@@ -57,17 +64,17 @@ are ROM-only.
 For a workflow:
 
 ```bash
-acx workflow verify path/to/team.cal.json
-acx workflow lint path/to/team.cal.json --publish
-acx share workflow path/to/team.cal.json --dry-run
+node --experimental-sqlite src/cli.mjs workflow verify path/to/team.cal.json
+node --experimental-sqlite src/cli.mjs workflow lint path/to/team.cal.json --publish
+node --experimental-sqlite src/cli.mjs share workflow path/to/team.cal.json --dry-run
 ```
 
 For an Agent Graph:
 
 ```bash
-acx graph verify path/to/team.agent-graph.json
-acx graph lint path/to/team.agent-graph.json --publish
-acx share graph path/to/team.agent-graph.json --dry-run
+node --experimental-sqlite src/cli.mjs graph verify path/to/team.agent-graph.json
+node --experimental-sqlite src/cli.mjs graph lint path/to/team.agent-graph.json --publish
+node --experimental-sqlite src/cli.mjs share graph path/to/team.agent-graph.json --dry-run
 ```
 
 Stop on any invalid, tampered, legacy/unsigned, unclean, publisher-mismatch, unsafe-path, dangling or
@@ -90,11 +97,11 @@ expected.
 
 ```bash
 git switch -c registry/share-<slug>
-acx share agent path/to/agent.acx
+node --experimental-sqlite src/cli.mjs share agent path/to/agent.acx
 # or
-acx share workflow path/to/team.cal.json
+node --experimental-sqlite src/cli.mjs share workflow path/to/team.cal.json
 # or
-acx share graph path/to/team.agent-graph.json
+node --experimental-sqlite src/cli.mjs share graph path/to/team.agent-graph.json
 
 npm run build:registry
 npm run build:exchange -- --site-url https://lboel.github.io/acx/exchange/

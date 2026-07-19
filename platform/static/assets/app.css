@@ -721,6 +721,14 @@ h1 {
   gap: .55rem;
 }
 
+.copy-link-status {
+  min-height: 1.2rem;
+  margin: .65rem 0 0;
+  color: var(--teal-dark);
+  font-size: .73rem;
+  font-weight: 700;
+}
+
 .local-note {
   margin: 1rem 0 0;
   color: var(--muted);

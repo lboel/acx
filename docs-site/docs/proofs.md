@@ -105,6 +105,10 @@ escapes, and publisher tampering. Reporting cycles remain valid; every unsafe ca
 
 ## 4 · Round-trip: export → verify → strip → tamper
 
+This proof starts from the checked-in `examples/sample-agent-package` fixture. The fixture mirrors the
+Agentibus package-directory shape and exercises the explicit ACX CLI conversion boundary; the test does
+not call a running Agentibus server or prove that Agentibus itself emits `.acx` files.
+
 ```text
 exported cartridge: io.github.agentibus/scenario-research-designer@22f2ae29-…
 rom_manifest_hash: sha256:1726cf1e6025c166e06dc839a5cbae6c900f0ffa3e0b1235be8b78e88ee09943
@@ -127,7 +131,8 @@ SMOKE OK
 ```
 
 !!! success "What this proves"
-    - A real AGENTIBUS agent exports to a single signed `.acx`.
+    - The bundled Agentibus-shaped package fixture can be converted by the ACX reference CLI into one
+      signed `.acx`.
     - The trust taxonomy behaves: `portable` for an unknown signer, `local` for our own key.
     - **strip-to-ROM equality** is the machine-checkable proof that field learning never mutated the ROM.
     - Both a metadata tamper *and* a content-body tamper (the critical **C1** attack — rewrite a signed
@@ -199,4 +204,6 @@ rom/skills/expertise-designer/SKILL.md
     The benchmark's reference solver is **deterministic and pluggable** — a production verifier plugs
     in a real sandboxed agent run; the cryptographic gating, evidence, and credential machinery shown
     above are fully real. OCI push, live namespace-proof verification, and the host handshake runtime
-    are specified normatively but are host-side, not part of this reference implementation.
+    are specified normatively but are host-side, not part of this reference implementation. The
+    Agentibus runtime currently exports and imports its own package-directory format; automatic `.acx`
+    export, import, or re-hiring would require a separate adapter that is not shipped today.

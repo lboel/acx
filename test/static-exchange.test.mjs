@@ -22,6 +22,10 @@ import {
   sha256Hex,
   verifyArtifact,
 } from '../platform/static/assets/verify.js'
+import {
+  copyText,
+  preferredShareUrl,
+} from '../platform/static/assets/detail.js'
 import { Cartridge } from '../src/container.mjs'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
@@ -121,9 +125,42 @@ test('browser verifier is explicitly limited to workflow and Agent Graph JSON', 
   assert.match(result.issues.join(' '), /unsupported JSON artifact/)
 })
 
+test('detail-page sharing prefers the canonical URL and uses the browser clipboard', async () => {
+  assert.equal(
+    preferredShareUrl(
+      ' https://example.test/acx/artifacts/workflow/demo/ ',
+      'https://fallback.test/canonical',
+      'https://preview.test/current',
+    ),
+    'https://example.test/acx/artifacts/workflow/demo/',
+  )
+  assert.equal(
+    preferredShareUrl('', 'https://example.test/canonical', 'https://preview.test/current'),
+    'https://example.test/canonical',
+  )
+  assert.equal(
+    preferredShareUrl(null, null, 'https://preview.test/current'),
+    'https://preview.test/current',
+  )
+
+  let copied = ''
+  await copyText('https://example.test/acx/artifact/', {
+    navigatorObject: {
+      clipboard: {
+        writeText: async (value) => {
+          copied = value
+        },
+      },
+    },
+    documentObject: null,
+  })
+  assert.equal(copied, 'https://example.test/acx/artifact/')
+})
+
 test('static exchange app uses safe DOM construction and subpath-relative resources', () => {
   const html = readFileSync(join(STATIC, 'index.html'), 'utf8')
   const app = readFileSync(join(STATIC, 'assets', 'app.js'), 'utf8')
+  const detail = readFileSync(join(STATIC, 'assets', 'detail.js'), 'utf8')
   const css = readFileSync(join(STATIC, 'assets', 'app.css'), 'utf8')
   const studioHtml = readFileSync(join(STATIC, 'studio', 'index.html'), 'utf8')
   const studio = readFileSync(join(STATIC, 'studio', 'studio.js'), 'utf8')
@@ -131,6 +168,9 @@ test('static exchange app uses safe DOM construction and subpath-relative resour
   assert.doesNotMatch(html, /(?:href|src)="\//)
   assert.doesNotMatch(html, /\son[a-z]+=/i)
   assert.doesNotMatch(app, /\.innerHTML|insertAdjacentHTML|document\.write|eval\s*\(|new Function/)
+  assert.doesNotMatch(detail, /\.innerHTML|insertAdjacentHTML|document\.write|eval\s*\(|new Function|\.style\./)
+  assert.match(detail, /data-acx-copy-link/)
+  assert.match(detail, /Canonical share link copied/)
   assert.doesNotMatch(studio, /\.innerHTML|insertAdjacentHTML|document\.write|eval\s*\(|new Function|\.style\./)
   assert.match(studio, /import \{ verifyArtifact \}/)
   assert.match(studio, /failed portable verification/)
@@ -143,7 +183,7 @@ test('static exchange app uses safe DOM construction and subpath-relative resour
   assert.match(studioHtml, /rel="icon" href="\.\.\/assets\/icon\.svg"/)
   assert.doesNotMatch(studioHtml, /frame-ancestors/)
   assert.match(html, /href="\.\/studio\/"/)
-  assert.match(html, /href="\.\.\/share\/">Publish via PR/)
+  assert.match(html, /href="https:\/\/lboel\.github\.io\/acx\/share\/">Publish via PR/)
   assert.match(html, /Install and safe-receive guide/)
   assert.match(app, /studio\/\?source=/)
   assert.match(app, /registryCoordinateIssues/)
@@ -225,6 +265,8 @@ test('static build emits a complete, deterministic exchange with pre-rendered ca
   assert.match(detail, /name="twitter:image" content="https:\/\/example\.test\/tools\/acx\/assets\/share-card\.png"/)
   assert.match(detail, /name="twitter:image:alt"/)
   assert.match(detail, /href="\.\.\/\.\.\/\.\.\/assets\/app\.css\?v=20260719"/)
+  assert.match(detail, /src="\.\.\/\.\.\/\.\.\/assets\/detail\.js\?v=20260719"/)
+  assert.match(detail, /script-src 'self' 'sha256-/)
   assert.match(detail, /type="application\/ld\+json"/)
   assert.match(detail, /<noscript>/)
   assert.match(detail, /rel="icon" href="\.\.\/\.\.\/\.\.\/assets\/icon\.svg"/)
@@ -243,6 +285,9 @@ test('static build emits a complete, deterministic exchange with pre-rendered ca
   assert.match(detail, /<dt>Artifact id<\/dt><dd>ship-a-feature<\/dd>/)
   assert.match(detail, /<dt>Lifecycle<\/dt><dd>active<\/dd>/)
   assert.match(detail, /class="button button-primary"[^>]*>Inspect &amp; verify<\/a>/)
+  assert.match(detail, /data-acx-copy-link="https:\/\/example\.test\/tools\/acx\/artifacts\/workflow\//)
+  assert.match(detail, /aria-describedby="copy-link-status">Copy share link<\/button>/)
+  assert.match(detail, /id="copy-link-status" class="copy-link-status" role="status" aria-live="polite"/)
   assert.ok(detail.indexOf('>Inspect &amp; verify</a>') < detail.indexOf('>Download artifact</a>'))
   assert.ok(detail.includes(`href="${workflowRemixHref}"`))
   assert.match(detail, /Team workflow at a glance/)
@@ -287,6 +332,8 @@ test('static build emits a complete, deterministic exchange with pre-rendered ca
     assert.ok(page.includes(`href="${runtimeDownloadHref}" download`), `${type} runtime download must remain relative`)
     assert.ok(!page.includes(`href="${canonicalDownloadHref}" download`), `${type} runtime download must ignore --site-url`)
     assert.match(page, />Inspect &amp; verify<\/a>/)
+    assert.match(page, />Copy share link<\/button>/)
+    assert.match(page, /role="status" aria-live="polite"/)
     assert.match(page, />Share or publish via PR<\/a>/)
     if (type === 'workflow' || type === 'agent-graph') assert.match(page, />Remix in Studio<\/a>/)
     else assert.doesNotMatch(page, />Remix in Studio<\/a>/)

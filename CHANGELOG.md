@@ -5,11 +5,26 @@ artifact version tracks are explained in [`GOVERNANCE.md`](./GOVERNANCE.md#versi
 
 ## Unreleased
 
-No unreleased changes.
+### Changed
 
-## 0.1.0 — 2026-07-19
+- Reworked the README into a beginner-first path that distinguishes Agent Cartridges, bounded workflows,
+  and Agent Graphs, with runnable clean-clone examples and visual explanations of knowledge routing and
+  the static share/remix loop.
+- Made Exchange and Studio documentation links safe for standalone static deployments instead of
+  assuming they are always mounted beneath the full documentation site.
+- Reframed the fast share path as local preparation, separated every remote GitHub action, added
+  canonical copy-link controls to generated artifact pages, and made the documentation entry points
+  clearer for first-time readers.
 
-Initial public-draft release.
+### Verified
+
+- Re-ran the conformance, smoke, signed-artifact, registry, standalone Exchange, documentation-link, and
+  packed-npm-CLI release gates on the supported Node.js baseline.
+
+## 0.1.0 — release candidate (untagged)
+
+Candidate for the initial public-draft release. Its release date remains unset until `v0.1.0` is
+actually tagged from the reviewed release commit.
 
 ### Added
 

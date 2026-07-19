@@ -1,6 +1,6 @@
 ---
 title: Share ACX
-description: Verify, remix, sign, and publish an ACX agent, workflow, or Agent Graph through one focused pull request.
+description: Verify, remix, sign, and prepare an ACX agent, workflow, or Agent Graph for one focused pull request.
 hide:
   - toc
 ---
@@ -17,7 +17,7 @@ before they trust the claim.
 <div class="acx-actions">
 <a class="acx-button acx-button--primary" href="exchange/">Explore before sharing</a>
 <a class="acx-button" href="exchange/studio/">Remix in Studio</a>
-<a class="acx-button acx-button--quiet" href="#share-in-60-seconds">Publish in 60 seconds</a>
+<a class="acx-button acx-button--quiet" href="#prepare-in-60-seconds">Prepare in 60 seconds</a>
 <button class="acx-button acx-button--quiet" type="button" data-acx-share>Tell another builder</button>
 </div>
 
@@ -52,17 +52,23 @@ before they trust the claim.
 <a class="acx-choice" href="#let-an-agent-prepare-its-own-share-pr">
 <span class="acx-choice__icon" aria-hidden="true">↗</span>
 <strong>Let the agent self-share</strong>
-<small>The bundled Agent Skill verifies an agent, workflow, or graph; prepares canonical paths; rebuilds the index; and drafts a focused PR.</small>
+<small>The bundled Agent Skill verifies an agent, workflow, or graph; prepares canonical paths; rebuilds the index; and drafts a focused PR description.</small>
 <span>Use the skill →</span>
 </a>
 
 </div>
 
-## Share in 60 seconds
+## Prepare in 60 seconds
 
-Already have a signed artifact? Start from a verified checkout. Want a remix first? Open the static
+Already have a signed artifact? In about a minute you can verify it and prepare a reviewable **local
+registry diff**. Want a remix first? Open the static
 [Studio](exchange/studio/), import a workflow or Agent Graph, export the unsigned draft, then sign it
 locally. Studio never receives a private key or writes to the registry.
+
+!!! important "Preparation is not publication"
+    The commands in this section do **not** fork a repository, create a branch, commit, push, open a
+    draft pull request, or merge anything. Those GitHub and Git operations happen separately, after you
+    inspect the prepared bytes and explicitly choose to publish them.
 
 ```bash
 git clone https://github.com/lboel/acx.git && cd acx && npm test
@@ -131,7 +137,20 @@ git diff --check
 git diff -- registry/
 ```
 
-Each successful PR creates an immutable, shareable detail link in the static Exchange. The next person can
+### Publish the prepared diff separately
+
+Only after the local checks pass:
+
+1. fork `lboel/acx` into an account you control;
+2. create a focused branch from the current upstream `main`;
+3. commit only the reviewed artifact, generated discovery metadata, and deterministic index;
+4. push that branch to your fork; and
+5. open a **draft pull request** back to `lboel/acx`.
+
+You perform those steps yourself or explicitly authorize a GitHub-capable agent to perform them. The
+`acx share` command and the 60-second preparation path stop before every remote write.
+
+Each reviewed and merged PR creates an immutable, shareable detail link in the static Exchange. The next person can
 inspect and verify it, preserve its signed lineage in a remix, and publish a new version — without an
 account or proprietary API.
 
@@ -257,7 +276,8 @@ authoring or reviewing the pin.
 
 The repository ships `skills/acx-share-agent/`, a standard Agent Skill usable by Codex and other
 SKILL.md-aware hosts. It teaches an agent to verify itself, a workflow, or an Agent Graph; prepare only
-safe registry paths; regenerate the index; run conformance checks; and draft the pull-request body.
+safe registry paths; regenerate the index; run conformance checks; and draft the pull-request body. Fork,
+branch, commit, push, and draft-PR creation remain separate actions that require explicit authorization.
 
 Install it for Codex:
 
