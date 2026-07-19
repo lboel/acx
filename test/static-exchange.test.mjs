@@ -182,6 +182,7 @@ test('static build emits a complete, deterministic exchange with pre-rendered ca
   assert.match(detail, /property="og:image:height" content="630"/)
   assert.match(detail, /name="twitter:image" content="https:\/\/example\.test\/tools\/acx\/assets\/share-card\.png"/)
   assert.match(detail, /name="twitter:image:alt"/)
+  assert.match(detail, /href="\.\.\/\.\.\/\.\.\/assets\/app\.css\?v=20260719"/)
   assert.match(detail, /type="application\/ld\+json"/)
   assert.match(detail, /<noscript>/)
   assert.match(detail, /https:\/\/example\.test\/tools\/acx\/artifacts\/workflow\//)
@@ -194,6 +195,7 @@ test('static build emits a complete, deterministic exchange with pre-rendered ca
   assert.match(exchangeHome, /property="og:image:height" content="630"/)
   assert.match(exchangeHome, /name="twitter:image" content="https:\/\/example\.test\/tools\/acx\/assets\/share-card\.png"/)
   assert.match(exchangeHome, /name="twitter:image:alt"/)
+  assert.match(exchangeHome, /href="\.\/assets\/app\.css\?v=20260719"/)
   assert.deepEqual(
     readFileSync(join(first, 'assets', 'share-card.png')).subarray(0, 8),
     Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),

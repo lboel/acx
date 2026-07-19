@@ -806,7 +806,7 @@ footer strong { color: white; }
 
 @media (max-width: 620px) {
   .site-header { min-height: 64px; }
-  .site-header > .button { display: none; }
+  .site-header > .button { min-height: 34px; padding: .5rem .72rem; font-size: .72rem; }
   .hero { width: calc(100% - 1rem); min-height: 0; margin-top: .25rem; padding: 2rem 1.3rem; border-radius: 22px; }
   h1 { font-size: clamp(2.7rem, 14vw, 4rem); }
   .hero-actions .button { width: 100%; }

@@ -359,7 +359,7 @@ function renderDetailPage({ type, entry, siteUrl }) {
   ${meta('name', 'twitter:image', shareImage)}
   ${meta('name', 'twitter:image:alt', shareImage ? 'ACX Exchange — discover, verify, remix, and share portable agent teams' : null)}
   <link rel="alternate" type="${htmlEscape(card.mediaType)}" href="${htmlEscape(downloadUrl)}">
-  <link rel="stylesheet" href="../../../assets/app.css">
+  <link rel="stylesheet" href="../../../assets/app.css?v=20260719">
   <script type="application/ld+json">${jsonLd}</script>
 </head>
 <body>
